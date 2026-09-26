@@ -1,0 +1,143 @@
+/* Starter styles, matching the sprint plan's colours. TODO (Role 2): make it look finished (Day 6). */
+
+:root {
+  color-scheme: light;
+  --bg: #f3f5f4;
+  --surface: #ffffff;
+  --ink: #16212b;
+  --muted: #56626c;
+  --line: #d5dcda;
+  --accent: #d9540b;
+  --accent-soft: #fce9de;
+  --grey-soft: #e7ebea;
+  --error: #b42318;
+  --tap-target-size: 48px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #10171d;
+    --surface: #18222a;
+    --ink: #e6ecef;
+    --muted: #9aa7b0;
+    --line: #2b3842;
+    --accent: #ff7a33;
+    --accent-soft: #3a2418;
+    --grey-soft: #212d36;
+    --error: #ff8a80;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.app-header .muted {
+  flex: 1;
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin: 8px 0 16px;
+}
+
+button {
+  min-height: var(--tap-target-size);
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.card-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.trade-icon {
+  font-size: 1.5rem;
+}
+
+.chat {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.bubble {
+  max-width: 80%;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.bubble-mine {
+  justify-self: end;
+  background: var(--accent-soft);
+}
+
+.bubble-theirs {
+  justify-self: start;
+  background: var(--grey-soft);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 0.85rem;
+}
+
+.error {
+  color: var(--error);
+}
+
+.placeholder {
+  padding: 12px;
+  border: 2px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+}

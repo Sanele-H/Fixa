@@ -1,0 +1,21 @@
+{
+  "name": "fixa",
+  "private": true,
+  "description": "Multilingual trades marketplace - hackathon build",
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "concurrently --names api,web --prefix-colors blue,magenta \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "node scripts/run-python.mjs -m uvicorn fixa.api.main:app --reload --reload-dir backend --host 0.0.0.0 --port 8000",
+    "dev:web": "npm --prefix frontend run dev",
+    "test": "npm run test:api && npm run lint:api && npm run build:web",
+    "test:api": "node scripts/run-python.mjs -m pytest backend/tests",
+    "lint:api": "node scripts/run-python.mjs -m ruff check backend experiments",
+    "format:api": "node scripts/run-python.mjs -m ruff format backend experiments",
+    "build:web": "npm --prefix frontend run build",
+    "simulate": "node scripts/run-python.mjs experiments/fairness_simulation/run_simulation.py",
+    "translation-test": "node scripts/run-python.mjs experiments/translation_test/run_translation_test.py"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}
