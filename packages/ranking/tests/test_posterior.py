@@ -10,6 +10,8 @@ from ranking.posterior import (
     PRIOR_FAILURES,
     PRIOR_SUCCESSES,
     RECENCY_HALF_LIFE_DAYS,
+    SuccessPosterior,
+    calculate_credible_range,
     calculate_posterior,
     draw_success_chance,
     weigh_outcome,
@@ -83,3 +85,16 @@ def test_draws_are_chances_and_repeat_with_the_same_seed():
     second_draws = [draw_success_chance(posterior, np.random.default_rng(3)) for _ in range(5)]
     assert first_draws == second_draws
     assert all(0.0 <= draw <= 1.0 for draw in first_draws)
+
+
+@pytest.mark.parametrize(
+    ("successes", "failures"),
+    [(1.6, 0.4), (10.6, 0.4), (30.6, 0.4), (17.6, 4.4), (6.6, 6.4), (2.5, 30.0)],
+)
+def test_credible_range_matches_a_large_random_sample(successes, failures):
+    posterior = SuccessPosterior(successes, failures)
+    draws = np.random.default_rng(0).beta(successes, failures, size=1_000_000)
+    expected_low, expected_high = np.quantile(draws, [0.05, 0.95])
+    low, high = calculate_credible_range(posterior)
+    assert low == pytest.approx(expected_low, abs=0.002)
+    assert high == pytest.approx(expected_high, abs=0.002)

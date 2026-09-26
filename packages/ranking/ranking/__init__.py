@@ -4,15 +4,17 @@ Owner: P4. Only P4 edits files in packages/ranking/. P2's API imports this packa
 
 Public functions (the contract; signatures change only with the team's agreement):
     rank_providers(job, candidates, rng) -> list[RankedProvider]
-    trust_summary(stats) -> TrustSummary(score, low, high, n_evidence, breakdown, label)
+    trust_summary(stats, today=None) -> TrustSummary(score, low, high, n_evidence,
+                                                     breakdown, label)
     price_range(trade, size, area, accepted_quotes) -> PriceRange | None
 
 All randomness takes a seeded rng. The fairness simulation reuses rank_providers unchanged.
 P4 also generates the demo data in data/seed/.
 
-Status: rank_providers is real (step 1). trust_summary and price_range are still stubs with
-the correct return types. The input and output shapes are in ranking.models and are
-exported here.
+Status: rank_providers (step 1) and trust_summary (step 3) are real. trust_summary's
+today is optional and defaults to the real date, so trust_summary(stats) still works.
+price_range is still a stub with the correct return type. The input and output shapes are
+in ranking.models and are exported here.
 """
 
 from ranking.models import (
