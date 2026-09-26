@@ -24,6 +24,13 @@ def test_newcomer_gets_no_score_and_the_new_label():
     assert summary.label == "New, building a record"
 
 
+@pytest.mark.parametrize(("good_jobs", "bad_jobs"), [(0, 1), (0, 8), (2, 1)])
+def test_a_no_show_ends_the_new_label_and_shows_in_the_score(good_jobs, bad_jobs):
+    summary = trust_summary(make_stats(good_jobs, bad_jobs), TODAY)
+    assert summary.score is not None
+    assert summary.label != "New, building a record"
+
+
 def test_score_sits_inside_its_range_with_two_decimals():
     summary = trust_summary(make_stats(good_jobs=12, bad_jobs=3), TODAY)
     assert 0 <= summary.low <= summary.score <= summary.high <= 1

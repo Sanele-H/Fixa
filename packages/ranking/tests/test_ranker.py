@@ -104,6 +104,13 @@ def test_a_far_newcomer_gets_the_last_top_place_on_small_and_medium_jobs(size):
         assert rank_ids(candidates, make_job(size), seed)[TOP_PLACES - 1] == "newcomer"
 
 
+def test_a_provider_with_only_no_shows_gets_no_newcomer_slot():
+    candidates = [make_candidate(f"pro_{km}", float(km)) for km in range(1, 7)]
+    candidates.append(make_candidate("no_shows", 10.0, stats=make_stats(bad_jobs=8)))
+    for seed in SEEDS:
+        assert "no_shows" not in rank_ids(candidates, seed=seed)[:TOP_PLACES]
+
+
 def test_large_jobs_have_no_newcomer_slot():
     candidates = [make_candidate(f"pro_{km}", float(km)) for km in range(1, 7)]
     candidates.append(make_newcomer("newcomer", 10.0))
