@@ -71,9 +71,12 @@ def score_candidate(candidate: Candidate, job: JobRequest, rng: np.random.Genera
     Reads only the provider's job evidence and distance.
     """
     posterior = calculate_posterior(candidate.stats, job.posted_on)
-    success_chance = draw_success_chance(posterior, rng)
-    closeness = calculate_closeness(candidate.distance_km)
-    return DISTANCE_WEIGHT * closeness + SUCCESS_WEIGHT * success_chance
+    return combine_score(candidate.distance_km, draw_success_chance(posterior, rng))
+
+
+def combine_score(distance_km: float, success_chance: float) -> float:
+    """Combines closeness and a chance of success into one score; distance weighs most."""
+    return DISTANCE_WEIGHT * calculate_closeness(distance_km) + SUCCESS_WEIGHT * success_chance
 
 
 def calculate_closeness(distance_km: float) -> float:
