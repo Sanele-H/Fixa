@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Placeholder icon (Role 2: replace with the real one). Ink square with a hi-vis stripe. -->
-  <rect width="512" height="512" rx="96" fill="#16212B"/>
-  <path d="M96 352 L352 96 L416 96 L416 160 L160 416 L96 416 Z" fill="#D9540B"/>
-</svg>
