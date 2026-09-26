@@ -1,0 +1,110 @@
+/*
+ * Fixa design tokens. Every colour, size, radius and shadow in the app comes from here,
+ * so restyling the app means editing this file, not the screens.
+ *
+ * The look: a grey canvas with soft rounded cards, black for whatever is selected or is
+ * the main action, and two accents. Lime means "go / new / positive" (main calls to action,
+ * newcomers, ARPL progress). Lavender means "trust / information" (trust ranges, translation
+ * notes). Important numbers are shown big and light, like a clock face.
+ *
+ * Light theme only for now. A dark theme would redefine these same names under
+ * @media (prefers-color-scheme: dark).
+ */
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --color-canvas: #e7e7e4; /* page background, the grey behind the cards */
+  --color-surface: #f6f6f4; /* default card */
+  --color-surface-raised: #ffffff; /* inputs, raised cards, round icon buttons */
+  --color-line: #d8d8d3; /* hairlines and card borders */
+  --color-line-strong: #b4b4ad; /* dashed placeholders, input borders */
+
+  /* Ink (text and icons) */
+  --color-ink: #101010;
+  --color-ink-soft: #3b3b3b;
+  --color-ink-muted: #636363; /* 4.5:1 on the canvas, so safe for small text */
+
+  /* Inverse: the black "selected" card and primary buttons */
+  --color-inverse: #111111;
+  --color-inverse-raised: #242424;
+  --color-inverse-line: #333333;
+  --color-on-inverse: #ffffff;
+  --color-on-inverse-muted: #a8a8a8;
+
+  /* Accent: lime */
+  --color-lime: #d9f46b;
+  --color-lime-soft: #eff9c8;
+  --color-lime-dim: #3c4420; /* lime track on inverse cards */
+  --color-on-lime: #111111;
+
+  /* Accent: lavender */
+  --color-lavender: #b9a9f6;
+  --color-lavender-soft: #e9e4fd;
+  --color-lavender-strong: #6d56d8; /* lavender marks on light cards (3:1 against white) */
+  --color-lavender-dim: #3a3366; /* lavender track on inverse cards */
+  --color-on-lavender: #111111;
+
+  /* Status: reserved for state, always shown with an icon and words, never colour alone */
+  --color-warning: #f3b92c;
+  --color-warning-soft: #fdf0cc;
+  --color-on-warning-soft: #5c4300;
+  --color-critical: #d6412f;
+  --color-critical-soft: #fbe2de;
+  --color-on-critical-soft: #7a1c10;
+
+  /* Type */
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --text-xs: 0.75rem; /* 12px: eyebrows, captions */
+  --text-sm: 0.875rem; /* 14px: secondary text */
+  --text-md: 1rem; /* 16px: body */
+  --text-lg: 1.25rem; /* 20px: card titles */
+  --text-xl: 1.75rem; /* 28px: screen titles */
+  --text-2xl: 2.5rem; /* 40px: figures in cards (R450, 01:40) */
+  --text-hero: clamp(3.5rem, 20vw, 5.5rem); /* the one big clock-face number per screen */
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --leading-tight: 1.05;
+  --leading-snug: 1.25;
+  --leading-body: 1.45;
+  --tracking-tight: -0.02em;
+  --tracking-hero: -0.045em;
+  --tracking-eyebrow: 0.02em;
+
+  /* Spacing (4px steps) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* Shape */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* Depth */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-raised: 0 2px 8px rgb(0 0 0 / 0.06);
+  --shadow-float: 0 10px 28px rgb(0 0 0 / 0.14);
+
+  /* Layout: built for Chrome on Android at 360px wide */
+  --screen-max-width: 480px;
+  --gutter: 16px;
+  --tap-min: 44px; /* smallest tap target */
+  --icon-button-size: 48px;
+  --nav-clearance: 112px; /* room left under a tab screen so the floating nav never covers content */
+
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-normal: 200ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
