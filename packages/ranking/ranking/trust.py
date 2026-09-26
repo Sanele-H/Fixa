@@ -5,7 +5,8 @@ range holds its middle 90%. Only job evidence goes in: never photos, names, lang
 nationality.
 
 Labels:
-- "New, building a record": fewer than 3 completed in-app jobs. No score is shown yet.
+- "New, building a record": fewer than 3 completed in-app jobs and no no-shows. No score
+  is shown yet.
 - "Strong record": even the low end of the range is at least 0.8.
 - "Good record": the score is at least 0.7.
 - "Mixed record": anything below that.

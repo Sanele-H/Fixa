@@ -11,6 +11,11 @@ def count_completed_jobs(stats: ProviderStats) -> int:
     return sum(1 for outcome in stats.outcomes if outcome.completed and not outcome.off_app)
 
 
+def count_no_shows(stats: ProviderStats) -> int:
+    """Counts in-app no-shows: jobs the provider missed or cancelled after confirming."""
+    return sum(1 for outcome in stats.outcomes if not outcome.completed and not outcome.off_app)
+
+
 def count_off_app_confirmed(stats: ProviderStats) -> int:
     """Counts off-app jobs the customer confirmed."""
     return sum(1 for outcome in stats.outcomes if outcome.completed and outcome.off_app)
@@ -30,12 +35,17 @@ def calculate_still_working_rate(stats: ProviderStats) -> float | None:
 
 
 def is_newcomer(stats: ProviderStats) -> bool:
-    """True while the provider has fewer than ESTABLISHED_AT_COMPLETED_JOBS completed in-app jobs.
+    """True while the provider has fewer than ESTABLISHED_AT_COMPLETED_JOBS completed in-app jobs
+    and no in-app no-shows.
 
     Off-app jobs don't count here: a provider new to the app is shown as new, however
-    much work they did before joining.
+    much work they did before joining. A no-show ends it early: from then on the provider
+    gets a trust score like everyone else, so customers can see the no-show, and they no
+    longer get the newcomer slot.
     """
-    return count_completed_jobs(stats) < ESTABLISHED_AT_COMPLETED_JOBS
+    return (
+        count_no_shows(stats) == 0 and count_completed_jobs(stats) < ESTABLISHED_AT_COMPLETED_JOBS
+    )
 
 
 def build_trust_breakdown(stats: ProviderStats) -> TrustBreakdown:

@@ -6,8 +6,8 @@
    provider's chance of doing the job well. A provider with little evidence has a wide
    posterior, so their draws vary and they get shown some of the time: that's exploring.
 3. On small and medium jobs, one of the top 5 is always a newcomer (fewer than 3
-   completed jobs) if any newcomer can take the job. Large jobs are ranked on score alone,
-   so newcomers are shown small jobs first.
+   completed jobs and no no-shows) if any newcomer can take the job. Large jobs are ranked
+   on score alone, so newcomers are shown small jobs first.
 
 Only job evidence and distance are scored. ID badges, names, photos, language and
 nationality are never inputs.
