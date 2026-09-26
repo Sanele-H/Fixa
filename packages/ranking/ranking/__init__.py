@@ -11,4 +11,39 @@ All randomness takes a seeded rng. The fairness simulation reuses rank_providers
 P4 also generates the demo data in data/seed/.
 
 Step 0 (Day 1): stubs with the correct return types, so the API can import them.
+The input and output shapes are in ranking.models and are exported here.
 """
+
+from ranking.models import (
+    AcceptedQuote,
+    Candidate,
+    Evidence,
+    JobOutcome,
+    JobRequest,
+    PriceRange,
+    ProviderStats,
+    RankedProvider,
+    TrustBadge,
+    TrustBreakdown,
+    TrustSummary,
+)
+from ranking.pricing import price_range
+from ranking.ranker import rank_providers
+from ranking.trust import trust_summary
+
+__all__ = [
+    "AcceptedQuote",
+    "Candidate",
+    "Evidence",
+    "JobOutcome",
+    "JobRequest",
+    "PriceRange",
+    "ProviderStats",
+    "RankedProvider",
+    "TrustBadge",
+    "TrustBreakdown",
+    "TrustSummary",
+    "price_range",
+    "rank_providers",
+    "trust_summary",
+]
