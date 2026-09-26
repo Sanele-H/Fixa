@@ -11,6 +11,7 @@ The ranking draws once from this posterior per search (Thompson sampling). The t
 summary (step 3) shows its mean and a range.
 """
 
+import functools
 from dataclasses import dataclass
 from datetime import date
 
@@ -24,6 +25,10 @@ PRIOR_SUCCESSES = 1.6
 PRIOR_FAILURES = 0.4
 RECENCY_HALF_LIFE_DAYS = 365
 OFF_APP_WEIGHT = 0.5  # P2's rule: off-app jobs count for less than in-app jobs
+RANGE_COVERAGE = 0.9  # the trust range holds the middle 90% of plausible values
+RANGE_GRID_POINTS = 1000  # quantiles come out within about 0.0003 of the exact values
+RANGE_PARAMETER_DECIMALS = 2  # posteriors this close share a cached range
+RANGE_CACHE_SIZE = 50_000
 
 
 @dataclass(frozen=True)
@@ -79,3 +84,42 @@ def draw_success_chance(posterior: SuccessPosterior, rng: np.random.Generator) -
     search: that's how newcomers get shown while we're still unsure about them.
     """
     return float(rng.beta(posterior.successes, posterior.failures))
+
+
+def calculate_credible_range(
+    posterior: SuccessPosterior, coverage: float = RANGE_COVERAGE
+) -> tuple[float, float]:
+    """Returns the range holding the middle `coverage` share of the posterior, as (low, high).
+
+    Parameters are rounded to RANGE_PARAMETER_DECIMALS so that near-identical posteriors
+    share one cached answer: the trust summary shows 2 decimals, so nothing visible changes.
+    """
+    return calculate_beta_range(
+        round(posterior.successes, RANGE_PARAMETER_DECIMALS),
+        round(posterior.failures, RANGE_PARAMETER_DECIMALS),
+        coverage,
+    )
+
+
+@functools.lru_cache(maxsize=RANGE_CACHE_SIZE)
+def calculate_beta_range(successes: float, failures: float, coverage: float) -> tuple[float, float]:
+    """Returns the middle `coverage` range of Beta(successes, failures), without scipy.
+
+    Writes x = sin(angle)^2 and adds up the distribution's mass on an even grid of angles.
+    That puts the grid points close together near 0 and 1, where a strong record's
+    distribution has a spike (infinite density when a parameter is below 1), so the
+    quantiles stay accurate there too. Each cell's running total is matched with the x
+    at the cell's right edge.
+    """
+    edge_angles = np.arange(RANGE_GRID_POINTS + 1) / RANGE_GRID_POINTS * (np.pi / 2)
+    middle_angles = (edge_angles[:-1] + edge_angles[1:]) / 2
+    log_mass = (2 * successes - 1) * np.log(np.sin(middle_angles)) + (2 * failures - 1) * np.log(
+        np.cos(middle_angles)
+    )
+    mass = np.exp(log_mass - log_mass.max())
+    cumulative_share = np.concatenate([[0.0], np.cumsum(mass) / mass.sum()])
+    edge_values = np.sin(edge_angles) ** 2
+    tail_share = (1 - coverage) / 2
+    low = float(np.interp(tail_share, cumulative_share, edge_values))
+    high = float(np.interp(1 - tail_share, cumulative_share, edge_values))
+    return low, high

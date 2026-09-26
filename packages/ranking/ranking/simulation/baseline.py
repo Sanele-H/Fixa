@@ -23,7 +23,8 @@ def rank_by_rating(
     the same signature as rank_providers.
     """
     in_trade = [candidate for candidate in candidates if job.trade in candidate.trades]
-    return [build_ranked_provider(candidate) for candidate in sorted(in_trade, key=sort_by_rating)]
+    best_first = sorted(in_trade, key=sort_by_rating)
+    return [build_ranked_provider(candidate, job.posted_on) for candidate in best_first]
 
 
 def sort_by_rating(candidate: Candidate) -> tuple:
@@ -47,7 +48,7 @@ def rank_without_exploring(
     eligible_candidates = [candidate for candidate in candidates if can_take_job(candidate, job)]
     scores = [score_by_expected_success(candidate, job) for candidate in eligible_candidates]
     best_first = order_by_score(eligible_candidates, scores)
-    return [build_ranked_provider(candidate) for candidate in best_first]
+    return [build_ranked_provider(candidate, job.posted_on) for candidate in best_first]
 
 
 def score_by_expected_success(candidate: Candidate, job: JobRequest) -> float:

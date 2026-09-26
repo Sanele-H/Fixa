@@ -13,6 +13,8 @@ Only job evidence and distance are scored. ID badges, names, photos, language an
 nationality are never inputs.
 """
 
+from datetime import date
+
 import numpy as np
 
 from ranking.evidence import build_evidence, is_newcomer
@@ -52,7 +54,7 @@ def rank_providers(
     best_first = order_by_score(eligible_candidates, scores)
     if job.size in NEWCOMER_SLOT_JOB_SIZES:
         best_first = move_newcomer_into_top(best_first)
-    return [build_ranked_provider(candidate) for candidate in best_first]
+    return [build_ranked_provider(candidate, job.posted_on) for candidate in best_first]
 
 
 def can_take_job(candidate: Candidate, job: JobRequest) -> bool:
@@ -108,8 +110,8 @@ def move_newcomer_into_top(best_first: list[Candidate]) -> list[Candidate]:
     return others[:slot_index] + [newcomer] + others[slot_index:]
 
 
-def build_ranked_provider(candidate: Candidate) -> RankedProvider:
-    """Builds one provider card: display fields, evidence strip and trust badge."""
+def build_ranked_provider(candidate: Candidate, today: date) -> RankedProvider:
+    """Builds one provider card: display fields, evidence strip, and trust as of today."""
     return RankedProvider(
         provider_id=candidate.provider_id,
         display_name=candidate.display_name,
@@ -118,5 +120,5 @@ def build_ranked_provider(candidate: Candidate) -> RankedProvider:
         is_newcomer=is_newcomer(candidate.stats),
         id_badge=candidate.id_badge,
         evidence=build_evidence(candidate),
-        trust=trust_summary(candidate.stats).to_badge(),
+        trust=trust_summary(candidate.stats, today).to_badge(),
     )
