@@ -66,7 +66,7 @@ Phones only allow the camera, location and the service worker over HTTPS. `npm r
 1. Install cloudflared once. On Windows, run `winget install --id Cloudflare.cloudflared`. For other systems, see the [downloads page](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/).
 2. Run `npm run dev` in one terminal.
 3. Run `npm run tunnel` in a second terminal.
-4. Open the `https://….trycloudflare.com` address it prints on your phone.
+4. Open the `https://….trycloudflare.com` address it prints on your phone. To check every screen, add `/dev/screens` to the address. That page lists all the screens and has a customer/provider switch.
 
 Keep both terminals open. Closing either one breaks the link.
 
