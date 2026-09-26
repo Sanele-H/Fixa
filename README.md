@@ -50,7 +50,7 @@ npm run dev        # API on :8000, app on :5173
 
 - App: http://localhost:5173
 - API docs: http://localhost:8000/docs
-- On a phone: install [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/), then run `npm run tunnel` and open the `https://…trycloudflare.com` address it prints. Phones need HTTPS for the camera, location and the service worker.
+- On a phone: see [Testing on your phone](#testing-on-your-phone) below.
 
 | Command | What it does |
 |---|---|
@@ -58,6 +58,33 @@ npm run dev        # API on :8000, app on :5173
 | `npm run test:py` | Python tests only (API and all packages) |
 | `npm run format:py` | Auto-format Python |
 | `npm run dev:api` / `npm run dev:app` | Run one side only |
+
+## Testing on your phone
+
+Phones only allow the camera, location and the service worker over HTTPS. `npm run tunnel` gives your local app a public HTTPS address using a Cloudflare quick tunnel. You don't need a Cloudflare account, and the phone doesn't need to be on your Wi-Fi.
+
+1. Install cloudflared once. On Windows, run `winget install --id Cloudflare.cloudflared`. For other systems, see the [downloads page](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/).
+2. Run `npm run dev` in one terminal.
+3. Run `npm run tunnel` in a second terminal.
+4. Open the `https://….trycloudflare.com` address it prints on your phone.
+
+Keep both terminals open. Closing either one breaks the link.
+
+You only need one tunnel. The phone only talks to Vite, and Vite forwards `/api` to FastAPI.
+
+**The address changes every time** you restart the tunnel. Share the new link with the team each time.
+
+**`'cloudflared' is not recognized`** right after installing: your terminal still has the old PATH. Fully restart VS Code, because a new terminal tab isn't enough. Or reload PATH in the current PowerShell:
+
+```powershell
+$env:Path = [Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [Environment]::GetEnvironmentVariable("Path","User")
+```
+
+**The page doesn't load:** check the tunnel terminal for `ERR` lines. `connectex: No connection could be made` means `npm run dev` isn't running. A new address can also take a few seconds before it answers.
+
+You can ignore the `--origin-ca-pool` line in the tunnel log. It only matters if your local server uses HTTPS.
+
+**Layout only?** Run `npm --prefix app run dev -- --host` and open `http://<your-computer's-LAN-IP>:5173` on a phone on the same Wi-Fi. Over plain HTTP the camera, location and PWA install won't work, so use the tunnel for real testing.
 
 ## Your first hour
 
