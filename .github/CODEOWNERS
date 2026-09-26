@@ -1,0 +1,23 @@
+# Who reviews what. Fill in GitHub usernames after roles are picked on Day 1, then uncomment.
+# GitHub then asks the owner to review any PR that touches their area.
+
+# Role 1 - Language and translation
+# /backend/fixa/translation/        @github-username
+# /experiments/translation_test/    @github-username
+
+# Role 2 - App and demo screens
+# /frontend/                        @github-username
+# /backend/fixa/seed/               @github-username
+
+# Role 3 - Backend and safety
+# /backend/fixa/api/                @github-username
+# /backend/fixa/domain/             @github-username
+# /backend/fixa/services/           @github-username
+# /backend/fixa/storage/            @github-username
+# /backend/fixa/safety/             @github-username
+# /backend/fixa/classification/     @github-username
+
+# Role 4 - Fairness, research and pitch
+# /backend/fixa/ranking/            @github-username
+# /experiments/fairness_simulation/ @github-username
+# /research/                        @github-username

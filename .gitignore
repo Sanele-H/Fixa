@@ -1,0 +1,29 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Generated experiment output (commit the final chart on purpose with `git add -f`)
+experiments/**/results/*
+!experiments/**/results/.gitkeep
+
+# Interview notes can contain personal information (POPIA). Keep raw notes off GitHub.
+research/interviews/raw/
+
+# Editors and OS
+.DS_Store
+Thumbs.db
+.idea/
