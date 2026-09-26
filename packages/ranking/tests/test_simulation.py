@@ -1,5 +1,6 @@
 """The fairness simulation: its measures, the comparison rankers, and a small full run."""
 
+import bisect
 import copy
 from datetime import date, timedelta
 
@@ -14,6 +15,13 @@ from ranking.simulation import (
     compare_rankers,
 )
 from ranking.simulation.baseline import rank_by_rating, rank_without_exploring
+from ranking.simulation.fairness import (
+    GROUP_NAMES,
+    SKILL_BAND_EDGES,
+    calculate_monthly_jobs,
+    check_fairness,
+    compare_with_same_skill,
+)
 from ranking.simulation.metrics import (
     calculate_gini,
     calculate_median_wait_days,
@@ -28,6 +36,7 @@ from ranking.simulation.world import SimConfig, create_jobs, create_providers
 SMALL_CONFIG = SimConfig(provider_count=60, job_count=400, day_count=100)
 SEED = 5
 TODAY = date(2026, 9, 29)
+PNG_SIGNATURE = bytes([0x89]) + b"PNG"
 LAST_MONTH = TODAY - timedelta(days=30)
 SMALL_JOB = JobRequest(trade="plumbing", size="small", posted_on=TODAY)
 
@@ -133,9 +142,38 @@ def test_exploring_costs_little_job_quality(summaries):
     assert no_exploring["average_hired_skill"] - fixa["average_hired_skill"] < 0.03
 
 
-def test_report_writes_three_charts_and_a_summary(results, tmp_path):
+def test_fairness_check_covers_every_provider_once(results):
+    groups = check_fairness(results[FIXA_RANKER_NAME], SMALL_CONFIG)
+    assert [group.group for group in groups] == list(GROUP_NAMES)
+    assert sum(group.provider_count for group in groups) == SMALL_CONFIG.provider_count
+
+
+def test_work_is_compared_within_each_skill_band(results):
+    result = results[FIXA_RANKER_NAME]
+    relative_work = compare_with_same_skill(
+        result.providers, calculate_monthly_jobs(result, SMALL_CONFIG)
+    )
+    bands = {bisect.bisect(SKILL_BAND_EDGES, provider.true_skill) for provider in result.providers}
+    for band in bands:
+        band_ratios = [
+            relative_work[provider.provider_id]
+            for provider in result.providers
+            if bisect.bisect(SKILL_BAND_EDGES, provider.true_skill) == band
+        ]
+        assert sum(band_ratios) / len(band_ratios) == pytest.approx(1.0)
+
+
+def test_report_writes_five_charts_and_a_summary(results, tmp_path):
     write_report(results, SMALL_CONFIG, SEED, tmp_path)
-    for file_name in ["work_concentration.png", "newcomer_first_job.png", "job_quality.png"]:
-        assert (tmp_path / file_name).read_bytes().startswith(b"\x89PNG")
+    chart_file_names = [
+        "work_concentration.png",
+        "newcomer_first_job.png",
+        "job_quality.png",
+        "fairness_work.png",
+        "fairness_scores.png",
+    ]
+    for file_name in chart_file_names:
+        assert (tmp_path / file_name).read_bytes().startswith(PNG_SIGNATURE)
     summary = (tmp_path / "summary.md").read_text(encoding="utf-8")
     assert "| Jobs to the busiest 10% of providers |" in summary
+    assert "| isiZulu |" in summary

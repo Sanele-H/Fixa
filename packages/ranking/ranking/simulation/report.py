@@ -6,6 +6,8 @@ Chart titles are written from the numbers, so they stay true if the ranking is t
 from pathlib import Path
 
 from ranking.simulation.charts import SERIES_COLORS, draw_bar_chart, draw_step_chart
+from ranking.simulation.fairness import check_fairness
+from ranking.simulation.fairness_report import build_fairness_markdown, draw_fairness_charts
 from ranking.simulation.metrics import (
     HIRED_WITHIN_DAYS,
     WAIT_WINDOW_DAYS,
@@ -27,7 +29,7 @@ PERCENTAGE_POINTS = 100
 def write_report(
     results: dict[str, SimulationResult], config: SimConfig, seed: int, results_dir_path: Path
 ) -> dict[str, dict]:
-    """Writes the three charts and summary.md, and returns each ranker's measures.
+    """Writes the five charts and summary.md, and returns each ranker's measures.
 
     results must list Fixa's ranking first, sort-by-rating second and Fixa without
     exploring third, as compare_rankers does. Colours follow that order on every chart.
@@ -37,7 +39,12 @@ def write_report(
     draw_work_chart(results_dir_path / WORK_CHART_FILE_NAME, summaries, colors, config)
     draw_newcomer_chart(results_dir_path / NEWCOMER_CHART_FILE_NAME, results, colors, config)
     draw_quality_chart(results_dir_path / QUALITY_CHART_FILE_NAME, summaries, colors)
-    summary_markdown = build_summary_markdown(summaries, config, seed)
+    main_names = list(results)[:MAIN_RANKER_COUNT]
+    fairness_by_ranker = {name: check_fairness(results[name], config) for name in main_names}
+    draw_fairness_charts(results_dir_path, fairness_by_ranker, colors)
+    summary_markdown = build_summary_markdown(summaries, config, seed) + build_fairness_markdown(
+        fairness_by_ranker
+    )
     (results_dir_path / SUMMARY_FILE_NAME).write_text(
         summary_markdown, encoding="utf-8", newline="\n"
     )
