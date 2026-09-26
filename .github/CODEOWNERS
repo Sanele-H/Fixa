@@ -1,23 +1,22 @@
-# Who reviews what. Fill in GitHub usernames after roles are picked on Day 1, then uncomment.
-# GitHub then asks the owner to review any PR that touches their area.
+# One folder per person (build plan rule). Put GitHub usernames in, then uncomment.
+# GitHub will then ask the owner to review any PR that touches their folder.
 
-# Role 1 - Language and translation
-# /backend/fixa/translation/        @github-username
-# /experiments/translation_test/    @github-username
+# Whole team: contracts change only after a heads-up in the group chat
+# /contracts/            @p1-username @p2-username @p3-username @p4-username
 
-# Role 2 - App and demo screens
-# /frontend/                        @github-username
-# /backend/fixa/seed/               @github-username
+# P1 - Phone app (PWA)
+# /app/                  @p1-username
 
-# Role 3 - Backend and safety
-# /backend/fixa/api/                @github-username
-# /backend/fixa/domain/             @github-username
-# /backend/fixa/services/           @github-username
-# /backend/fixa/storage/            @github-username
-# /backend/fixa/safety/             @github-username
-# /backend/fixa/classification/     @github-username
+# P2 - Core API and privacy
+# /api/                  @p2-username
 
-# Role 4 - Fairness, research and pitch
-# /backend/fixa/ranking/            @github-username
-# /experiments/fairness_simulation/ @github-username
-# /research/                        @github-username
+# P3 - Language and safety
+# /packages/lang/        @p3-username
+# /data/glossary.json    @p3-username
+# /data/test_messages.json @p3-username
+# /data/number_words.json  @p3-username
+
+# P4 - Ranking, fairness and record
+# /packages/ranking/     @p4-username
+# /packages/record/      @p4-username
+# /data/seed/            @p4-username

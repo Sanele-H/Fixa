@@ -1,0 +1,13 @@
+{
+  "id": "msg_001",
+  "job_id": "job_001",
+  "sender_id": "prov_002",
+  "text": "I can come on Tuesday, R450.",
+  "original": "Ngingafika ngoLwesibili, R450.",
+  "original_lang": "zu",
+  "flagged": false,
+  "flag_reason": null,
+  "contacts_hidden": false,
+  "scam_warnings": [],
+  "sent_at": "2026-09-29T08:21:00+02:00"
+}

@@ -1,0 +1,80 @@
+# Fixa API contract
+
+> **DRAFT for the Day 1 morning meeting.** Change anything here together, then delete this line.
+> After that, a contract only changes with a heads-up in the group chat, and `api.md` and `fixtures/` change in the same commit.
+
+- Every endpoint starts with `/api`, except the plain-HTML link pages (`/verify/…`, `/record/…`).
+- JSON uses **snake_case**, the same names as the Python package functions.
+- Auth: send `Authorization: Bearer <token>` from `POST /api/auth/verify`. Demo users log in with OTP `123456`.
+- Text a user reads (job problems, chat, warnings) comes back already translated into **their** language, with the original alongside.
+- isiZulu wording in the fixtures is placeholder text. A native speaker checks it before it goes on screen.
+- Each endpoint's example response is in `fixtures/`. The app's MSW mocks serve these files, and the API returns them until the real code exists.
+
+## Codes
+
+| Code | Values |
+|---|---|
+| Language | `en` · `zu` · `xh` |
+| Trade | The 11 trade ids in `data/glossary.json` (for example `plumbing`, `electrical`) |
+| Job size | `small` · `medium` · `large` |
+| Urgency | `low` · `normal` · `urgent` |
+| Job state | `posted` → `quoting` → `quote_accepted` → **`confirmed`** → `in_progress` → `done` → `followed_up`, plus `cancelled` |
+| Quote state | `open` · `accepted` · `declined` · `withdrawn` |
+| ID badge | `none` · `id_number` · `home_affairs` |
+| Record mode | `arpl` · `statement` |
+
+**Job states:**
+
+- Contact details unlock at `confirmed`.
+- If the provider declines, the job goes back to `quoting`.
+- Any state can move to `cancelled`.
+
+**Privacy gate:**
+
+- Before `confirmed`, every response uses `JobPublic`, which shows the suburb and the problem only.
+- `JobUnlocked` adds the address, both phone numbers and the provider's photo. Only the job's customer and its confirmed provider ever receive it.
+
+## Endpoints
+
+| Method | Path | Who | Body / query | Response (fixture) |
+|---|---|---|---|---|
+| GET | `/api/health` | anyone | | `health.json` |
+| POST | `/api/auth/otp` | anyone | `{phone}` | 204 |
+| POST | `/api/auth/verify` | anyone | `{phone, otp}` | `auth_verify.json` |
+| GET | `/api/me` | user | | `me.json` |
+| PATCH | `/api/me` | user | `{lang}` | `me.json` |
+| POST | `/api/jobs/understand` | customer | `{text, lang}` | `job_intent.json` |
+| POST | `/api/photos` | user | multipart `photo` (shrunk on the phone) | `photo.json` |
+| POST | `/api/jobs` | customer | `{description, lang, trade, urgency, size, suburb, photo_id?}` | 201 `job_public.json` |
+| GET | `/api/jobs/{job_id}` | job's customer, shortlisted providers | | `job_public.json`, or `job_unlocked.json` from `confirmed` on |
+| GET | `/api/jobs/{job_id}/providers` | job's customer | | `ranked_providers.json` |
+| GET | `/api/providers/{provider_id}` | user | | `provider_profile.json` |
+| GET | `/api/feed` | provider | | `feed.json` |
+| GET | `/api/price-range` | user | `?trade=&size=&suburb=` | `price_range.json`, or `null` below 8 quotes |
+| POST | `/api/jobs/{job_id}/quotes` | provider | `{amount_rands, when, message?}` | 201 `quote.json` |
+| GET | `/api/jobs/{job_id}/quotes` | job's customer, quoting provider | | `quotes.json` |
+| POST | `/api/quotes/{quote_id}/accept` | job's customer | | `job_public.json` (state `quote_accepted`) |
+| POST | `/api/jobs/{job_id}/confirm` | accepted provider | | `job_unlocked.json` (state `confirmed`) |
+| POST | `/api/jobs/{job_id}/decline` | accepted provider | | `job_public.json` (state `quoting`) |
+| POST | `/api/jobs/{job_id}/cancel` | job's customer | | `job_public.json` (state `cancelled`) |
+| GET | `/api/jobs/{job_id}/messages` | job parties | `?after=<message_id>` (polled every 3 s) | `messages.json` |
+| POST | `/api/jobs/{job_id}/messages` | job parties | `{text}` | 201 `message.json` |
+| POST | `/api/identity/check-number` | provider | `{id_number}` (offline check) | `id_number_check.json` |
+| POST | `/api/identity/verify` | provider | `{id_number, names, consent: true}` | `id_result.json` |
+| POST | `/api/off-app-jobs` | provider | `{customer_phone, trade_task, date, suburb, amount_rands?}` | 201 `off_app_job.json` |
+| POST | `/api/sms/inbound` | Africa's Talking webhook | form fields from Africa's Talking | 200 |
+| POST | `/api/record/export` | provider | `{mode}` | `record_export.json` |
+| GET | `/record/{provider_id}` | anyone with the link | | Plain-HTML work record page, no JavaScript |
+| GET | `/verify/{code}` | anyone with the link | | Plain-HTML verify page, no JavaScript |
+
+## Shapes
+
+These are the shapes of the objects in the fixtures, and each fixture is the source of truth for its shape.
+
+- **User** (`me.json`): `id, role (customer|provider), display_name, lang, suburb, id_badge`
+- **JobPublic**: `id, state, trade, size, urgency, suburb, problem, problem_original, problem_lang, translation_flagged, photo_url, distance_km, created_at`
+- **JobUnlocked**: JobPublic plus `address, customer_phone, provider_phone, provider_photo_url`
+- **RankedProvider**: `provider_id, display_name, trades, distance_km, is_newcomer, id_badge, evidence {jobs, repeat_customers, photos, off_app_confirmed}, trust {score, low, high, label}`
+- **Quote**: `id, job_id, provider_id, amount_rands, when, message, state, created_at`
+- **Message**: `id, job_id, sender_id, text, original, original_lang, flagged, flag_reason, contacts_hidden, scam_warnings, sent_at`
+- **PriceRange**: `trade, size, suburb, low_rands, high_rands, n_quotes`

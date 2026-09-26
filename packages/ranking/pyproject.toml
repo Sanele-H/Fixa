@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fixa-ranking"
+version = "0.1.0"
+description = "Fair ranking, trust summary, price range and the fairness simulation for Fixa (P4)"
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic>=2",
+  "numpy>=1.26",
+  "pandas>=2.1",
+  "matplotlib>=3.8",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.setuptools.packages.find]
+include = ["ranking*"]

@@ -1,0 +1,15 @@
+{
+  "_about": "The 30 realistic test messages for the translation test (P3). Mixed English and isiZulu, the way people really text. Each lists what must come through translation unchanged. A native speaker writes or checks every non-English message.",
+  "messages": [
+    {
+      "id": "m01",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Ngingafika ngoLwesibili, R450.",
+      "must_keep_numbers": ["R450"],
+      "must_keep_terms": [],
+      "must_keep_meaning": ["Tuesday"],
+      "notes": "Demo step 4 wording from the build plan. Needs a native-speaker check."
+    }
+  ]
+}
