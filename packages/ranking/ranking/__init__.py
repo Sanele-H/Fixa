@@ -10,8 +10,9 @@ Public functions (the contract; signatures change only with the team's agreement
 All randomness takes a seeded rng. The fairness simulation reuses rank_providers unchanged.
 P4 also generates the demo data in data/seed/.
 
-Step 0 (Day 1): stubs with the correct return types, so the API can import them.
-The input and output shapes are in ranking.models and are exported here.
+Status: rank_providers is real (step 1). trust_summary and price_range are still stubs with
+the correct return types. The input and output shapes are in ranking.models and are
+exported here.
 """
 
 from ranking.models import (
