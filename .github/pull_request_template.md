@@ -1,16 +1,16 @@
 ## What this changes
 
-<!-- One or two sentences. Which demo step or deliverable does it move forward? -->
+<!-- One or two sentences. Which feature from the build plan does it move forward? -->
 
-**Role:** <!-- 1 Language / 2 App / 3 Backend and safety / 4 Fairness and pitch -->
+**Owner:** <!-- P1 app / P2 api / P3 lang / P4 ranking + record -->
 
 ## Checklist
 
-- [ ] `npm test` passes locally (backend tests, lint, frontend build)
-- [ ] No API keys, `.env` files or personal data (interview names, phone numbers) in the diff
-- [ ] If I changed an API shape or a shared model, I updated `docs/api-contract.md` and told the team
-- [ ] If I finished a TODO test, I removed its `xfail` marker
+- [ ] Only touches my own folder (or it's a contract change the team agreed in the group chat)
+- [ ] `npm test` passes locally
+- [ ] No API keys, `.env` or personal data in the diff
+- [ ] If a contract changed: `contracts/api.md` and `contracts/fixtures/` are updated in this same PR
 
 ## Before merging
 
-Everyone on the team has reviewed this and agrees it's done (see CONTRIBUTING.md).
+The whole team has reviewed this (review sessions: Day 3 evening, Day 5 morning, Day 6 before the final tag).

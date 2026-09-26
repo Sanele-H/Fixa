@@ -1,4 +1,4 @@
-# Python lint/format settings for backend/ and experiments/. Run: npm run lint:api / npm run format:api
+# Python lint/format settings for api/ and packages/. Run: npm run lint:py / npm run format:py
 line-length = 100
 target-version = "py311"
 
@@ -6,4 +6,4 @@ target-version = "py311"
 select = ["E", "F", "I", "N", "UP", "B"]
 
 [lint.isort]
-known-first-party = ["fixa"]
+known-first-party = ["fixa_api", "lang", "ranking", "record"]

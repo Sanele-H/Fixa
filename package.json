@@ -1,19 +1,18 @@
 {
   "name": "fixa",
   "private": true,
-  "description": "Multilingual trades marketplace - hackathon build",
+  "description": "Fixa - hackathon build. See README.md and the build plan.",
   "scripts": {
     "setup": "node scripts/setup.mjs",
-    "dev": "concurrently --names api,web --prefix-colors blue,magenta \"npm:dev:api\" \"npm:dev:web\"",
-    "dev:api": "node scripts/run-python.mjs -m uvicorn fixa.api.main:app --reload --reload-dir backend --host 0.0.0.0 --port 8000",
-    "dev:web": "npm --prefix frontend run dev",
-    "test": "npm run test:api && npm run lint:api && npm run build:web",
-    "test:api": "node scripts/run-python.mjs -m pytest backend/tests",
-    "lint:api": "node scripts/run-python.mjs -m ruff check backend experiments",
-    "format:api": "node scripts/run-python.mjs -m ruff format backend experiments",
-    "build:web": "npm --prefix frontend run build",
-    "simulate": "node scripts/run-python.mjs experiments/fairness_simulation/run_simulation.py",
-    "translation-test": "node scripts/run-python.mjs experiments/translation_test/run_translation_test.py"
+    "dev": "concurrently --names api,app --prefix-colors magenta,blue \"npm:dev:api\" \"npm:dev:app\"",
+    "dev:api": "node scripts/run-python.mjs -m uvicorn fixa_api.main:app --reload --reload-dir api --reload-dir packages --port 8000",
+    "dev:app": "npm --prefix app run dev",
+    "tunnel": "cloudflared tunnel --url http://localhost:5173",
+    "test": "npm run test:py && npm run lint:py && npm run build:app",
+    "test:py": "node scripts/run-python.mjs -m pytest",
+    "lint:py": "node scripts/run-python.mjs -m ruff check api packages",
+    "format:py": "node scripts/run-python.mjs -m ruff format api packages",
+    "build:app": "npm --prefix app run build"
   },
   "devDependencies": {
     "concurrently": "^10.0.5"

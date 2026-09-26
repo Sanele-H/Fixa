@@ -1,4 +1,4 @@
-// One-time setup for a new laptop: Python venv + backend packages, frontend packages, .env.
+// One-time setup for a new laptop: Python venv + API and packages, app packages, .env.
 // Usage (from the repo root): npm install && npm run setup
 // Safe to run again: it skips anything that already exists.
 
@@ -47,16 +47,17 @@ function createVirtualEnvironment() {
 function installPythonPackages() {
   const venvPythonPath = getVenvPythonPath();
   runStep("Upgrading pip", venvPythonPath, ["-m", "pip", "install", "--upgrade", "pip"]);
-  runStep("Installing backend (editable) with dev and simulation extras", venvPythonPath, [
-    "-m", "pip", "install", "-e", "backend[dev,simulation]",
+  runStep("Installing the API and the three packages (editable)", venvPythonPath, [
+    "-m", "pip", "install",
+    "-e", "api[dev]", "-e", "packages/lang", "-e", "packages/ranking", "-e", "packages/record",
   ]);
 }
 
 function installFrontendPackages() {
-  // Run inside frontend/ rather than `npm --prefix frontend install`, which would add the root
-  // package to frontend/package.json as a dependency.
-  runStep("Installing frontend packages", "npm", ["install"], {
-    cwd: join(repoRootPath, "frontend"),
+  // Run inside app/ rather than `npm --prefix app install`, which would add the root
+  // package to app/package.json as a dependency.
+  runStep("Installing app packages", "npm", ["install"], {
+    cwd: join(repoRootPath, "app"),
     shell: isWindows,
   });
 }

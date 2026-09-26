@@ -12,16 +12,14 @@ __pycache__/
 .ruff_cache/
 .ipynb_checkpoints/
 
+# Local databases
+*.db
+*.sqlite3
+
 # Node
 node_modules/
-frontend/dist/
-
-# Generated experiment output (commit the final chart on purpose with `git add -f`)
-experiments/**/results/*
-!experiments/**/results/.gitkeep
-
-# Interview notes can contain personal information (POPIA). Keep raw notes off GitHub.
-research/interviews/raw/
+app/dist/
+app/dev-dist/
 
 # Editors and OS
 .DS_Store
