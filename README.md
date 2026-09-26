@@ -8,9 +8,11 @@ This repo is a **scaffold**. The folders, tooling and agreed interfaces are in p
 
 ## Quick start
 
-You need **Python 3.11+** and **Node 22+**.
+You need **Git**, **Python 3.11+** and **Node 22+**.
 
 ```bash
+git clone https://github.com/Sanele-H/Fixa.git
+cd Fixa
 npm install        # root tools (runs backend + frontend together)
 npm run setup      # .venv + backend packages, frontend packages, creates .env
 npm run dev        # backend on :8000, frontend on :5173
@@ -29,6 +31,20 @@ npm run dev        # backend on :8000, frontend on :5173
 | `npm run translation-test -- --backends echo` | 30-message translation test (Role 1) |
 
 Tests marked **xfailed** are to-do lists: cases that are expected to fail until their owner builds the feature. **passed** means it works. **failed** means something broke.
+
+## Your first hour
+
+1. Get the code and run it (Quick start above). The app's first page should say the backend is running.
+2. Run `npm test`. You should see **passed** and **xfailed**, and nothing **failed**.
+3. Read your role guide in [docs/roles/](docs/roles/) and skim [docs/sprint-plan.md](docs/sprint-plan.md).
+4. Read [CONTRIBUTING.md](CONTRIBUTING.md) before your first commit.
+5. Branch off `main` for your first feature, for example `number-protection` (Role 1), `chat-screen` (Role 2), `job-states` (Role 3) or `sort-by-rating` (Role 4):
+
+   ```bash
+   git switch main
+   git pull
+   git switch -c chat-screen
+   ```
 
 ## Who owns what
 
