@@ -1,0 +1,46 @@
+[
+  {
+    "provider_id": "prov_001",
+    "display_name": "Thabo",
+    "trades": [
+      "plumbing"
+    ],
+    "distance_km": 1.8,
+    "is_newcomer": false,
+    "id_badge": "id_number",
+    "evidence": {
+      "jobs": 9,
+      "repeat_customers": 2,
+      "photos": 14,
+      "off_app_confirmed": 3
+    },
+    "trust": {
+      "score": 0.86,
+      "low": 0.74,
+      "high": 0.93,
+      "label": "Strong record"
+    }
+  },
+  {
+    "provider_id": "prov_002",
+    "display_name": "Sipho",
+    "trades": [
+      "plumbing"
+    ],
+    "distance_km": 3.1,
+    "is_newcomer": true,
+    "id_badge": "home_affairs",
+    "evidence": {
+      "jobs": 0,
+      "repeat_customers": 0,
+      "photos": 0,
+      "off_app_confirmed": 1
+    },
+    "trust": {
+      "score": null,
+      "low": null,
+      "high": null,
+      "label": "New, building a record"
+    }
+  }
+]

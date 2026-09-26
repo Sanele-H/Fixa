@@ -1,0 +1,8 @@
+{
+  "tier": "home_affairs",
+  "verified": true,
+  "name_match": true,
+  "provider": "smile_id_sandbox",
+  "reference": "sandbox-ref-001",
+  "checked_at": "2026-09-29T09:00:00+02:00"
+}

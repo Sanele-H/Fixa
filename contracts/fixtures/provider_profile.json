@@ -1,0 +1,28 @@
+{
+  "provider_id": "prov_002",
+  "display_name": "Sipho",
+  "trades": [
+    "plumbing"
+  ],
+  "distance_km": 3.1,
+  "is_newcomer": true,
+  "id_badge": "home_affairs",
+  "evidence": {
+    "jobs": 0,
+    "repeat_customers": 0,
+    "photos": 0,
+    "off_app_confirmed": 1
+  },
+  "trust": {
+    "score": null,
+    "low": null,
+    "high": null,
+    "label": "New, building a record"
+  },
+  "suburb": "Braamfontein",
+  "langs": [
+    "zu",
+    "en"
+  ],
+  "bio": "Plumber, 6 years fixing geysers and leaks."
+}

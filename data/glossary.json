@@ -1,0 +1,13 @@
+{
+  "_about": "Trade glossary: 40 household-repair situations across 11 trades, with English trade terms and their isiZulu and isiXhosa forms. P3 moves the full glossary from the speech-recognition work into this file on Day 1. Until then it holds only the terms quoted in the project overview.",
+  "trades": [
+    { "id": "plumbing", "labels": { "en": "Plumbing", "zu": null, "xh": null }, "licensed_tasks": ["geyser installation"] },
+    { "id": "electrical", "labels": { "en": "Electrical", "zu": null, "xh": null }, "licensed_tasks": ["work needing a Certificate of Compliance"] }
+  ],
+  "terms": [
+    { "en": "geyser", "trade": "plumbing", "zu": [], "xh": [], "unsorted_forms": ["igiza"] },
+    { "en": "pipe", "trade": "plumbing", "zu": [], "xh": [], "unsorted_forms": ["ipayipi"] },
+    { "en": "electricity", "trade": "electrical", "zu": [], "xh": [], "unsorted_forms": ["ugesi", "umbane"] }
+  ],
+  "situations": []
+}

@@ -1,0 +1,11 @@
+{
+  "token": "demo.jwt.token",
+  "user": {
+    "id": "cust_001",
+    "role": "customer",
+    "display_name": "Lindiwe",
+    "lang": "en",
+    "suburb": "Braamfontein",
+    "id_badge": "none"
+  }
+}
