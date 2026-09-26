@@ -12,7 +12,7 @@ from pathlib import Path
 from matplotlib import rc_context
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from matplotlib.patches import FancyBboxPatch, Rectangle
+from matplotlib.patches import FancyBboxPatch, Patch, Rectangle
 from matplotlib.ticker import PercentFormatter
 
 SURFACE = "#fcfcfb"
@@ -47,6 +47,12 @@ TITLE_SIZE_PT = 13
 SUBTITLE_SIZE_PT = 9.5
 LABEL_SIZE_PT = 10
 TICK_SIZE_PT = 9
+CATEGORY_LABEL_MARGIN_IN = 1.3  # room for group names left of grouped bars
+SURFACE_GAP_IN = 2 * PIXEL_IN  # gap between bars that sit next to each other
+GROUP_ROW_PADDING_IN = 0.3
+LEGEND_BAND_IN = 0.3  # room for a legend between the subtitle and the plot
+BEHIND_BARS_ZORDER = 0.9  # bars are drawn at zorder 1
+LABEL_ZORDER = 3
 
 
 def with_chart_font(draw_chart: Callable) -> Callable:
@@ -140,11 +146,116 @@ def draw_step_chart(
     save_figure(figure, path)
 
 
+@with_chart_font
+def draw_grouped_bar_chart(
+    path: Path,
+    title: str,
+    subtitle: str,
+    categories: list[str],
+    series: list[tuple[str, list[float], str]],
+    format_value: Callable[[float], str],
+    axis_max: float,
+    reference_value: float,
+) -> None:
+    """Draws one row per category, with one horizontal bar per (name, values, colour) series.
+
+    Bars in a row sit 2 px apart and grow from zero, with their value at the tip. A
+    hairline marks reference_value (such as 100% = fair share), and a legend names the
+    series when there are two or more. The y-axis is measured in inches, so bar sizes
+    come out exact.
+    """
+    row_height_in = len(series) * (BAR_THICKNESS_IN + SURFACE_GAP_IN) + GROUP_ROW_PADDING_IN
+    plot_height_in = len(categories) * row_height_in
+    legend_band_in = LEGEND_BAND_IN if len(series) > 1 else 0.0
+    figure, axes = create_figure(
+        title, subtitle, plot_height_in, CATEGORY_LABEL_MARGIN_IN, TITLE_BAND_IN + legend_band_in
+    )
+    axes.set_xlim(0, axis_max)
+    axes.set_ylim(plot_height_in, 0)
+    x_units_per_in = axis_max / get_axes_width_in(CATEGORY_LABEL_MARGIN_IN)
+    for row in range(len(categories)):
+        row_values = [(values[row], color) for _, values, color in series]
+        draw_bar_row(axes, row * row_height_in, row_values, format_value, x_units_per_in)
+    row_centres_in = [(row + 0.5) * row_height_in for row in range(len(categories))]
+    axes.set_yticks(row_centres_in, categories)
+    axes.tick_params(axis="y", labelcolor=TEXT_PRIMARY, labelsize=LABEL_SIZE_PT)
+    axes.xaxis.set_major_formatter(PercentFormatter(xmax=SHARE_AXIS_MAX, decimals=0))
+    axes.grid(axis="x", color=GRIDLINE, linewidth=HAIRLINE_PT)
+    axes.axvline(0, color=BASELINE, linewidth=HAIRLINE_PT)
+    axes.axvline(
+        reference_value, color=TEXT_MUTED, linewidth=HAIRLINE_PT, zorder=BEHIND_BARS_ZORDER
+    )
+    if len(series) > 1:
+        draw_series_legend(axes, [(name, color) for name, _, color in series])
+    save_figure(figure, path)
+
+
+def draw_bar_row(
+    axes: Axes,
+    row_top_in: float,
+    values_and_colors: list[tuple[float, str]],
+    format_value: Callable[[float], str],
+    x_units_per_in: float,
+) -> None:
+    """Draws one category's bars, 2 px apart, each with its value at the tip."""
+    for position, (value, color) in enumerate(values_and_colors):
+        centre_in = (
+            row_top_in
+            + GROUP_ROW_PADDING_IN / 2
+            + position * (BAR_THICKNESS_IN + SURFACE_GAP_IN)
+            + BAR_THICKNESS_IN / 2
+        )
+        draw_rounded_bar(axes, centre_in, value, color, x_units_per_in, y_units_per_in=1.0)
+        draw_value_label(axes, value, centre_in, format_value(value), x_units_per_in)
+
+
+def draw_value_label(
+    axes: Axes, value: float, centre: float, text: str, x_units_per_in: float
+) -> None:
+    """Writes a bar's value just past its tip, on a surface-coloured patch.
+
+    The patch breaks any reference line that runs behind the label.
+    """
+    axes.text(
+        value + VALUE_LABEL_GAP_IN * x_units_per_in,
+        centre,
+        text,
+        va="center",
+        color=TEXT_PRIMARY,
+        fontsize=TICK_SIZE_PT,
+        bbox={"boxstyle": "square,pad=0.15", "facecolor": SURFACE, "edgecolor": "none"},
+        zorder=LABEL_ZORDER,
+    )
+
+
+def draw_series_legend(axes: Axes, names_and_colors: list[tuple[str, str]]) -> None:
+    """Draws a one-row legend of colour swatches just above the plot's top right."""
+    handles = [
+        Patch(facecolor=color, edgecolor="none", label=name) for name, color in names_and_colors
+    ]
+    legend = axes.legend(
+        handles=handles,
+        loc="lower right",
+        bbox_to_anchor=(1.0, 1.02),
+        ncol=len(handles),
+        frameon=False,
+        fontsize=LABEL_SIZE_PT,
+        handlelength=1.0,
+        handleheight=0.7,
+    )
+    for text in legend.get_texts():
+        text.set_color(TEXT_SECONDARY)
+
+
 def create_figure(
-    title: str, subtitle: str, plot_height_in: float, left_margin_in: float
+    title: str,
+    subtitle: str,
+    plot_height_in: float,
+    left_margin_in: float,
+    title_band_in: float = TITLE_BAND_IN,
 ) -> tuple[Figure, Axes]:
     """Creates a figure with a title band, one plot area and room for the x-axis."""
-    figure_height_in = TITLE_BAND_IN + plot_height_in + AXIS_BAND_IN
+    figure_height_in = title_band_in + plot_height_in + AXIS_BAND_IN
     figure = Figure(figsize=(FIGURE_WIDTH_IN, figure_height_in), dpi=DPI, facecolor=SURFACE)
     axes = figure.add_axes(
         (

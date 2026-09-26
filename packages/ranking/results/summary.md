@@ -32,3 +32,19 @@ Regenerate from the repo root: `node scripts/run-python.mjs -m ranking.simulatio
   evidence when the job ends, 1 to 3 days later.
 - A good newcomer joined during the run, at least 60 days before the end, and is at
   least as skilled as the average provider.
+
+## Fairness across language groups
+
+Groups are providers' hidden first language, which no ranking or trust score ever sees.
+Work is jobs per month compared with providers of the same true skill (100% = fair share).
+Score is the average trust score divided by true skill, for providers with a score.
+
+| Group | Providers | Work with Fixa | Work with sort-by-rating | Fixa trust score / true skill |
+|---|---|---|---|---|
+| isiZulu | 72 | 101% | 71% | 103% |
+| isiXhosa | 58 | 97% | 73% | 100% |
+| Sesotho | 28 | 93% | 153% | 99% |
+| chiShona | 42 | 107% | 152% | 101% |
+
+Sort-by-rating never sees language either. Its uneven shares come from giving most work to
+a few providers: whichever groups those few belong to gain, by chance.
