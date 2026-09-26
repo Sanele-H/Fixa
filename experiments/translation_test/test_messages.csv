@@ -1,0 +1,3 @@
+message_id,source_language,target_language,text,must_survive,glossary_terms,category,written_by,notes
+m01,af,zu,My geiser se pyp lek. Kan iemand Dinsdag kom?,,geyser|pipe|leak,demo,sprint plan,Demo step 1 wording - check with an Afrikaans speaker
+m02,af,zu,"Ek kan dit regmaak vir R450, Dinsdag om 10:00.",R450|10:00,,price+time,sprint plan,Demo quote (written here in Afrikaans so it has a source)
