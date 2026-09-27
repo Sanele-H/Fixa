@@ -1,0 +1,210 @@
+{
+  "app": {
+    "tagline": "Hire someone nearby in your own language.",
+    "loading": "Loading…"
+  },
+  "nav": {
+    "label": "Main",
+    "back": "Back",
+    "home": "Home",
+    "newJob": "New job",
+    "feed": "Jobs",
+    "record": "Record",
+    "me": "Me"
+  },
+  "language": {
+    "title": "Choose your language",
+    "continue": "Continue"
+  },
+  "login": {
+    "title": "Log in",
+    "subtitle": "We'll send a code to your phone.",
+    "phoneLabel": "Phone number",
+    "sendCode": "Send code",
+    "codeLabel": "Code from the SMS",
+    "demoHint": "Demo code: 123456",
+    "logIn": "Log in"
+  },
+  "role": {
+    "customer": "Customer",
+    "provider": "Provider"
+  },
+  "trade": {
+    "plumbing": "Plumbing",
+    "electrical": "Electrical"
+  },
+  "urgency": {
+    "low": "Not urgent",
+    "normal": "Soon",
+    "urgent": "Urgent"
+  },
+  "size": {
+    "small": "Small job",
+    "medium": "Medium job",
+    "large": "Large job"
+  },
+  "jobState": {
+    "posted": "Posted",
+    "quoting": "Getting quotes",
+    "quote_accepted": "Quote accepted",
+    "confirmed": "Confirmed",
+    "in_progress": "In progress",
+    "done": "Done",
+    "followed_up": "Followed up",
+    "cancelled": "Cancelled"
+  },
+  "idBadge": {
+    "none": "ID not checked",
+    "id_number": "ID number checked",
+    "home_affairs": "Home Affairs verified"
+  },
+  "translation": {
+    "seeOriginal": "See original",
+    "seeTranslation": "See translation",
+    "unsure": "This may not have translated well",
+    "unsureShort": "Check translation"
+  },
+  "evidence": {
+    "jobs_one": "job",
+    "jobs_other": "jobs",
+    "repeat_customers_one": "repeat customer",
+    "repeat_customers_other": "repeat customers",
+    "photos_one": "photo",
+    "photos_other": "photos",
+    "off_app_confirmed_one": "off-app job",
+    "off_app_confirmed_other": "off-app jobs"
+  },
+  "trust": {
+    "title": "Trust range",
+    "explainer": "Built only from confirmed jobs. The range narrows as the record grows.",
+    "rangeDescription": "Trust range {{low}} to {{high}} out of 100: {{label}}"
+  },
+  "home": {
+    "greeting": "Hi, {{name}}",
+    "notifications": "Notifications",
+    "describeJob": "Describe a job",
+    "describeJobHint": "Say what's wrong in your own words. We'll find someone nearby.",
+    "yourJobs": "Your jobs"
+  },
+  "newJob": {
+    "title": "New job",
+    "subtitle": "Your address and number stay hidden until you pick someone.",
+    "describeLabel": "What's the problem?",
+    "describeExample": "My geyser is leaking through the ceiling",
+    "suggested": "We think this is",
+    "urgency": "How soon?",
+    "size": "How big?",
+    "addPhoto": "Add a photo",
+    "photoHint": "Optional. Helps providers quote.",
+    "post": "Post job"
+  },
+  "providers": {
+    "title": "Who can help",
+    "subtitle": "Ranked by real work, not stars. New people get a fair chance too.",
+    "newcomer": "New"
+  },
+  "job": {
+    "title": "Your job",
+    "openChat": "Open chat",
+    "progress": "Job progress",
+    "quotes": "Quotes",
+    "seeProviders": "See who can help",
+    "accept": "Accept quote"
+  },
+  "contact": {
+    "lockedTitle": "Contact details hidden",
+    "lockedBody": "Phone numbers and the address unlock when the provider confirms the job.",
+    "unlockedTitle": "Contact details",
+    "address": "Address",
+    "customerPhone": "Customer's phone",
+    "providerPhone": "Provider's phone"
+  },
+  "chat": {
+    "eyebrow": "Chat",
+    "messages": "Messages",
+    "privacyNote": "Numbers and addresses stay hidden until the job is confirmed.",
+    "contactsHidden": "Contact hidden",
+    "placeholder": "Write a message",
+    "send": "Send"
+  },
+  "profile": {
+    "share": "Share profile",
+    "speaks": "Speaks {{languages}}"
+  },
+  "me": {
+    "title": "Me",
+    "language": "Language",
+    "identity": "Identity",
+    "work": "Work",
+    "demoRole": "Demo role",
+    "demoRoleHint": "For the demo only: switch between the customer and provider apps.",
+    "logOut": "Log out"
+  },
+  "feed": {
+    "title": "Jobs near you",
+    "subtitle": "You see the suburb and the problem. Details unlock after you're confirmed.",
+    "filterLabel": "Show",
+    "filter": {
+      "all": "All",
+      "urgent": "Urgent"
+    }
+  },
+  "quote": {
+    "title": "Send a quote",
+    "amountLabel": "Your price",
+    "typicalRange": "Most accepted quotes nearby",
+    "rangeBasis_one": "From {{count}} accepted quote",
+    "rangeBasis_other": "From {{count}} accepted quotes",
+    "underpricingTitle": "You may be underpricing",
+    "underpricingBody": "Most accepted quotes nearby are {{range}}.",
+    "whenLabel": "When can you come?",
+    "messageLabel": "Message (optional)",
+    "send": "Send quote"
+  },
+  "verifyId": {
+    "title": "Verify your ID",
+    "subtitle": "A checked ID helps customers trust you.",
+    "step": "Step {{step}} of {{total}}",
+    "consentTitle": "Your permission",
+    "consentBody": "We check your ID number with Home Affairs through Smile ID. We keep only the result, never your ID details.",
+    "consentAgree": "I agree to this check",
+    "numberLabel": "SA ID number",
+    "numberHint": "13 digits",
+    "check": "Check number",
+    "resultTitle": "Result",
+    "resultBody": "Your badge shows on your profile."
+  },
+  "offApp": {
+    "title": "Log a past job",
+    "subtitle": "Work you did outside the app counts too.",
+    "customerPhone": "Customer's phone number",
+    "tradeTask": "What did you do?",
+    "tradeTaskExample": "Replaced a geyser valve",
+    "date": "Date",
+    "suburb": "Suburb",
+    "amount": "Amount (rands)",
+    "amountHint": "Optional",
+    "smsNoteTitle": "We'll SMS the customer",
+    "smsNoteBody": "It counts once they reply YES. We never show their number to anyone.",
+    "submit": "Send for confirmation"
+  },
+  "record": {
+    "title": "My record",
+    "subtitle": "Proof of your work, to share or use for ARPL.",
+    "share": "Share record link",
+    "arplProgress": "Towards ARPL",
+    "experience": "{{years}} years {{months}} months of experience",
+    "yearsUnit": "yrs",
+    "monthsUnit": "mo",
+    "arplTarget": "of the {{years}} years of experience ARPL asks for",
+    "exportArpl": "Export for ARPL",
+    "exportStatement": "Work statement",
+    "verifyCode": "Verify code",
+    "verifyCodeHint": "Anyone can check your record is genuine"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This link may be old or mistyped.",
+    "home": "Go to the start"
+  }
+}
