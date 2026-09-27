@@ -18,3 +18,7 @@ dev = ["pytest>=8", "ruff>=0.6"]
 
 [tool.setuptools.packages.find]
 include = ["record*"]
+
+[tool.setuptools.package-data]
+# The PDF font ships with the package, so exports work in a normal (non-editable) install.
+record = ["fonts/*.ttf", "fonts/LICENSE_DEJAVU"]
