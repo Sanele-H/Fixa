@@ -8,6 +8,8 @@ Public functions (the contract; signatures change only with the team's agreement
         mode: "arpl" | "statement". The two keyword arguments were added in step 6 and are
         optional, so build_record(evidence, mode) still works.
     verify_record(verify_code, stored) -> VerifyResult
+    render_work_record_page(evidence) -> str   (plain-HTML /record/{provider_id} page)
+    render_verify_page(verify_code, result) -> str   (plain-HTML /verify/{code} page)
 
 Exports never include customers' names, phone numbers or addresses. The ARPL record
 follows the sections of the merSETA ARPL Trade Test Application Form (LPM-FM-009) and
@@ -25,6 +27,7 @@ from record.models import (
     VerifyResult,
     Vouch,
 )
+from record.pages import render_verify_page, render_work_record_page
 
 __all__ = [
     "ARPL_TRADES",
@@ -38,5 +41,7 @@ __all__ = [
     "VerifyResult",
     "Vouch",
     "build_record",
+    "render_verify_page",
+    "render_work_record_page",
     "verify_record",
 ]
