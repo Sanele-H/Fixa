@@ -24,19 +24,22 @@ MONTH_WORDS = (
 )
 
 # Order matters: earlier patterns win, so a phone number is never split into smaller numbers.
+# isiZulu and isiXhosa attach prefixes straight onto numbers ("ngoR1200", "ngo10:30", "e-12"),
+# so numbers are bounded by "not a digit" rather than by a word boundary. The rand sign is a
+# case-sensitive capital R, so "for 5 days" is not read as a price.
 PROTECTED_PATTERNS = [
     ("email", r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+"),
     ("link", r"(?:https?://|www\.)\S+"),
-    ("phone", r"(?<!\w)(?:\+27|0)(?:[\s-]?\d){9}(?!\d)"),
-    ("address", rf"\b\d{{1,5}}[a-z]?\s+(?:[A-Z][\w'-]*\s+){{1,3}}(?:{STREET_WORDS})\b\.?"),
-    ("price", r"\bR\s?\d{1,3}(?:[\s,]\d{3})*(?:[.,]\d{2})?(?!\d)"),
-    ("price", r"\b\d{1,3}(?:[\s,]\d{3})*\s?(?:rand|randi)\b"),
-    ("date", r"\b\d{4}-\d{2}-\d{2}\b"),
-    ("date", r"\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b"),
-    ("date", rf"\b\d{{1,2}}\s(?:{MONTH_WORDS})\b\.?"),
-    ("time", r"\b\d{1,2}[:h]\d{2}\b"),
-    ("time", r"\b\d{1,2}\s?(?:am|pm)\b"),
-    ("number", r"\b\d+(?:[.,]\d+)?\s?(?:mm|cm|m|kg|l|litres?|m2)?\b"),
+    ("phone", r"(?<!\d)(?:\+27|0)(?:[\s-]?\d){9}(?!\d)"),
+    ("address", rf"(?<!\d)\d{{1,5}}[a-z]?\s+(?:[A-Z][\w'-]*\s+){{1,3}}(?:{STREET_WORDS})\b\.?"),
+    ("price", r"(?<!\d)(?-i:R)\s?\d+(?:[\s,]\d{3})*(?:[.,]\d{2})?(?!\d)"),
+    ("price", r"(?<!\d)\d+(?:[\s,]\d{3})*\s?(?:rand|randi)\b"),
+    ("date", r"(?<!\d)\d{4}-\d{2}-\d{2}(?!\d)"),
+    ("date", r"(?<!\d)\d{1,2}/\d{1,2}(?:/\d{2,4})?(?!\d)"),
+    ("date", rf"(?<!\d)\d{{1,2}}\s(?:{MONTH_WORDS})\b\.?"),
+    ("time", r"(?<!\d)\d{1,2}(?::\d{2})?\s?(?:am|pm)\b"),  # before 10:30, so "3:30pm" stays whole
+    ("time", r"(?<!\d)\d{1,2}[:h]\d{2}(?!\d)"),
+    ("number", r"(?<![\d.,])\d+(?:[.,]\d+)?(?:\s?(?:mm|cm|m|kg|l|litres?|m2)\b)?"),
 ]
 COMPILED_PATTERNS = [
     (kind, re.compile(pattern, re.IGNORECASE)) for kind, pattern in PROTECTED_PATTERNS

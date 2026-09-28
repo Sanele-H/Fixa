@@ -23,6 +23,13 @@ from lang.protection import ProtectedValue, protect, restore
         ("Or +27 82 123 4567", ["+27 82 123 4567"]),
         ("I live at 12 Protea Street, Soweto", ["12 Protea Street"]),
         ("Email nomsa@example.co.za", ["nomsa@example.co.za"]),
+        # isiZulu and isiXhosa attach prefixes straight onto numbers
+        ("Ngingayilungisa ngoR1200 , kukhona namaparts", ["R1200"]),
+        ("Ngizoba khona ngo10:30 kusasa", ["10:30"]),
+        ("Kubiza u-R350, besekuba u-R200 ngehora", ["R350", "R200"]),
+        ("Ngihlala e-12 Protea Street", ["12 Protea Street"]),
+        ("ngo-2 ntambama", ["2"]),
+        ("emizuzwini engu-20.", ["20"]),
     ],
 )
 def test_protect_takes_out_each_value(text, expected_values):
@@ -36,6 +43,11 @@ def test_protect_leaves_plain_words_alone():
     protected = protect("Igiza lami liyavuza, ngicela usizo")
     assert protected.values == []
     assert protected.text == "Igiza lami liyavuza, ngicela usizo"
+
+
+def test_a_lowercase_r_before_a_number_is_not_a_price():
+    protected = protect("I can come for 5 days")
+    assert [(value.kind, value.text) for value in protected.values] == [("number", "5")]
 
 
 def test_price_and_time_in_one_message_are_separate_values():
@@ -71,3 +83,7 @@ def test_protect_then_restore_without_translation_gives_the_original_back():
     text = "Call 082 123 4567, R450 at 12 Protea Street on 29/09 at 10:00"
     protected = protect(text)
     assert restore(protected.text, protected.values).text == text
+
+
+def test_a_time_with_minutes_and_pm_stays_whole():
+    assert [value.text for value in protect("Come at 3:30pm please").values] == ["3:30pm"]
