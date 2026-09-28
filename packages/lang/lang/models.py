@@ -17,7 +17,7 @@ class Translation(BaseModel):
 
     text: str
     original: str
-    source_lang: Lang
+    source_lang: Lang  # The sender's language: the contract's Message calls it original_lang
     flagged: bool  # True shows "This may not have translated well"
     flag_reason: str | None = None
 
