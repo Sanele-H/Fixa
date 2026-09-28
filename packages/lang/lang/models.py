@@ -9,7 +9,7 @@ Lang = Literal["en", "zu", "xh"]
 Trade = str  # One of the 11 trade ids in data/glossary.json, for example "plumbing"
 Urgency = Literal["low", "normal", "urgent"]
 JobSize = Literal["small", "medium", "large"]
-FindingKind = Literal["phone", "email", "link"]
+FindingKind = Literal["phone", "email", "link", "address"]
 
 
 class Translation(BaseModel):
