@@ -84,6 +84,7 @@
     "notifications": "Notifications",
     "describeJob": "Describe a job",
     "describeJobHint": "Say what's wrong in your own words. We'll find someone nearby.",
+    "nearbyHint": "See who does the work around {{suburb}} before you post a job.",
     "yourJobs": "Your jobs"
   },
   "newJob": {
@@ -102,6 +103,20 @@
     "title": "Who can help",
     "subtitle": "Ranked by real work, not stars. New people get a fair chance too.",
     "newcomer": "New"
+  },
+  "nearby": {
+    "title": "Who works near you",
+    "subtitle": "People doing this work around {{suburb}}. To get quotes, describe your job and we'll ask the ones who fit.",
+    "trade": "Work",
+    "language": "Speaks",
+    "anyLanguage": "Any",
+    "radius": "Within",
+    "count_one": "{{count}} person within {{radius}}",
+    "count_other": "{{count}} people within {{radius}}",
+    "emptyTitle": "Nobody here yet",
+    "emptyBody": "Try a wider radius, or any language.",
+    "widen": "Look within {{radius}}",
+    "describeHint": "We'll show your job to people nearby who can take it, and you choose from their quotes."
   },
   "job": {
     "title": "Your job",

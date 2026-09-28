@@ -17,6 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 JobSize = Literal["small", "medium", "large"]
 IdBadge = Literal["none", "id_number", "home_affairs"]
+Language = Literal["en", "zu", "xh"]
 
 
 class JobOutcome(BaseModel):
@@ -107,6 +108,47 @@ class RankedProvider(BaseModel):
     id_badge: IdBadge
     evidence: Evidence
     trust: TrustBadge
+
+
+class NearbyCandidate(BaseModel):
+    """One provider who could be shown on the nearby list, as P2 passes it to
+    list_nearby_providers.
+
+    This is separate from Candidate on purpose: the nearby list needs langs, for the
+    customer's language filter, and Candidate must never carry language into rank_providers.
+    distance_km is worked out by P2 from the customer's home, so exact locations never leave
+    the server.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    provider_id: str
+    display_name: str
+    suburb: str
+    trades: list[str]
+    langs: list[Language]
+    distance_km: float
+    id_badge: IdBadge = "none"
+    photos: int = 0  # before/after photos, for the evidence strip
+    stats: ProviderStats
+
+
+class NearbyProvider(BaseModel):
+    """One row of the nearby list, in the shape of contracts/fixtures/nearby_providers.json.
+
+    Like RankedProvider plus suburb and langs, and with no trust badge, so browsing never
+    turns into a leaderboard. Trust shows on the profile and in a job's ranked list.
+    """
+
+    provider_id: str
+    display_name: str
+    suburb: str
+    trades: list[str]
+    langs: list[Language]
+    distance_km: float
+    is_newcomer: bool
+    id_badge: IdBadge
+    evidence: Evidence
 
 
 class TrustBreakdown(BaseModel):

@@ -9,6 +9,7 @@ import jobPublicFixture from "../../../contracts/fixtures/job_public.json";
 import jobUnlockedFixture from "../../../contracts/fixtures/job_unlocked.json";
 import meFixture from "../../../contracts/fixtures/me.json";
 import messagesFixture from "../../../contracts/fixtures/messages.json";
+import nearbyProvidersFixture from "../../../contracts/fixtures/nearby_providers.json";
 import offAppJobFixture from "../../../contracts/fixtures/off_app_job.json";
 import priceRangeFixture from "../../../contracts/fixtures/price_range.json";
 import providerProfileFixture from "../../../contracts/fixtures/provider_profile.json";
@@ -21,6 +22,7 @@ import type {
   JobPublic,
   JobUnlocked,
   Message,
+  NearbyProvider,
   OffAppJob,
   PriceRange,
   ProviderProfile,
@@ -37,6 +39,8 @@ export const sampleJobUnlocked = jobUnlockedFixture as JobUnlocked;
 export const sampleJobIntent = jobIntentFixture as JobIntent;
 export const sampleRankedProviders = rankedProvidersFixture as RankedProvider[];
 export const sampleProviderProfile = providerProfileFixture as ProviderProfile;
+/** The answer to GET /api/providers?trade=plumbing for Lindiwe in Braamfontein (10 km). */
+export const sampleNearbyProviders = nearbyProvidersFixture as NearbyProvider[];
 export const sampleQuotes = quotesFixture as Quote[];
 export const sampleMessages = messagesFixture as Message[];
 export const samplePriceRange = priceRangeFixture as PriceRange;

@@ -21,6 +21,8 @@ export type QuoteState = "open" | "accepted" | "declined" | "withdrawn";
 export type IdBadge = "none" | "id_number" | "home_affairs";
 export type RecordMode = "arpl" | "statement";
 
+/** The trade ids in data/glossary.json so far (2 of the 11). P1: add each one as P3 adds it. */
+export const TRADES: TradeId[] = ["plumbing", "electrical"];
 export const JOB_SIZES: JobSize[] = ["small", "medium", "large"];
 export const URGENCIES: Urgency[] = ["low", "normal", "urgent"];
 
@@ -99,6 +101,15 @@ export type ProviderProfile = RankedProvider & {
   suburb: string;
   langs: Language[];
   bio: string;
+};
+
+/**
+ * One provider on the "Who works near you" list. No trust, on purpose: browsing is for
+ * looking, so the list must not turn into a leaderboard. Trust shows on the profile.
+ */
+export type NearbyProvider = Omit<RankedProvider, "trust"> & {
+  suburb: string;
+  langs: Language[];
 };
 
 export type Quote = {

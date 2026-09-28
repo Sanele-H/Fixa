@@ -2,7 +2,12 @@
 
 import importlib
 
-CONTRACT_FUNCTION_NAMES = ["rank_providers", "trust_summary", "price_range"]
+CONTRACT_FUNCTION_NAMES = [
+    "rank_providers",
+    "trust_summary",
+    "price_range",
+    "list_nearby_providers",
+]
 
 
 def test_ranking_package_exports_the_contract_functions():

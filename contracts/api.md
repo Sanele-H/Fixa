@@ -34,6 +34,13 @@
 - Before `confirmed`, every response uses `JobPublic`, which shows the suburb and the problem only.
 - `JobUnlocked` adds the address, both phone numbers and the provider's photo. Only the job's customer and its confirmed provider ever receive it.
 
+**Browsing nearby providers (`GET /api/providers`):**
+
+- It's for looking, not picking. There's no way to contact or book from the list: hiring still goes through a job and its ranked list.
+- `trade` is required. `lang` (optional) keeps only providers who speak it. `radius_km` (optional, default `10`) is how far from the customer's home counts as near. It must be more than 0 and at most `30`, otherwise the answer is 422.
+- Distances are from the customer's home, rounded to 0.1 km as in the ranked list. The list is nearest first and never ordered by trust.
+- Each row is a `NearbyProvider`: it has no `trust`, so the list can't turn into a leaderboard. Trust shows on the profile and in a job's ranked list.
+
 ## Endpoints
 
 | Method | Path | Who | Body / query | Response (fixture) |
@@ -48,6 +55,7 @@
 | POST | `/api/jobs` | customer | `{description, lang, trade, urgency, size, suburb, photo_id?}` | 201 `job_public.json` |
 | GET | `/api/jobs/{job_id}` | job's customer, shortlisted providers | | `job_public.json`, or `job_unlocked.json` from `confirmed` on |
 | GET | `/api/jobs/{job_id}/providers` | job's customer | | `ranked_providers.json` |
+| GET | `/api/providers` | customer | `?trade=&lang=&radius_km=` | `nearby_providers.json` (for `?trade=plumbing`) |
 | GET | `/api/providers/{provider_id}` | user | | `provider_profile.json` |
 | GET | `/api/feed` | provider | | `feed.json` |
 | GET | `/api/price-range` | user | `?trade=&size=&suburb=` | `price_range.json`, or `null` below 8 quotes |
@@ -75,6 +83,7 @@ These are the shapes of the objects in the fixtures, and each fixture is the sou
 - **JobPublic**: `id, state, trade, size, urgency, suburb, problem, problem_original, problem_lang, translation_flagged, photo_url, distance_km, created_at`
 - **JobUnlocked**: JobPublic plus `address, customer_phone, provider_phone, provider_photo_url`
 - **RankedProvider**: `provider_id, display_name, trades, distance_km, is_newcomer, id_badge, evidence {jobs, repeat_customers, photos, off_app_confirmed}, trust {score, low, high, label}`
+- **NearbyProvider**: `provider_id, display_name, suburb, trades, langs, distance_km, is_newcomer, id_badge, evidence {jobs, repeat_customers, photos, off_app_confirmed}` (no `trust`)
 - **Quote**: `id, job_id, provider_id, amount_rands, when, message, state, created_at`
 - **Message**: `id, job_id, sender_id, text, original, original_lang, flagged, flag_reason, contacts_hidden, scam_warnings, sent_at`
 - **PriceRange**: `trade, size, suburb, low_rands, high_rands, n_quotes`
