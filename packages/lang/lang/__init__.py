@@ -8,6 +8,7 @@ Public functions (the contract; signatures change only with the team's agreement
     understand_job(text, lang) -> JobIntent(trade, urgency, size, confidence)
     scan_message(text, lang, contacts_unlocked) -> SafetyResult(safe_text, findings, scam_warnings)
     extract_quote(text) -> Quote(amount_rands, when) | None
+    get_scam_warning_texts(scam_warnings, lang) -> list[str], in the reader's language
 
 Proposed (not agreed yet):
     transcribe(audio, mime_type, lang=None) -> Transcript(text, lang, confidence)
@@ -29,7 +30,7 @@ from lang.models import (
     Translation,
 )
 from lang.quotes import extract_quote
-from lang.safety import scan_message
+from lang.safety import get_scam_warning_texts, scan_message
 from lang.stubs import transcribe
 from lang.translation import translate
 from lang.understanding import understand_job
@@ -42,6 +43,7 @@ __all__ = [
     "Transcript",
     "Translation",
     "extract_quote",
+    "get_scam_warning_texts",
     "scan_message",
     "transcribe",
     "translate",

@@ -102,3 +102,19 @@ def test_scam_warnings_apply_even_after_contacts_unlock():
 def test_an_ordinary_message_has_no_warnings():
     result = scan_message("I-geyser yami iyavuza. Ungakwazi ukuza namuhla?", "zu", False)
     assert result.scam_warnings == []
+
+
+def test_warning_texts_come_in_the_readers_language():
+    from lang import get_scam_warning_texts
+
+    codes = [SCAM_WARNING_UPFRONT_PAYMENT, SCAM_WARNING_ONE_TIME_PIN]
+    assert get_scam_warning_texts(codes, "zu")[0].startswith("Qaphela: ungalokothi ukhokhe")
+    assert get_scam_warning_texts(codes, "xh")[1].startswith("Ungaze wabelane")
+    assert get_scam_warning_texts([SCAM_WARNING_SUSPICIOUS_LINK], "en") == [
+        "Be careful with links from people you don't know. Don't enter your personal details."
+    ]
+
+
+def test_idiphozi_is_caught_too():
+    result = scan_message("Ngicela ungithumele idiphozi kuqala", "zu", contacts_unlocked=False)
+    assert result.scam_warnings == [SCAM_WARNING_UPFRONT_PAYMENT]

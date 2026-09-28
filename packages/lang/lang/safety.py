@@ -66,12 +66,37 @@ ADDRESS_PATTERN = re.compile(
 SCAM_WARNING_UPFRONT_PAYMENT = "upfront_payment"
 SCAM_WARNING_ONE_TIME_PIN = "one_time_pin"
 SCAM_WARNING_SUSPICIOUS_LINK = "suspicious_link"
+# What the app shows for each warning, in the reader's language. Written by P3 (isiZulu and
+# isiXhosa as a first-language speaker).
+SCAM_WARNING_TEXTS: dict[str, dict[str, str]] = {
+    SCAM_WARNING_UPFRONT_PAYMENT: {
+        "en": "Be careful: never pay a deposit before the job is confirmed on Fixa. "
+        "Pay when the work is done.",
+        "zu": "Qaphela: ungalokothi ukhokhe idiphozi ngaphambi kokuthi umsebenzi uqinisekiswe "
+        "ku-Fixa. Khokha uma umsebenzi usuphelile.",
+        "xh": "Qaphela: ungaze uhlawule idiphozithi ngaphambi kokuba umsebenzi uqinisekiswe "
+        "kwi-Fixa. Hlawula xa umsebenzi uqityiwe.",
+    },
+    SCAM_WARNING_ONE_TIME_PIN: {
+        "en": "Never share a one-time PIN or code. Fixa will never ask you for it.",
+        "zu": "Ungalokothi wabelane ngephinikhodi yesikhathi esisodwa noma ikhodi. "
+        "UFixa akasoze akucela.",
+        "xh": "Ungaze wabelane nge-PIN yexesha elinye okanye ikhowudi. UFixa soze akucele.",
+    },
+    SCAM_WARNING_SUSPICIOUS_LINK: {
+        "en": "Be careful with links from people you don't know. "
+        "Don't enter your personal details.",
+        "zu": "Qaphela izixhumanisi ezivela kubantu ongabazi. Ungafaki imininingwane yakho siqu.",
+        "xh": "Lumka ngamakhonkco abantu ongabaziyo. Ungafaki iinkcukacha zakho.",
+    },
+}
 # isiZulu and isiXhosa phrases need a first-language check (P3 is the isiZulu speaker).
 SCAM_PHRASE_PATTERNS: dict[str, re.Pattern[str]] = {
     SCAM_WARNING_UPFRONT_PAYMENT: re.compile(
         r"\b(?:deposit|upfront|pay (?:me )?first|pay before|send (?:me )?(?:money|cash)|"
         r"e-?wallet|cash ?send|instant money|airtime|voucher|call-?out fee first|"
-        r"idiphozithi|idipozithi|khokha kuqala|khokhela kuqala|ngithumele imali|thumela imali|"
+        r"idiphozithi|idiphozi|idipozithi|khokha kuqala|khokhela kuqala|ngithumele imali|"
+        r"thumela imali|"
         r"hlawula kuqala|ndithumelele imali)\b",
         re.IGNORECASE,
     ),
@@ -207,3 +232,12 @@ def scan_message(text: str, lang: Lang, contacts_unlocked: bool) -> SafetyResult
     return SafetyResult(
         safe_text=hide_findings(text, findings), findings=findings, scam_warnings=scam_warnings
     )
+
+
+def get_scam_warning_texts(scam_warnings: list[str], lang: Lang) -> list[str]:
+    """The warning text for each code, in the reader's language (English if a text is missing)."""
+    return [
+        SCAM_WARNING_TEXTS[code].get(lang) or SCAM_WARNING_TEXTS[code]["en"]
+        for code in scam_warnings
+        if code in SCAM_WARNING_TEXTS
+    ]
