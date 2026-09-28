@@ -38,6 +38,16 @@ LINKING_WORDS = (
 NOT_A_QUANTITY = rf"(?!(?:{QUANTITY_WORDS})\b)"
 NOT_A_LINKING_WORD = rf"(?!(?:{LINKING_WORDS})\b)"
 
+# Rand amounts as South Africans write them: "R1 500" (the official style, with a space, a
+# no-break space or a thin space), "R1,500", "R4500", "R2500.00" or "R1 500,50". A new line is
+# never a thousands separator, and a spaced group that starts a phone number isn't part of the
+# price, so "R450 082 123 4567" is R450. quotes.py reads amounts with the same pattern.
+THOUSANDS_SPACE = "[    ]"
+NOT_A_PHONE = r"(?!0\d{2}[ -]?\d{3}[ -]?\d{4}(?!\d))"
+THOUSANDS_SEPARATOR = rf"(?:,|{THOUSANDS_SPACE}{NOT_A_PHONE})"
+RAND_DIGITS = rf"\d+(?:{THOUSANDS_SEPARATOR}\d{{3}})*"
+RAND_AMOUNT = rf"{RAND_DIGITS}(?:[.,]\d{{2}})?"
+
 # Order matters: earlier patterns win, so a phone number is never split into smaller numbers.
 # isiZulu and isiXhosa attach prefixes straight onto numbers ("ngoR1200", "ngo10:30", "e-12"),
 # so numbers are bounded by "not a digit" rather than by a word boundary. The rand sign is a
@@ -51,8 +61,8 @@ PROTECTED_PATTERNS = [
         rf"(?<!\d)\d{{1,5}}[a-z]?\s+{NOT_A_QUANTITY}"
         rf"(?:{NOT_A_LINKING_WORD}[A-Z][\w'-]*\s+){{1,3}}(?:{STREET_WORDS})\b\.?",
     ),
-    ("price", r"(?<!\d)(?-i:R)\s?\d+(?:[\s,]\d{3})*(?:[.,]\d{2})?(?!\d)"),
-    ("price", r"(?<!\d)\d+(?:[\s,]\d{3})*\s?(?:rand|randi)\b"),
+    ("price", rf"(?<!\d)(?-i:R){THOUSANDS_SPACE}?{RAND_AMOUNT}(?!\d)"),
+    ("price", rf"(?<!\d){RAND_DIGITS}{THOUSANDS_SPACE}?(?:rand|randi)\b"),
     ("date", r"(?<!\d)\d{4}-\d{2}-\d{2}(?!\d)"),
     ("date", r"(?<!\d)\d{1,2}/\d{1,2}(?:/\d{2,4})?(?!\d)"),
     ("date", rf"(?<!\d)\d{{1,2}}\s(?:{MONTH_WORDS})\b\.?"),

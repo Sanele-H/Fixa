@@ -60,6 +60,26 @@ def test_ordinary_sentences_are_not_read_as_addresses_or_dates(text, expected_va
     assert [(value.kind, value.text) for value in protected.values] == expected_values
 
 
+@pytest.mark.parametrize(
+    ("text", "expected_price"),
+    [
+        ("R4500", "R4500"),
+        ("R2500.00", "R2500.00"),
+        ("R1 500,50", "R1 500,50"),
+        ("R1 500", "R1 500"),
+        ("R1 500", "R1 500"),
+        ("R1 050", "R1 050"),
+        ("Ngizokhokha uR1 200", "R1 200"),
+        # A phone number after the price, or a number on the next line, is not part of it
+        ("Pay R450 082 123 4567", "R450"),
+        ("R450\n500 people", "R450"),
+    ],
+)
+def test_prices_written_the_south_african_ways_stay_whole(text, expected_price):
+    prices = [value.text for value in protect(text).values if value.kind == "price"]
+    assert prices == [expected_price]
+
+
 def test_a_lowercase_r_before_a_number_is_not_a_price():
     protected = protect("I can come for 5 days")
     assert [(value.kind, value.text) for value in protected.values] == [("number", "5")]

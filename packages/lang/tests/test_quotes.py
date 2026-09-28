@@ -26,6 +26,23 @@ def test_price_and_time_from_real_messages(text, amount_rands, when):
 
 
 @pytest.mark.parametrize(
+    ("text", "amount_rands"),
+    [
+        ("R4500 all in", 4500),
+        ("R2500.00", 2500),
+        ("R1 500,50", 1501),
+        ("R1,50", 2),
+        ("R1 500", 1500),
+        # A number on the next line, or a phone number after the price, is not part of it
+        ("Labour R450\n200 for the valve", 450),
+        ("Pay R450 082 123 4567", 450),
+    ],
+)
+def test_amounts_written_the_south_african_ways(text, amount_rands):
+    assert extract_quote(text).amount_rands == amount_rands
+
+
+@pytest.mark.parametrize(
     "text",
     [
         "I-geyser yami iyavuza. Ungakwazi ukuza namuhla?",

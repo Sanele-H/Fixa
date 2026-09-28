@@ -9,10 +9,13 @@ so the app's typed quote form stays the main way to quote; this fills it in from
 import re
 
 from lang.models import Quote
+from lang.protection import RAND_AMOUNT, RAND_DIGITS, THOUSANDS_SPACE
 
+# The same amounts protect() keeps whole, so "R450" on one line and "200 for the valve" on the
+# next is R450, not R450 200.
 PRICE_PATTERNS = [
-    re.compile(r"(?<!\d)(?-i:R)\s?(\d+(?:[\s,]\d{3})*(?:[.,]\d{2})?)(?!\d)"),
-    re.compile(r"(?<!\d)(\d+(?:[\s,]\d{3})*)\s?(?:rand|randi)\b", re.IGNORECASE),
+    re.compile(rf"(?<!\d)(?-i:R){THOUSANDS_SPACE}?({RAND_AMOUNT})(?!\d)"),
+    re.compile(rf"(?<!\d)({RAND_DIGITS}){THOUSANDS_SPACE}?(?:rand|randi)\b", re.IGNORECASE),
 ]
 CENTS_PATTERN = re.compile(r"[.,]\d{2}$")
 
