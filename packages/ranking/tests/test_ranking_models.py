@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from ranking import Evidence, PriceRange, RankedProvider, TrustBadge
+from ranking import Evidence, NearbyProvider, PriceRange, RankedProvider, TrustBadge
 
 FIXTURES_PATH = Path(__file__).resolve().parents[3] / "contracts" / "fixtures"
 
@@ -18,6 +18,11 @@ def read_fixture(file_name: str):
 @pytest.mark.parametrize("fixture_row", read_fixture("ranked_providers.json"))
 def test_ranked_provider_round_trips_the_fixture(fixture_row):
     assert RankedProvider.model_validate(fixture_row).model_dump() == fixture_row
+
+
+@pytest.mark.parametrize("fixture_row", read_fixture("nearby_providers.json"))
+def test_nearby_provider_round_trips_the_fixture(fixture_row):
+    assert NearbyProvider.model_validate(fixture_row).model_dump() == fixture_row
 
 
 def test_price_range_round_trips_the_fixture():
