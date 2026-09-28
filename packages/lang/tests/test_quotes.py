@@ -43,6 +43,23 @@ def test_amounts_written_the_south_african_ways(text, amount_rands):
 
 
 @pytest.mark.parametrize(
+    ("text", "when"),
+    [
+        # "ngeSonto" with only a time, a price or a time of day after it is Sunday
+        ("Ngizofika ngeSonto, R450", "Sunday"),
+        ("Ngizofika ngeSonto ngo-10:00, R450", "Sunday 10:00"),
+        ("R450, ngizofika ngeSonto ekuseni", "Sunday"),
+        # iSonto also means week, so anything else after it leaves the day unknown
+        ("Ngizofika ngesonto elizayo, R450", None),
+        ("Ngizofika ngeSonto elizayo, R450", None),
+        ("Ngihlanza kabili ngesonto, R300", None),
+    ],
+)
+def test_ngesonto_is_sunday_only_when_it_cannot_mean_week(text, when):
+    assert extract_quote(text).when == when
+
+
+@pytest.mark.parametrize(
     "text",
     [
         "I-geyser yami iyavuza. Ungakwazi ukuza namuhla?",

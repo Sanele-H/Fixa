@@ -20,7 +20,8 @@ PRICE_PATTERNS = [
 CENTS_PATTERN = re.compile(r"[.,]\d{2}$")
 
 # Each day in English, isiZulu and isiXhosa. The isiZulu and isiXhosa forms carry the "on" prefix
-# ("ngoLwesibili" is "on Tuesday"), so they match anywhere inside a word.
+# ("ngoLwesibili" is "on Tuesday"), so they match anywhere inside a word. isiZulu "ngeSonto" isn't
+# here: iSonto also means "week", so it has its own check below.
 DAY_FORMS: dict[str, list[str]] = {
     "Monday": ["monday", "msombuluko", "mvulo"],
     "Tuesday": ["tuesday", "lwesibili", "lwesibini"],
@@ -28,12 +29,26 @@ DAY_FORMS: dict[str, list[str]] = {
     "Thursday": ["thursday", "lwesine"],
     "Friday": ["friday", "lwesihlanu"],
     "Saturday": ["saturday", "mgqibelo"],
-    "Sunday": ["sunday", "sonto", "cawa"],
+    "Sunday": ["sunday", "cawa"],
     "today": ["today", "namuhla", "namhlanje"],
     "tomorrow": ["tomorrow", "kusasa", "ngomso"],
 }
 TIME_PATTERN = re.compile(
     r"(?<!\d)(\d{1,2}(?::\d{2})?\s?(?:am|pm)|\d{1,2}[:h]\d{2})(?!\d)", re.IGNORECASE
+)
+
+# "ngeSonto" is "on Sunday", but iSonto also means "week": "ngeSonto elizayo" can mean next Sunday
+# or next week, and "kabili ngesonto" is twice a week. So it only counts as Sunday when nothing
+# comes after it but a time, a price, or a time of day ("ngeSonto ngo-10:00, R450", "ngeSonto
+# ekuseni"), and not after a "times" word. No day beats the wrong day.
+NGESONTO_PATTERN = re.compile(r"\bngesonto\b", re.IGNORECASE)
+TIMES_WORDS = {"kanye", "kabili", "kathathu", "kane", "kahlanu"}  # once, twice, three times…
+LAST_WORD_PATTERN = re.compile(r"(\w+)\W*$")
+# What may follow "ngeSonto" once times and prices are taken out: spaces, punctuation, the small
+# words that go with a time or price ("ngo-10:00", "u-R450", "at 10am"), and times of day.
+AFTER_SUNDAY_PATTERN = re.compile(
+    r"(?:[\s,.!?;:-]|\b(?:ngo|u|ngu|yi|at|for|ekuseni|emini|ntambama|kusihlwa|ebusuku)\b)*",
+    re.IGNORECASE,
 )
 
 
@@ -53,6 +68,26 @@ def find_first_price(text: str) -> int | None:
     return parse_rands(first.group(1))
 
 
+def remove_times_and_prices(text: str) -> str:
+    """The text with every time and rand amount taken out."""
+    text = TIME_PATTERN.sub("", text)
+    for pattern in PRICE_PATTERNS:
+        text = pattern.sub("", text)
+    return text
+
+
+def find_sunday_position(text: str) -> int | None:
+    """Where "ngeSonto" can only mean Sunday, or None (see NGESONTO_PATTERN for the rule)."""
+    match = NGESONTO_PATTERN.search(text)
+    if match is None:
+        return None
+    word_before = LAST_WORD_PATTERN.search(text[: match.start()])
+    if word_before and word_before.group(1).lower() in TIMES_WORDS:
+        return None
+    rest = remove_times_and_prices(text[match.end() :])
+    return match.start() if AFTER_SUNDAY_PATTERN.fullmatch(rest) else None
+
+
 def find_day(text: str) -> str | None:
     """The first day mentioned, as an English word, or None."""
     lowered_text = text.lower()
@@ -62,6 +97,9 @@ def find_day(text: str) -> str | None:
         for form in forms
         if form in lowered_text
     ]
+    sunday_position = find_sunday_position(text)
+    if sunday_position is not None:
+        positions.append((sunday_position, "Sunday"))
     return min(positions)[1] if positions else None
 
 
