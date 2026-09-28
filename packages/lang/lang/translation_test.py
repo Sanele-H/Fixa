@@ -22,7 +22,8 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from lang.backends import BACKEND_CLASSES, get_backend
+from lang.backends import BACKEND_CLASSES, TranslationBackend, get_backend
+from lang.quality import FLAG_REASON_UNAVAILABLE
 from lang.translation import translate
 
 REPO_ROOT_PATH = Path(__file__).resolve().parents[3]
@@ -49,6 +50,7 @@ class MessageResult(BaseModel):
     run_name: str
     translated_text: str
     flagged: bool
+    failed: bool  # The backend errored, so nothing was translated and nothing counts as kept
     numbers_kept: bool
     terms_kept: bool
     seconds: float
@@ -74,25 +76,42 @@ def load_env_file() -> None:
     load_dotenv(REPO_ROOT_PATH / ".env")
 
 
+def translate_without_protection(
+    message: TestMessage, backend: TranslationBackend
+) -> tuple[str, bool]:
+    """The backend's raw translation and whether it failed. A refusal or rate limit on one message
+    is recorded as a failure instead of stopping the whole run."""
+    try:
+        raw = backend.translate(message.text, message.target_lang, message.lang)
+    except Exception as error:
+        return f"(failed: {error})", True
+    return raw.text, False
+
+
 def run_message(message: TestMessage, backend_name: str, use_protection: bool) -> MessageResult:
-    """Translate one message and score it."""
+    """Translate one message and score it. A failed translation keeps nothing: translate() hands
+    back the original, which would otherwise score as every number and term kept."""
     backend = get_backend(backend_name)
     started_at = time.perf_counter()
     if use_protection:
         translation = translate(message.text, message.target_lang, message.lang, backend=backend)
         translated_text, flagged = translation.text, translation.flagged
+        failed = translation.flag_reason == FLAG_REASON_UNAVAILABLE
     else:
-        raw = backend.translate(message.text, message.target_lang, message.lang)
-        translated_text, flagged = raw.text, False
+        translated_text, failed = translate_without_protection(message, backend)
+        flagged = False
     seconds = time.perf_counter() - started_at
     lowered_text = translated_text.lower()
+    numbers_kept = all(number in translated_text for number in message.must_keep_numbers)
+    terms_kept = all(term.lower() in lowered_text for term in message.must_keep_terms)
     return MessageResult(
         message=message,
         run_name=backend_name if use_protection else f"{backend_name} (no protection)",
         translated_text=translated_text,
         flagged=flagged,
-        numbers_kept=all(number in translated_text for number in message.must_keep_numbers),
-        terms_kept=all(term.lower() in lowered_text for term in message.must_keep_terms),
+        failed=failed,
+        numbers_kept=numbers_kept and not failed,
+        terms_kept=terms_kept and not failed,
         seconds=seconds,
     )
 
@@ -103,11 +122,12 @@ def summarise_run(results: list[MessageResult]) -> str:
     numbers_kept_count = sum(result.numbers_kept for result in results)
     terms_kept_count = sum(result.terms_kept for result in results)
     flagged_count = sum(result.flagged for result in results)
+    failed_count = sum(result.failed for result in results)
     average_seconds = sum(result.seconds for result in results) / count
     slowest_seconds = max(result.seconds for result in results)
     return (
         f"| {results[0].run_name} | {numbers_kept_count}/{count} | {terms_kept_count}/{count} "
-        f"| {flagged_count} | {average_seconds:.2f} s | {slowest_seconds:.2f} s |"
+        f"| {flagged_count} | {failed_count} | {average_seconds:.2f} s | {slowest_seconds:.2f} s |"
     )
 
 
@@ -118,8 +138,8 @@ def build_report(results_by_run: dict[str, list[MessageResult]]) -> str:
         "",
         f"Chat target: about {CHAT_SPEED_TARGET_SECONDS:.0f} s per message.",
         "",
-        "| Run | Numbers kept | Terms kept | Flagged | Average | Slowest |",
-        "| --- | --- | --- | --- | --- | --- |",
+        "| Run | Numbers kept | Terms kept | Flagged | Failed | Average | Slowest |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
     ]
     lines += [summarise_run(results) for results in results_by_run.values()]
     lines += ["", "## Every translation (check the meaning)", ""]
@@ -135,6 +155,8 @@ def build_report(results_by_run: dict[str, list[MessageResult]]) -> str:
             if result.flagged:
                 problems.append("flagged")
             status = "lost " + ", ".join(problems) if problems else "yes"
+            if result.failed:
+                status = "failed"
             lines.append(
                 f"| {result.message.id} | {result.message.text} | {result.translated_text} "
                 f"| {', '.join(result.message.must_keep_meaning)} | {status} |"
