@@ -1,12 +1,15 @@
 """translate() keeps values exact, flags doubts, and never breaks chat when a backend fails."""
 
 from collections import OrderedDict
+from types import SimpleNamespace
 
 import pytest
 
 from lang.backends import (
+    CLAUDE_MAX_RETRIES,
     AzureBackend,
     BackendTranslation,
+    ClaudeBackend,
     FakeBackend,
     TranslationFailedError,
     get_backend,
@@ -267,3 +270,41 @@ def test_a_missing_azure_key_shows_the_original_instead_of_crashing(monkeypatch)
     translation = translate("Ngingafika ngoLwesibili, R450.", "en", "zu")
     assert translation.text == "Ngingafika ngoLwesibili, R450."
     assert translation.flag_reason == FLAG_REASON_UNAVAILABLE
+
+
+def make_claude_backend(monkeypatch, reply, stop_reason="end_turn"):
+    """A ClaudeBackend whose Anthropic client returns reply, with no network. Also returns the
+    options the client was created with."""
+    client_options = {}
+    response = SimpleNamespace(
+        stop_reason=stop_reason, content=[SimpleNamespace(type="text", text=reply)]
+    )
+
+    def create_fake_client(**options):
+        client_options.update(options)
+        messages = SimpleNamespace(create=lambda **_: response)
+        return SimpleNamespace(beta=SimpleNamespace(messages=messages))
+
+    monkeypatch.setattr("lang.backends.anthropic.Anthropic", create_fake_client)
+    return ClaudeBackend(), client_options
+
+
+def test_claude_reads_the_language_code_line_then_the_translation(monkeypatch):
+    backend, client_options = make_claude_backend(monkeypatch, "zu\nMy geyser is leaking")
+    result = backend.translate("Igiza lami liyavuza", "en", None)
+    assert (result.text, result.source_lang) == ("My geyser is leaking", "zu")
+    assert client_options["max_retries"] == CLAUDE_MAX_RETRIES
+
+
+@pytest.mark.parametrize(
+    ("reply", "stop_reason"),
+    [
+        ("My geyser is leaking", "end_turn"),  # no language code line
+        ("zu", "end_turn"),  # a code but no translation
+        ("zu\nMy geyser is", "max_tokens"),  # cut off
+    ],
+)
+def test_a_claude_reply_that_is_cut_off_or_unlabelled_fails(monkeypatch, reply, stop_reason):
+    backend, _ = make_claude_backend(monkeypatch, reply, stop_reason)
+    with pytest.raises(TranslationFailedError):
+        backend.translate("Igiza lami liyavuza", "en", None)

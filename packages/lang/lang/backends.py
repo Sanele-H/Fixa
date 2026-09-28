@@ -21,6 +21,8 @@ DEFAULT_BACKEND_NAME = "fake"
 CLAUDE_DEFAULT_MODEL = "claude-opus-5"
 CLAUDE_MAX_TOKENS = 2000
 CLAUDE_TIMEOUT_SECONDS = 15.0
+# The SDK retries twice by default, which could hold a chat message for 45 s or more.
+CLAUDE_MAX_RETRIES = 1
 CLAUDE_FALLBACK_BETA = "server-side-fallback-2026-07-01"
 CLAUDE_SYSTEM_PROMPT = """You translate short marketplace chat messages between English, \
 isiZulu and isiXhosa for a South African app where customers hire tradespeople (plumbers, \
@@ -60,10 +62,21 @@ class TranslationBackend(Protocol):
     ) -> BackendTranslation: ...
 
 
+def get_short_code(code: str | None) -> str:
+    """The bare code in "zu", "zu-ZA" or "xh.": lowercase, with no region or punctuation."""
+    return (code or "").strip().rstrip(".:").split("-")[0].lower()
+
+
 def to_supported_lang(code: str | None) -> Lang:
     """Turn a backend's language code ("zu", "zu-ZA", "xh") into one of ours, defaulting to en."""
-    short_code = (code or "").split("-")[0].strip().lower()
+    short_code = get_short_code(code)
     return short_code if short_code in LANGUAGE_NAMES else "en"  # type: ignore[return-value]
+
+
+def is_language_code(text: str) -> bool:
+    """True when text is just one of our language codes, as Claude is asked to write on the first
+    line of its reply when the sender's language is unknown."""
+    return get_short_code(text) in LANGUAGE_NAMES
 
 
 class FakeBackend:
@@ -80,11 +93,14 @@ class ClaudeBackend:
 
     CLAUDE_TRANSLATION_MODEL overrides the model. Effort is low because chat needs replies in
     about 2 seconds. If the request is declined, fallbacks="default" retries it on Anthropic's
-    recommended fallback model.
+    recommended fallback model. A reply that was cut off, or that doesn't start with the language
+    code it was asked for, counts as a failure, so the reader gets the original instead.
     """
 
     def __init__(self) -> None:
-        self.client = anthropic.Anthropic(timeout=CLAUDE_TIMEOUT_SECONDS)
+        self.client = anthropic.Anthropic(
+            timeout=CLAUDE_TIMEOUT_SECONDS, max_retries=CLAUDE_MAX_RETRIES
+        )
         self.model = os.getenv("CLAUDE_TRANSLATION_MODEL", CLAUDE_DEFAULT_MODEL)
 
     def translate(
@@ -111,10 +127,14 @@ class ClaudeBackend:
         )
         if response.stop_reason == "refusal":
             raise TranslationFailedError("Claude declined to translate this message")
+        if response.stop_reason == "max_tokens":
+            raise TranslationFailedError("Claude's translation was cut off")
         reply = "".join(block.text for block in response.content if block.type == "text").strip()
         if source_lang:
             return BackendTranslation(text=reply, source_lang=source_lang)
         detected_code, _, translated_text = reply.partition("\n")
+        if not is_language_code(detected_code) or not translated_text.strip():
+            raise TranslationFailedError(f"Claude's reply had no language code line: {reply!r}")
         return BackendTranslation(
             text=translated_text.strip(), source_lang=to_supported_lang(detected_code)
         )
