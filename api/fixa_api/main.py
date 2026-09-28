@@ -6,9 +6,23 @@ This is the starting shell: only /api/health exists. P2's Day 1 task is to make 
 contracts/api.md return its fixture, then replace each with real code behind the same shape.
 """
 
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
 
-app = FastAPI(title="Fixa API", version="0.1.0")
+from fastapi import FastAPI
+from sqlmodel import SQLModel
+
+from fixa_api import models  # noqa: F401  (imported so its tables exist before create_all)
+from fixa_api.db import engine
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    """Create any missing tables when the server starts. Existing tables are left alone."""
+    SQLModel.metadata.create_all(engine)
+    yield
+
+
+app = FastAPI(title="Fixa API", version="0.1.0", lifespan=lifespan)
 
 
 @app.get("/api/health")
