@@ -13,6 +13,7 @@ export const PATHS = {
   // Customer
   home: "/home",
   newJob: "/jobs/new",
+  nearby: "/nearby",
   jobProviders: "/jobs/:jobId/providers",
   // Customer and provider
   job: "/jobs/:jobId",
@@ -28,6 +29,13 @@ export const PATHS = {
   // Development only
   devScreens: "/dev/screens",
 } as const;
+
+/**
+ * A profile opened from the nearby list carries ?from=nearby, so its back arrow returns there
+ * and it offers "Describe a job". Opened from a job's ranked list, the customer already has one.
+ */
+export const PROFILE_FROM_PARAM = "from";
+export const PROFILE_FROM_NEARBY = "nearby";
 
 /** The first tab each role lands on after login. */
 export function getHomePath(role: Role) {

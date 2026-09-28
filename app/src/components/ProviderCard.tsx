@@ -1,11 +1,12 @@
-// How a provider is shown in the ranked list and on their profile: job evidence and a trust
-// range, never stars.
+// How a provider is shown in the ranked list, on the nearby list and on their profile: job
+// evidence and a trust range, never stars.
 
 import { useTranslation } from "react-i18next";
 import { generatePath } from "react-router";
-import type { Evidence, RankedProvider, Trust } from "../api/types";
-import { PATHS } from "../app/paths";
+import type { Evidence, Language, NearbyProvider, RankedProvider, Trust } from "../api/types";
+import { PATHS, PROFILE_FROM_NEARBY, PROFILE_FROM_PARAM } from "../app/paths";
 import { formatDistanceKm, formatScoreOutOf100 } from "../format";
+import { LANGUAGE_NAMES } from "../i18n";
 import { Avatar, CardLink, Chip, TrustRange } from "../ui";
 import { IdBadgeChip, TradeChip } from "./Badges";
 
@@ -44,17 +45,23 @@ export function ProviderTrust({ trust }: { trust: Trust }) {
   );
 }
 
-/** One provider in the ranked list. The whole card opens their profile. */
-export function ProviderCard({ provider }: { provider: RankedProvider }) {
+type ProviderCardTopProps = {
+  provider: Pick<RankedProvider, "display_name" | "trades" | "is_newcomer" | "id_badge">;
+  /** The line under the name: "1.8 km" in the ranked list, "Parktown · 1.8 km" when browsing. */
+  whereText: string;
+};
+
+/** The top of every provider card: avatar, name, where they are, the New tag, trade and ID chips. */
+function ProviderCardTop({ provider, whereText }: ProviderCardTopProps) {
   const { t } = useTranslation();
   return (
-    <CardLink to={generatePath(PATHS.provider, { providerId: provider.provider_id })} tone="raised">
+    <>
       <div className="row row--between">
         <div className="row">
           <Avatar displayName={provider.display_name} />
           <div>
             <h2 className="section-title">{provider.display_name}</h2>
-            <p className="small muted">{formatDistanceKm(provider.distance_km)}</p>
+            <p className="small muted">{whereText}</p>
           </div>
         </div>
         {provider.is_newcomer && <Chip tone="lime">{t("providers.newcomer")}</Chip>}
@@ -65,8 +72,42 @@ export function ProviderCard({ provider }: { provider: RankedProvider }) {
         ))}
         <IdBadgeChip badge={provider.id_badge} />
       </div>
+    </>
+  );
+}
+
+/** One provider in the ranked list. The whole card opens their profile. */
+export function ProviderCard({ provider }: { provider: RankedProvider }) {
+  return (
+    <CardLink to={generatePath(PATHS.provider, { providerId: provider.provider_id })} tone="raised">
+      <ProviderCardTop provider={provider} whereText={formatDistanceKm(provider.distance_km)} />
       <EvidenceStrip evidence={provider.evidence} />
       <ProviderTrust trust={provider.trust} />
+    </CardLink>
+  );
+}
+
+/** "isiZulu, English" for the "Speaks …" line, with each language's name in that language. */
+export function formatSpokenLanguages(languages: Language[]) {
+  return languages.map((language) => LANGUAGE_NAMES[language]).join(", ");
+}
+
+/**
+ * One provider on the "Who works near you" list: the same card as the ranked list, plus the
+ * languages they speak, and no trust range, so browsing never ranks people before a job exists.
+ * Opens their profile with ?from=nearby, so the profile's back arrow comes back here.
+ */
+export function NearbyProviderCard({ provider }: { provider: NearbyProvider }) {
+  const { t } = useTranslation();
+  const profilePath = generatePath(PATHS.provider, { providerId: provider.provider_id });
+  return (
+    <CardLink to={`${profilePath}?${PROFILE_FROM_PARAM}=${PROFILE_FROM_NEARBY}`} tone="raised">
+      <ProviderCardTop
+        provider={provider}
+        whereText={`${provider.suburb} · ${formatDistanceKm(provider.distance_km)}`}
+      />
+      <p className="small muted">{t("profile.speaks", { languages: formatSpokenLanguages(provider.langs) })}</p>
+      <EvidenceStrip evidence={provider.evidence} />
     </CardLink>
   );
 }

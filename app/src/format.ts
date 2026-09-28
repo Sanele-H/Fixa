@@ -32,6 +32,11 @@ export function formatDistanceKm(distanceKm: number) {
   return `${distanceKm.toFixed(DISTANCE_DECIMAL_PLACES)} km`;
 }
 
+/** "10 km". Whole kilometres, for a radius the customer picks rather than a measured distance. */
+export function formatRadiusKm(radiusKm: number) {
+  return `${radiusKm} km`;
+}
+
 /** "Tue 29 Sep, 10:00" in the reader's locale. */
 export function formatDateTime(isoDateTime: string, language: string) {
   return new Intl.DateTimeFormat(getLocale(language), {
