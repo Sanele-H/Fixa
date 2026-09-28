@@ -1,15 +1,487 @@
 {
-  "_about": "The 30 realistic test messages for the translation test (P3). Mixed English and isiZulu, the way people really text. Each lists what must come through translation unchanged. A native speaker writes or checks every non-English message.",
+  "_about": "The 30 realistic test messages for the translation test (P3). Mixed English, isiZulu and isiXhosa, the way people really text. Each lists what must come through translation unchanged. A native speaker writes or checks every non-English message. An empty text means the message isn't written yet: write it from draft_en, the English meaning, keeping the values in must_keep_numbers exactly as written. The test skips messages with empty text.",
   "messages": [
     {
       "id": "m01",
       "lang": "zu",
       "target_lang": "en",
       "text": "Ngingafika ngoLwesibili, R450.",
-      "must_keep_numbers": ["R450"],
+      "must_keep_numbers": [
+        "R450"
+      ],
       "must_keep_terms": [],
-      "must_keep_meaning": ["Tuesday"],
+      "must_keep_meaning": [
+        "Tuesday"
+      ],
       "notes": "Demo step 4 wording from the build plan. Needs a native-speaker check."
+    },
+    {
+      "id": "m02",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "I-geyser yami iyavuza, amanzi agcwele yonke indawo. Ungakwazi ukuza namuhla?",
+      "draft_en": "My geyser is leaking, water is everywhere. Can you come today?",
+      "must_keep_numbers": [],
+      "must_keep_terms": [
+        "geyser"
+      ],
+      "must_keep_meaning": [
+        "leaking",
+        "today",
+        "urgent"
+      ],
+      "notes": "Customer's first job description. Use the everyday word for geyser (igiza)."
+    },
+    {
+      "id": "m03",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Ngingayilungisa ngoR1200 , kukhona namaparts ",
+      "draft_en": "I can fix it for R1 200, parts included.",
+      "must_keep_numbers": [
+        "R1200"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "parts included"
+      ],
+      "notes": "Price with a space as the thousands separator."
+    },
+    {
+      "id": "m04",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Ngizoba khona ngo-10:30 kusasa ekuseni.",
+      "draft_en": "I'll be there at 10h30 tomorrow morning.",
+      "must_keep_numbers": [
+        "10:30"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "tomorrow",
+        "morning"
+      ],
+      "notes": "South African 10h30 time format."
+    },
+    {
+      "id": "m05",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Impompi yasekhishini ayiyeki ukuvuza.",
+      "draft_en": "The tap in the kitchen won't stop dripping.",
+      "must_keep_numbers": [],
+      "must_keep_terms": [
+        "tap"
+      ],
+      "must_keep_meaning": [
+        "kitchen",
+        "dripping"
+      ],
+      "notes": "Plumbing. Mix in the English word 'tap' if that's how people say it."
+    },
+    {
+      "id": "m06",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Ugesi uhlale ucisha uma ngivula iketela",
+      "draft_en": "The electricity keeps tripping when I switch on the kettle.",
+      "must_keep_numbers": [],
+      "must_keep_terms": [
+        "electricity"
+      ],
+      "must_keep_meaning": [
+        "tripping",
+        "kettle"
+      ],
+      "notes": "Electrical. Use ugesi for electricity."
+    },
+    {
+      "id": "m07",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Ngidinga ukushintshwa kwepayipi elingu-15mm ngaphansi kosinki.",
+      "draft_en": "I need a 15mm pipe replaced under the sink.",
+      "must_keep_numbers": [
+        "15mm"
+      ],
+      "must_keep_terms": [
+        "pipe"
+      ],
+      "must_keep_meaning": [
+        "replaced",
+        "under the sink"
+      ],
+      "notes": "Measurement must survive. Use ipayipi for pipe."
+    },
+    {
+      "id": "m08",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Ungakwazi yini ukuza ngomhla ka-29/09 ngo-2 ntambama?",
+      "draft_en": "Can you come on 29/09 at 2pm?",
+      "must_keep_numbers": [
+        "29/09",
+        "2"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "question"
+      ],
+      "notes": "Date and time in one message."
+    },
+    {
+      "id": "m09",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Kubiza u-R350 ukuze beze lapho ukhona, besekuba u-R200 ngehora ngemuva kwalokho.",
+      "draft_en": "It costs R350 for the call-out and R200 per hour after that.",
+      "must_keep_numbers": [
+        "R350",
+        "R200"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "call-out",
+        "per hour"
+      ],
+      "notes": "Two prices: they must not swap places."
+    },
+    {
+      "id": "m10",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Ngihlala e-12 Protea Street, endlini enesango eliluhlaza.",
+      "draft_en": "I live at 12 Protea Street, the house with the green gate.",
+      "must_keep_numbers": [
+        "12 Protea Street"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "green gate"
+      ],
+      "notes": "Address must survive (the app only sends this after the job is confirmed)."
+    },
+    {
+      "id": "m11",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Ngiyaxolisa,sengisele emuva ngesikhathi ,ngizobe ngilapho emizuzwini engu-20.",
+      "draft_en": "Sorry, I'm running late, I'll be there in 20 minutes.",
+      "must_keep_numbers": [
+        "20"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "sorry",
+        "late",
+        "minutes"
+      ],
+      "notes": "Write it the way people really text, mixing in English words if natural."
+    },
+    {
+      "id": "m12",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Indlu yangasese ivalilekile futhi amanzi aphumela phansi.",
+      "draft_en": "The toilet is blocked and water is coming out onto the floor.",
+      "must_keep_numbers": [],
+      "must_keep_terms": [
+        "toilet"
+      ],
+      "must_keep_meaning": [
+        "blocked",
+        "floor"
+      ],
+      "notes": "Urgent plumbing."
+    },
+    {
+      "id": "m13",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Imitha yami ekhokhelwa kusengaphambili ikhombisa ukuthi khukhona inkinga,izibani azikhanyi.",
+      "draft_en": "My prepaid meter says there's a fault, the lights won't come on.",
+      "must_keep_numbers": [],
+      "must_keep_terms": [
+        "meter"
+      ],
+      "must_keep_meaning": [
+        "prepaid",
+        "fault",
+        "lights"
+      ],
+      "notes": "Electrical. Prepaid meters are common in the townships."
+    },
+    {
+      "id": "m14",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Sengineminyaka engu-8 ngenza lo msebenzi, ngingathumela izithombe zemisebenzi yami.",
+      "draft_en": "I've done this work for 8 years, I can send photos of my jobs.",
+      "must_keep_numbers": [
+        "8"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "years",
+        "photos"
+      ],
+      "notes": "Tradesperson describing experience."
+    },
+    {
+      "id": "m15",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Uphahla luyavuza uma kuna imvula, ngaphezu kwegumbi lokulala.",
+      "draft_en": "The roof leaks when it rains, above the bedroom.",
+      "must_keep_numbers": [],
+      "must_keep_terms": [
+        "roof"
+      ],
+      "must_keep_meaning": [
+        "leaks",
+        "rains",
+        "bedroom"
+      ],
+      "notes": "Roofing."
+    },
+    {
+      "id": "m16",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Intengo yami yokugcina ingu-R2 500 futhi ngizoqeda ngoLwesihlanu.",
+      "draft_en": "My final price is R2 500 and I finish on Friday.",
+      "must_keep_numbers": [
+        "R2 500"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "final price",
+        "Friday"
+      ],
+      "notes": "Quote with a day. Write the price as 'R2 500'."
+    },
+    {
+      "id": "m17",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Ngiyabonga ,umsebenzi wenziwe kahle. Ngizophinde ngikushayele ucingo.",
+      "draft_en": "Thank you, the job was done well. I'll call you again.",
+      "must_keep_numbers": [],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "thank you",
+        "done well",
+        "again"
+      ],
+      "notes": "Customer thanking after the job. Tests tone, not values."
+    },
+    {
+      "id": "m18",
+      "lang": "zu",
+      "target_lang": "en",
+      "text": "Ngicela ungithumele idiphozithi engu-R500 kuqala ngaphambi kokuba ngize.",
+      "draft_en": "Please send me a deposit of R500 first before I come.",
+      "must_keep_numbers": [
+        "R500"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "deposit",
+        "first"
+      ],
+      "notes": "A scam-shaped message: scan_message should warn about upfront payment. The translation must still be accurate."
+    },
+    {
+      "id": "m19",
+      "lang": "xh",
+      "target_lang": "en",
+      "text": "I-geyser yam iqhushumbe ngale ntsasa, nceda undincede.",
+      "draft_en": "My geyser burst this morning, please help.",
+      "must_keep_numbers": [],
+      "must_keep_terms": [
+        "geyser"
+      ],
+      "must_keep_meaning": [
+        "burst",
+        "this morning",
+        "help"
+      ],
+      "notes": "isiXhosa version of an urgent plumbing job."
+    },
+    {
+      "id": "m20",
+      "lang": "xh",
+      "target_lang": "en",
+      "text": "Ndingeza ngoLwesithathu ngo-9:00, kuza kubiza ama-R600.",
+      "draft_en": "I can come on Wednesday at 9:00, it will cost R600.",
+      "must_keep_numbers": [
+        "9:00",
+        "R600"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "Wednesday"
+      ],
+      "notes": "isiXhosa quote with a time and a price."
+    },
+    {
+      "id": "m21",
+      "lang": "xh",
+      "target_lang": "en",
+      "text": "Akukho mbane kwisiqingatha sendlu.",
+      "draft_en": "There's no electricity in half of the house.",
+      "must_keep_numbers": [],
+      "must_keep_terms": [
+        "electricity"
+      ],
+      "must_keep_meaning": [
+        "half",
+        "house"
+      ],
+      "notes": "Electrical. Use umbane for electricity."
+    },
+    {
+      "id": "m22",
+      "lang": "xh",
+      "target_lang": "en",
+      "text": "Umbhobho wangaphandle waphukile kwaye amanzi abaleka esiya esitratweni.",
+      "draft_en": "The pipe outside is broken and water is running into the street.",
+      "must_keep_numbers": [],
+      "must_keep_terms": [
+        "pipe"
+      ],
+      "must_keep_meaning": [
+        "broken",
+        "outside",
+        "street"
+      ],
+      "notes": "Plumbing."
+    },
+    {
+      "id": "m23",
+      "lang": "xh",
+      "target_lang": "en",
+      "text": "Uxolo, andikwazi ukuza namhlanje. Singenza ngomhla wesi-3 ku-Okthobha?",
+      "draft_en": "I'm sorry, I can't come today. Can we do 3 Oct?",
+      "must_keep_numbers": [
+        "3"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "sorry",
+        "today",
+        "question"
+      ],
+      "notes": "Rescheduling. Keep the date written as '3 Oct'."
+    },
+    {
+      "id": "m24",
+      "lang": "xh",
+      "target_lang": "en",
+      "text": "Ndidinga umntu oza kupeyinta amagumbi amabini,malunga ne-R1,800?",
+      "draft_en": "I need someone to paint two rooms, about R1,800?",
+      "must_keep_numbers": [
+        "R1,800"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "paint",
+        "two rooms",
+        "question"
+      ],
+      "notes": "Painting. Price with a comma as the thousands separator."
+    },
+    {
+      "id": "m25",
+      "lang": "en",
+      "target_lang": "zu",
+      "text": "Hi, my geyser is leaking. Can you come tomorrow at 10:00?",
+      "must_keep_numbers": [
+        "10:00"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "geyser",
+        "leaking",
+        "tomorrow"
+      ],
+      "notes": "English customer to an isiZulu-speaking plumber. Check the geyser word in the translation."
+    },
+    {
+      "id": "m26",
+      "lang": "en",
+      "target_lang": "zu",
+      "text": "R450 is fine. Please bring the parts with you.",
+      "must_keep_numbers": [
+        "R450"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "fine",
+        "parts"
+      ],
+      "notes": "Customer accepting the demo quote."
+    },
+    {
+      "id": "m27",
+      "lang": "en",
+      "target_lang": "zu",
+      "text": "The gate code is not needed, just knock. I'm at 45 Jacaranda Road.",
+      "must_keep_numbers": [
+        "45 Jacaranda Road"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "knock"
+      ],
+      "notes": "Address after confirmation."
+    },
+    {
+      "id": "m28",
+      "lang": "en",
+      "target_lang": "zu",
+      "text": "Can you also check the wiring in the kitchen while you're here? I'll pay R300 extra.",
+      "must_keep_numbers": [
+        "R300"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "wiring",
+        "kitchen",
+        "extra"
+      ],
+      "notes": "Extra work mid-job."
+    },
+    {
+      "id": "m29",
+      "lang": "en",
+      "target_lang": "xh",
+      "text": "My toilet is blocked. When can you come?",
+      "must_keep_numbers": [],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "toilet",
+        "blocked",
+        "when"
+      ],
+      "notes": "English customer to an isiXhosa-speaking plumber."
+    },
+    {
+      "id": "m30",
+      "lang": "en",
+      "target_lang": "xh",
+      "text": "Thanks, see you on Saturday at 8am. The price was R750, right?",
+      "must_keep_numbers": [
+        "8",
+        "R750"
+      ],
+      "must_keep_terms": [],
+      "must_keep_meaning": [
+        "Saturday",
+        "price",
+        "question"
+      ],
+      "notes": "Confirming the booking. The time should come out with the isiXhosa word for morning (ntseni), not \"am\"."
     }
   ]
 }
