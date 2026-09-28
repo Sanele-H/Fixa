@@ -45,6 +45,21 @@ def test_protect_leaves_plain_words_alone():
     assert protected.text == "Igiza lami liyavuza, ngicela usizo"
 
 
+@pytest.mark.parametrize(
+    ("text", "expected_values"),
+    [
+        ("It takes 2 hours this way", [("number", "2")]),
+        ("Give me 2 days to close it", [("number", "2")]),
+        ("I'm 10 minutes down the road", [("number", "10")]),
+        ("I need 2 may be 3 taps", [("number", "2"), ("number", "3")]),
+        ("Come to 12 main road", [("address", "12 main road")]),
+    ],
+)
+def test_ordinary_sentences_are_not_read_as_addresses_or_dates(text, expected_values):
+    protected = protect(text)
+    assert [(value.kind, value.text) for value in protected.values] == expected_values
+
+
 def test_a_lowercase_r_before_a_number_is_not_a_price():
     protected = protect("I can come for 5 days")
     assert [(value.kind, value.text) for value in protected.values] == [("number", "5")]

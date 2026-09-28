@@ -19,9 +19,24 @@ STREET_WORDS = (
     "straat|weg|laan|rylaan|singel"
 )
 MONTH_WORDS = (
-    "jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|"
-    "sep|sept|september|oct|october|nov|november|dec|december"
+    r"jan|january|feb|february|mar|march|apr|april|may(?!\s+be\b)|jun|june|jul|july|aug|august|"
+    r"sep|sept|september|oct|october|nov|november|dec|december"
 )
+
+# Patterns run ignoring case, so "[A-Z]" in a street name also matches lowercase words. These two
+# guards stop ordinary sentences reading as addresses: a number followed by a time or distance
+# ("10 minutes down the road", "2 days to close it") isn't a street number, and small linking
+# words ("down", "the") are never part of a street name. safety.py uses them too.
+QUANTITY_WORDS = (
+    "min|mins|minute|minutes|hr|hrs|hour|hours|day|days|week|weeks|month|months|"
+    "km|m|metre|metres|meter|meters"
+)
+LINKING_WORDS = (
+    "the|a|an|to|from|down|up|of|in|on|at|by|near|past|off|over|across|into|for|and|or|"
+    "this|that|my|your|it|is"
+)
+NOT_A_QUANTITY = rf"(?!(?:{QUANTITY_WORDS})\b)"
+NOT_A_LINKING_WORD = rf"(?!(?:{LINKING_WORDS})\b)"
 
 # Order matters: earlier patterns win, so a phone number is never split into smaller numbers.
 # isiZulu and isiXhosa attach prefixes straight onto numbers ("ngoR1200", "ngo10:30", "e-12"),
@@ -31,7 +46,11 @@ PROTECTED_PATTERNS = [
     ("email", r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+"),
     ("link", r"(?:https?://|www\.)\S+"),
     ("phone", r"(?<!\d)(?:\+27|0)(?:[\s-]?\d){9}(?!\d)"),
-    ("address", rf"(?<!\d)\d{{1,5}}[a-z]?\s+(?:[A-Z][\w'-]*\s+){{1,3}}(?:{STREET_WORDS})\b\.?"),
+    (
+        "address",
+        rf"(?<!\d)\d{{1,5}}[a-z]?\s+{NOT_A_QUANTITY}"
+        rf"(?:{NOT_A_LINKING_WORD}[A-Z][\w'-]*\s+){{1,3}}(?:{STREET_WORDS})\b\.?",
+    ),
     ("price", r"(?<!\d)(?-i:R)\s?\d+(?:[\s,]\d{3})*(?:[.,]\d{2})?(?!\d)"),
     ("price", r"(?<!\d)\d+(?:[\s,]\d{3})*\s?(?:rand|randi)\b"),
     ("date", r"(?<!\d)\d{4}-\d{2}-\d{2}(?!\d)"),

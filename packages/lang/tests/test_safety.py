@@ -47,6 +47,10 @@ def test_disguised_phone_numbers_are_hidden(text):
         "It costs R350 for the call-out and R200 per hour.",
         "I've done this work for 8 years, the one with the green gate.",
         "Oh, I can come at 10:00, 11:00 or 12:00.",
+        # A number, then a street word a few words later, is not always an address
+        "I'm 10 minutes down the road",
+        "Give me 2 days to close it",
+        "I'm 3 houses down the street",
     ],
 )
 def test_prices_times_and_sizes_are_never_hidden(text):
@@ -68,6 +72,8 @@ def test_a_time_next_to_a_number_hides_only_the_number():
         ("See my work on www.nomsaplumbing.co.za", "link"),
         ("Chat to me on wa.me/27821234567", "link"),
         ("I live at 12 Protea Street, Soweto", "address"),
+        ("Come to 12 main road", "address"),
+        ("I stay at 7 Van der Merwe Street", "address"),
     ],
 )
 def test_emails_links_and_addresses_are_hidden(text, kind):

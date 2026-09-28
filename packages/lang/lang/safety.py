@@ -15,6 +15,7 @@ import re
 from pathlib import Path
 
 from lang.models import Finding, Lang, SafetyResult
+from lang.protection import NOT_A_LINKING_WORD, NOT_A_QUANTITY
 
 HIDDEN_CONTACT_TEXT = "[contact hidden until the job is confirmed]"
 MIN_PHONE_DIGITS = 9  # 082 123 4567 has 10; 9 allows for one missed digit
@@ -61,8 +62,11 @@ LINK_PATTERN = re.compile(
     re.IGNORECASE,
 )
 STREET_WORDS = "street|st|road|rd|avenue|ave|drive|dr|crescent|cres|lane|close|straat|weg|laan"
+# The guards stop "I'm 10 minutes down the road" being hidden as an address (see protection.py).
 ADDRESS_PATTERN = re.compile(
-    rf"(?<!\d)\d{{1,5}}[a-z]?\s+(?:[A-Z][\w'-]*\s+){{1,3}}(?:{STREET_WORDS})\b\.?", re.IGNORECASE
+    rf"(?<!\d)\d{{1,5}}[a-z]?\s+{NOT_A_QUANTITY}"
+    rf"(?:{NOT_A_LINKING_WORD}[A-Z][\w'-]*\s+){{1,3}}(?:{STREET_WORDS})\b\.?",
+    re.IGNORECASE,
 )
 
 # Scam warnings are codes; the app shows each one in the reader's language.
