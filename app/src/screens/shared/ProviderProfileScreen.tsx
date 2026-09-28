@@ -1,25 +1,29 @@
 // A provider's public profile: evidence and a trust range, never stars.
+// Opened from the nearby list (?from=nearby), its back arrow returns there and it offers
+// "Describe a job", since customers hire through a job, never straight from a profile.
 
 import { useTranslation } from "react-i18next";
-import { getHomePath } from "../../app/paths";
+import { useSearchParams } from "react-router";
+import { getHomePath, PATHS, PROFILE_FROM_NEARBY, PROFILE_FROM_PARAM } from "../../app/paths";
 import { IdBadgeChip, TradeChip } from "../../components/Badges";
-import { EVIDENCE_KEYS, ProviderTrust } from "../../components/ProviderCard";
+import { DescribeJobCard } from "../../components/DescribeJobCard";
+import { EVIDENCE_KEYS, formatSpokenLanguages, ProviderTrust } from "../../components/ProviderCard";
 import { sampleProviderProfile } from "../../dev/samples";
 import { formatDistanceKm } from "../../format";
-import { LANGUAGE_NAMES } from "../../i18n";
 import { useSession } from "../../session/SessionContext";
 import { Avatar, Card, Chip, IconButton, Screen, ScreenHeader, Slot, Stat } from "../../ui";
 
 export default function ProviderProfileScreen() {
   const { t } = useTranslation();
   const { role } = useSession();
+  const [searchParams] = useSearchParams();
+  const isFromNearby = searchParams.get(PROFILE_FROM_PARAM) === PROFILE_FROM_NEARBY;
   const provider = sampleProviderProfile;
-  const spokenLanguages = provider.langs.map((language) => LANGUAGE_NAMES[language]).join(", ");
 
   return (
     <Screen>
       <ScreenHeader
-        backTo={getHomePath(role)}
+        backTo={isFromNearby ? PATHS.nearby : getHomePath(role)}
         actions={<IconButton icon="share" label={t("profile.share")} />}
         eyebrow={`${provider.suburb} · ${formatDistanceKm(provider.distance_km)}`}
         title={provider.display_name}
@@ -41,7 +45,7 @@ export default function ProviderProfileScreen() {
           </div>
         </div>
         <p>{provider.bio}</p>
-        <p className="small muted">{t("profile.speaks", { languages: spokenLanguages })}</p>
+        <p className="small muted">{t("profile.speaks", { languages: formatSpokenLanguages(provider.langs) })}</p>
       </Card>
 
       <Card tone="inverse">
@@ -59,6 +63,8 @@ export default function ProviderProfileScreen() {
       </div>
 
       <Slot label="before/after work photos, vouches, report button" source="contract gap: the profile has no photo list yet" minHeightPx={120} />
+
+      {isFromNearby && role === "customer" && <DescribeJobCard hint={t("nearby.describeHint")} />}
     </Screen>
   );
 }
