@@ -40,11 +40,14 @@ REPEAT_WORDS = {"double": 2, "triple": 3}
 LOOKALIKE_DIGITS = str.maketrans({"o": "0", "O": "0", "l": "1", "I": "1"})
 LOOKALIKE_NUMBER_PATTERN = re.compile(r"^[0-9oOlI]+$")
 
-# A token is a word, a number (with a leading + for +27) or a single other character.
-TOKEN_PATTERN = re.compile(r"\+?\w+|[^\w\s]")
-# What may sit between the digits of one phone number. A comma or colon ends it, so
-# "10:00, 082…" hides only the number.
+# A token is a word, a number (with a leading + for +27, or starting with a look-alike letter as in
+# "o82") or a single other character. Letters and digits are split apart, because isiZulu and
+# isiXhosa glue prefixes straight onto numbers: "ngu0821234567" is "ngu" + "0821234567".
+TOKEN_PATTERN = re.compile(r"\+?\d[0-9oOlI]*|[oOlI]+\d[0-9oOlI]*|[^\W\d_]+|[^\w\s]")
+# What may sit between the digits of one phone number. A colon ends it, and so does a comma
+# followed by a space, so "10:00, 082…" hides only the number, but "082,123,4567" is one number.
 RUN_JOINERS = {"-", ".", "(", ")", "/", "+"}
+COMMA = ","
 
 EMAIL_PATTERN = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
 SPOKEN_EMAIL_PATTERN = re.compile(
@@ -138,6 +141,11 @@ def token_to_digits(token: str) -> str | None:
     return WORD_TO_DIGIT.get(token.lower())
 
 
+def is_digit_at(text: str, position: int) -> bool:
+    """True when the character at position is a digit, as after the commas in "082,123,4567"."""
+    return position < len(text) and text[position].isdigit()
+
+
 def find_phone_spans(text: str) -> list[tuple[int, int]]:
     """Character spans of runs that add up to a phone number, however it's written."""
     spans: list[tuple[int, int]] = []
@@ -165,6 +173,8 @@ def find_phone_spans(text: str) -> list[tuple[int, int]]:
             run_end = match.end()
             pending_repeat = 1
         elif token in RUN_JOINERS and run_start is not None:
+            continue
+        elif token == COMMA and run_start is not None and is_digit_at(text, match.end()):
             continue
         else:
             close_run()

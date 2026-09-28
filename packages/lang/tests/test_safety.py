@@ -24,6 +24,10 @@ from lang.safety import (
         "Call me zero eight two double one three triple four",
         "WhatsApp o82.123.4567",
         "Ngishayele ku 082 123 4567",
+        "Call me 082,123,4567",
+        # isiZulu and isiXhosa glue prefixes straight onto the number
+        "Inombolo yami ngu0821234567",
+        "Inombolo yami ngu082 123 4567",
     ],
 )
 def test_disguised_phone_numbers_are_hidden(text):
