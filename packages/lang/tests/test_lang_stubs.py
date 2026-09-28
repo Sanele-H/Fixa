@@ -13,10 +13,14 @@ from lang import (
     translate,
     understand_job,
 )
+from lang.backends import FakeBackend
 
 
 def test_translate_keeps_the_original():
-    translation = translate("Ngingafika ngoLwesibili, R450.", target_lang="en", source_lang="zu")
+    # The fake backend, whatever TRANSLATION_BACKEND says, so this test never makes a paid call
+    translation = translate(
+        "Ngingafika ngoLwesibili, R450.", target_lang="en", source_lang="zu", backend=FakeBackend()
+    )
     assert isinstance(translation, Translation)
     assert translation.original == "Ngingafika ngoLwesibili, R450."
     assert translation.source_lang == "zu"
