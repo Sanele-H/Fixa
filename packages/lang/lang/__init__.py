@@ -16,7 +16,8 @@ Data P3 owns: data/glossary.json, data/test_messages.json, data/number_words.jso
 
 Step 0 (Day 1): stubs with the correct return types, so the API can import them (lang/stubs.py).
 Real so far: translate (lang/translation.py), with backends picked by TRANSLATION_BACKEND, and
-scan_message (lang/safety.py) and understand_job (lang/understanding.py).
+scan_message (lang/safety.py) understand_job (lang/understanding.py) and
+extract_quote (lang/quotes.py). Only transcribe is still a stub.
 """
 
 from lang.models import (
@@ -27,8 +28,9 @@ from lang.models import (
     Transcript,
     Translation,
 )
+from lang.quotes import extract_quote
 from lang.safety import scan_message
-from lang.stubs import extract_quote, transcribe
+from lang.stubs import transcribe
 from lang.translation import translate
 from lang.understanding import understand_job
 

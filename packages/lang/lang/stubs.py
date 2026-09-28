@@ -4,18 +4,10 @@ Each function is replaced by real code behind the same signature. The fake value
 fixtures in contracts/fixtures/, so the API and the app see the same data either way.
 """
 
-from lang.models import Lang, Quote, Transcript
+from lang.models import Lang, Transcript
 
 FAKE_TRANSCRIPT_TEXT = "Ngingafika ngoLwesibili, R450."
 FAKE_TRANSCRIPT_CONFIDENCE = 0.9
-
-
-def extract_quote(text: str) -> Quote | None:
-    """Pull a rand amount and a time out of a chat message, or None if there is no price.
-
-    Stub: always R450 on Tuesday 10:00, as in quote.json.
-    """
-    return Quote(amount_rands=450, when="Tuesday 10:00")
 
 
 def transcribe(audio: bytes, mime_type: str, lang: Lang | None = None) -> Transcript:
