@@ -1,8 +1,8 @@
 """The 30-message translation test: which backend keeps prices, times and trade words right?
 
 Run from the repo root:
-    .venv/Scripts/python -m lang.translation_test --backends claude google
-    .venv/Scripts/python -m lang.translation_test --backends claude google --compare-protection
+    .venv/Scripts/python -m lang.translation_test --backends azure claude
+    .venv/Scripts/python -m lang.translation_test --backends azure claude --compare-protection
 
 It reads data/test_messages.json, translates every message with each backend, and scores:
 - numbers kept: every value in must_keep_numbers appears exactly in the translation
@@ -32,10 +32,12 @@ CHAT_SPEED_TARGET_SECONDS = 2.0
 
 
 class TestMessage(BaseModel):
+    __test__ = False  # A test message, not a pytest test class
     id: str
     lang: str
     target_lang: str
     text: str
+    draft_en: str = ""  # The English meaning, for whoever writes the message
     must_keep_numbers: list[str] = []
     must_keep_terms: list[str] = []
     must_keep_meaning: list[str] = []
@@ -53,9 +55,14 @@ class MessageResult(BaseModel):
 
 
 def load_test_messages() -> list[TestMessage]:
-    """Read the test messages from data/test_messages.json."""
+    """Read the test messages from data/test_messages.json, skipping ones not written yet."""
     data = json.loads(TEST_MESSAGES_PATH.read_text(encoding="utf-8"))
-    return [TestMessage(**message) for message in data["messages"]]
+    messages = [TestMessage(**message) for message in data["messages"]]
+    written_messages = [message for message in messages if message.text.strip()]
+    unwritten_ids = [message.id for message in messages if not message.text.strip()]
+    if unwritten_ids:
+        print(f"Skipping {len(unwritten_ids)} messages not written yet: {', '.join(unwritten_ids)}")
+    return written_messages
 
 
 def load_env_file() -> None:

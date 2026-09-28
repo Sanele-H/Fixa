@@ -1,7 +1,31 @@
 """translate() keeps values exact, flags doubts, and never breaks chat when a backend fails."""
 
-from lang.backends import BackendTranslation, FakeBackend, TranslationFailedError, get_backend
-from lang.translation import FLAG_REASON_UNAVAILABLE, FLAG_REASON_VALUES_LOST, translate
+from collections import OrderedDict
+
+import pytest
+
+from lang.backends import (
+    AzureBackend,
+    BackendTranslation,
+    FakeBackend,
+    TranslationFailedError,
+    get_backend,
+    to_plain_text,
+    to_protected_html,
+)
+from lang.quality import (
+    FLAG_REASON_AMOUNT_CHANGED,
+    FLAG_REASON_NOT_TRANSLATED,
+    FLAG_REASON_UNAVAILABLE,
+)
+from lang.translation import translate
+
+
+@pytest.fixture(autouse=True)
+def empty_caches(monkeypatch):
+    """Each test starts with no cached translations or backends."""
+    monkeypatch.setattr("lang.translation._translation_cache", OrderedDict())
+    monkeypatch.setattr("lang.backends._backend_cache", {})
 
 
 class ScriptedBackend:
@@ -42,7 +66,7 @@ def test_a_dropped_value_flags_the_message():
     backend = ScriptedBackend("I can come on Tuesday.")
     translation = translate("Ngingafika ngoLwesibili, R450.", "en", "zu", backend=backend)
     assert translation.flagged is True
-    assert translation.flag_reason == FLAG_REASON_VALUES_LOST
+    assert translation.flag_reason == FLAG_REASON_AMOUNT_CHANGED
 
 
 def test_a_failed_backend_shows_the_original_flagged():
@@ -68,3 +92,135 @@ def test_fake_backend_is_the_default(monkeypatch):
     monkeypatch.delenv("TRANSLATION_BACKEND", raising=False)
     assert isinstance(get_backend(), FakeBackend)
     assert translate("Sawubona, R450", "en", "zu").text == "[en] Sawubona, R450"
+
+
+class FakeAzureResponse:
+    def __init__(self, body):
+        self.body = body
+
+    def raise_for_status(self):
+        pass
+
+    def json(self):
+        return self.body
+
+
+def test_azure_backend_reads_translation_and_detected_language(monkeypatch):
+    monkeypatch.setenv("AZURE_TRANSLATOR_KEY", "test-key")
+    monkeypatch.setenv("AZURE_TRANSLATOR_REGION", "southafricanorth")
+    sent = {}
+
+    def fake_post(url, params, headers, json, timeout):
+        sent.update(url=url, params=params, headers=headers, body=json)
+        return FakeAzureResponse(
+            [
+                {
+                    "detectedLanguage": {"language": "zu", "score": 1.0},
+                    "translations": [
+                        {
+                            "text": "I can come on Tuesday, "
+                            '<span class="notranslate">[[0]]</span>.',
+                            "to": "en",
+                        }
+                    ],
+                }
+            ]
+        )
+
+    monkeypatch.setattr("lang.backends.httpx.post", fake_post)
+    translation = translate("Ngingafika ngoLwesibili, R450.", "en", backend=AzureBackend())
+    assert translation.text == "I can come on Tuesday, R450."
+    assert translation.source_lang == "zu"
+    assert sent["params"] == {"api-version": "3.0", "to": "en", "textType": "html"}
+    assert sent["headers"]["Ocp-Apim-Subscription-Region"] == "southafricanorth"
+    assert sent["body"] == [
+        {"Text": 'Ngingafika ngoLwesibili, <span class="notranslate">[[0]]</span>.'}
+    ]
+
+
+def test_azure_html_escapes_the_message_so_a_less_than_sign_is_safe():
+    assert to_protected_html("a < b [[0]]") == 'a &lt; b <span class="notranslate">[[0]]</span>'
+    assert to_plain_text('a &lt; b <span class="notranslate">R450</span>') == "a < b R450"
+
+
+def test_text_handed_back_unchanged_is_flagged_not_translated():
+    backend = ScriptedBackend("Ke tla tla ka Labobedi")
+    translation = translate("Ke tla tla ka Labobedi", "en", "zu", backend=backend)
+    assert translation.flag_reason == FLAG_REASON_NOT_TRANSLATED
+
+
+def test_stray_space_after_an_isizulu_hyphen_is_closed():
+    backend = ScriptedBackend("Ngizofika ngo- [[0]], kuzobiza u- [[1]].")
+    translation = translate("I'll come at 9am, it costs R650.", "zu", "en", backend=backend)
+    assert translation.text == "Ngizofika ngo-9 ekuseni, kuzobiza u-R650."
+
+
+def test_good_translations_are_cached_and_reused(monkeypatch):
+    calls = []
+
+    class CountingBackend(ScriptedBackend):
+        def translate(self, text, target_lang, source_lang):
+            calls.append(text)
+            return super().translate(text, target_lang, source_lang)
+
+    counting_backend = CountingBackend("I can come on Tuesday, [[0]].")
+    monkeypatch.setattr("lang.translation.get_backend", lambda: counting_backend)
+    first = translate("Ngizofika ngoLwesibili, R450.", "en", "zu")
+    second = translate("Ngizofika ngoLwesibili, R450.", "en", "zu")
+    assert first == second
+    assert len(calls) == 1
+
+
+def test_spaces_azure_dropped_around_values_are_put_back_in_english():
+    backend = ScriptedBackend(
+        "It takes[[0]] to get there, and I'll be there in[[1]]minutes. On[[2]] ?"
+    )
+    translation = translate(
+        "Kubiza u-R350, ngizobe ngilapho emizuzwini engu-20. Ngo 3 Oct?",
+        "en",
+        "zu",
+        backend=backend,
+    )
+    assert (
+        translation.text == "It takes R350 to get there, and I'll be there in 20 minutes. On 3 Oct?"
+    )
+
+
+def test_isizulu_attached_values_keep_their_hyphen():
+    backend = ScriptedBackend("Ungafika kusasa ngo-[[0]]?")
+    translation = translate("Can you come tomorrow at 10:00?", "zu", "en", backend=backend)
+    assert translation.text == "Ungafika kusasa ngo-10:00?"
+
+
+@pytest.mark.parametrize(
+    ("english_time", "target_lang", "expected_time"),
+    [
+        ("9am", "zu", "9 ekuseni"),
+        ("2pm", "zu", "2 ntambama"),
+        ("7pm", "zu", "7 kusihlwa"),
+        ("11pm", "zu", "11 ebusuku"),
+        ("12pm", "zu", "12 ntambama"),
+        ("8am", "xh", "8 ntseni"),
+        ("3:30pm", "xh", "3:30 njakalanga"),
+        ("6 pm", "xh", "6 ngokuhlwa"),
+        ("2am", "xh", "2 busuku"),
+    ],
+)
+def test_am_pm_becomes_the_local_time_of_day_word(english_time, target_lang, expected_time):
+    backend = ScriptedBackend("Ngizofika ngo- [[0]].")
+    translation = translate(f"I'll come at {english_time}.", target_lang, "en", backend=backend)
+    assert translation.text == f"Ngizofika ngo-{expected_time}."
+
+
+def test_am_pm_stays_as_written_in_english():
+    backend = ScriptedBackend("I'll come at [[0]].")
+    assert translate("Ngizofika ngo 9am.", "en", "zu", backend=backend).text == "I'll come at 9am."
+
+
+def test_a_missing_azure_key_shows_the_original_instead_of_crashing(monkeypatch):
+    monkeypatch.setenv("TRANSLATION_BACKEND", "azure")
+    monkeypatch.delenv("AZURE_TRANSLATOR_KEY", raising=False)
+    monkeypatch.setattr("lang.backends._backend_cache", {})
+    translation = translate("Ngingafika ngoLwesibili, R450.", "en", "zu")
+    assert translation.text == "Ngingafika ngoLwesibili, R450."
+    assert translation.flag_reason == FLAG_REASON_UNAVAILABLE

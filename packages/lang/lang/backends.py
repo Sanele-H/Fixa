@@ -1,13 +1,16 @@
 """Translation backends. Each one takes already-protected text (values swapped for [[0]], [[1]]…)
-and returns the translation. Pick one with TRANSLATION_BACKEND in .env: fake, claude or google.
+and returns the translation. Pick one with TRANSLATION_BACKEND in .env: fake, azure or claude.
 
 The fake backend needs no keys, so everyone can build and test without them.
 """
 
+import html
 import os
+import re
 from typing import Protocol
 
 import anthropic
+import httpx
 from pydantic import BaseModel
 
 from lang.models import Lang
@@ -32,7 +35,14 @@ local person would say it.
 word, keep the English word.
 - Output only what is asked for. No notes, quotes or explanations."""
 
-GOOGLE_LOCATION = "global"
+AZURE_DEFAULT_ENDPOINT = "https://api.cognitive.microsofttranslator.com"
+AZURE_API_VERSION = "3.0"
+AZURE_TIMEOUT_SECONDS = 10.0
+# Azure leaves anything inside this span untranslated (textType=html), so placeholders get double
+# protection: Azure won't touch them, and restore() still checks every value came back.
+AZURE_NOTRANSLATE_SPAN = '<span class="notranslate">{}</span>'
+AZURE_SPAN_TAG_PATTERN = re.compile(r"</?span[^>]*>")
+PLACEHOLDER_IN_TEXT_PATTERN = re.compile(r"\[\[\d+\]\]")
 
 
 class BackendTranslation(BaseModel):
@@ -110,33 +120,61 @@ class ClaudeBackend:
         )
 
 
-class GoogleBackend:
-    """Google Cloud Translation v3. Needs GOOGLE_CLOUD_PROJECT, and
-    GOOGLE_APPLICATION_CREDENTIALS pointing at a service-account JSON file outside the repo.
+class AzureBackend:
+    """Azure AI Translator (REST v3). Needs AZURE_TRANSLATOR_KEY and AZURE_TRANSLATOR_REGION.
 
-    Install its library first: pip install -e "packages/lang[google]"
+    AZURE_TRANSLATOR_ENDPOINT overrides the global endpoint. Sanele's test (27 Sep) found Azure
+    usable for isiZulu and isiXhosa, but it produced nonsense for Sesotho, Sepedi and Setswana.
     """
 
     def __init__(self) -> None:
-        from google.cloud import translate_v3  # Imported here so the package works without it
-
-        self.client = translate_v3.TranslationServiceClient()
-        project_id = os.environ["GOOGLE_CLOUD_PROJECT"]
-        self.parent = f"projects/{project_id}/locations/{GOOGLE_LOCATION}"
+        self.endpoint = os.getenv("AZURE_TRANSLATOR_ENDPOINT", AZURE_DEFAULT_ENDPOINT).rstrip("/")
+        self.headers = {
+            "Ocp-Apim-Subscription-Key": os.environ["AZURE_TRANSLATOR_KEY"],
+            "Ocp-Apim-Subscription-Region": os.environ["AZURE_TRANSLATOR_REGION"],
+            "Content-Type": "application/json",
+        }
 
     def translate(
         self, text: str, target_lang: Lang, source_lang: Lang | None
     ) -> BackendTranslation:
-        response = self.client.translate_text(
-            parent=self.parent,
-            contents=[text],
-            mime_type="text/plain",
-            source_language_code=source_lang or None,
-            target_language_code=target_lang,
+        parameters = {"api-version": AZURE_API_VERSION, "to": target_lang, "textType": "html"}
+        if source_lang:
+            parameters["from"] = source_lang
+        try:
+            response = httpx.post(
+                f"{self.endpoint}/translate",
+                params=parameters,
+                headers=self.headers,
+                json=[{"Text": to_protected_html(text)}],
+                timeout=AZURE_TIMEOUT_SECONDS,
+            )
+            response.raise_for_status()
+        except httpx.HTTPError as error:
+            raise TranslationFailedError(f"Azure Translator failed: {error}") from error
+        result = response.json()[0]
+        detected_code = (result.get("detectedLanguage") or {}).get("language")
+        return BackendTranslation(
+            text=to_plain_text(result["translations"][0]["text"]),
+            source_lang=source_lang or to_supported_lang(detected_code),
         )
-        translation = response.translations[0]
-        detected_lang = source_lang or to_supported_lang(translation.detected_language_code)
-        return BackendTranslation(text=translation.translated_text, source_lang=detected_lang)
+
+
+def to_protected_html(text: str) -> str:
+    """Escape the text as HTML and wrap every [[n]] placeholder in Azure's notranslate span."""
+    pieces: list[str] = []
+    position = 0
+    for match in PLACEHOLDER_IN_TEXT_PATTERN.finditer(text):
+        pieces.append(html.escape(text[position : match.start()]))
+        pieces.append(AZURE_NOTRANSLATE_SPAN.format(match.group()))
+        position = match.end()
+    pieces.append(html.escape(text[position:]))
+    return "".join(pieces)
+
+
+def to_plain_text(translated_html: str) -> str:
+    """Remove Azure's spans and un-escape the HTML, giving plain text back."""
+    return html.unescape(AZURE_SPAN_TAG_PATTERN.sub("", translated_html))
 
 
 class TranslationFailedError(Exception):
@@ -146,7 +184,7 @@ class TranslationFailedError(Exception):
 BACKEND_CLASSES: dict[str, type] = {
     "fake": FakeBackend,
     "claude": ClaudeBackend,
-    "google": GoogleBackend,
+    "azure": AzureBackend,
 }
 _backend_cache: dict[str, TranslationBackend] = {}
 
@@ -156,7 +194,7 @@ def get_backend(name: str | None = None) -> TranslationBackend:
     backend_name = (name or os.getenv("TRANSLATION_BACKEND") or DEFAULT_BACKEND_NAME).lower()
     if backend_name not in BACKEND_CLASSES:
         raise ValueError(
-            f"Unknown translation backend {backend_name!r}: use fake, claude or google"
+            f"Unknown translation backend {backend_name!r}: use one of {sorted(BACKEND_CLASSES)}"
         )
     if backend_name not in _backend_cache:
         _backend_cache[backend_name] = BACKEND_CLASSES[backend_name]()
