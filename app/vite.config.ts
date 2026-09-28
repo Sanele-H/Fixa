@@ -1,13 +1,48 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 const API_URL = "http://localhost:8000";
 
-// Shared dev setup from the build plan's "PWA gotchas" (team, Day 1 morning).
-// P1 owns the rest of this file: add vite-plugin-pwa here (registerType "autoUpdate",
-// service worker off in dev), plus anything the app itself needs.
+// Matches --color-canvas in src/styles/tokens.css and the theme-color in index.html.
+const CANVAS_COLOR = "#e7e7e4";
+
+// Pages the server renders itself: the plain-HTML work record and verify pages opened from
+// WhatsApp and SMS links, plus the API. The installed app must let these reach the server
+// instead of answering with its own shell. The trailing slash keeps the app's /verify-id.
+const SERVER_PAGE_PATTERNS = [/^\/api\//, /^\/record\//, /^\/verify\//];
+
+// Shared dev setup from the build plan's "PWA gotchas" (team, Day 1 morning), plus the PWA.
+// The service worker only runs in production builds (the plugin's default), so a dev server
+// never serves a stale version. To try installing, run `npm run build` then `npm run preview`.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      // A new deploy replaces the old version on the next visit, with no "update" prompt.
+      registerType: "autoUpdate",
+      manifest: {
+        id: "/",
+        name: "Fixa",
+        short_name: "Fixa",
+        description:
+          "Hire someone nearby in your own language, without handing your number or address to a stranger.",
+        lang: "en",
+        start_url: "/",
+        scope: "/",
+        display: "standalone",
+        background_color: CANVAS_COLOR,
+        theme_color: CANVAS_COLOR,
+        icons: [
+          { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+          { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+        ],
+      },
+      workbox: {
+        navigateFallbackDenylist: SERVER_PAGE_PATTERNS,
+      },
+    }),
+  ],
   // Read VITE_* settings from the repo-root .env.
   envDir: "..",
   server: {

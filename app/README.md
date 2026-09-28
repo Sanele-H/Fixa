@@ -5,6 +5,10 @@ The behaviour, the data layer, and the final design of each screen are yours.
 
 Run `npm run dev` from the repo root, then open **http://localhost:5173/dev/screens** (development only). It lists every screen and has a customer/provider switch.
 
+## Installing the app
+
+The manifest and service worker come from `vite-plugin-pwa` in [vite.config.ts](vite.config.ts). The service worker only runs in production builds, so the dev server never shows Chrome's install icon. To try installing on a laptop, run `npm run build:app` from the repo root, then `npm --prefix app run preview` and open http://localhost:4173. On a phone, use the live site, or keep the preview running and run `cloudflared tunnel --url http://localhost:4173` (`npm run tunnel` points at the dev server, which has no service worker). If the icon doesn't appear, DevTools → Application → Manifest lists what's missing.
+
 ## The look
 
 Everything comes from [src/styles/tokens.css](src/styles/tokens.css). Change a token and the whole app follows.
@@ -40,7 +44,6 @@ src/dev/         samples.ts (fixture data for the screens) and the /dev/screens 
 - **Not set up yet:**
   - MSW
   - TanStack Query: replace every import of `src/dev/samples.ts`, then delete that file
-  - `vite-plugin-pwa`
   - real login: `src/session/SessionContext.tsx` is a stand-in that only remembers the role
 - **isiZulu and isiXhosa:** `zu.json` and `xh.json` are empty until a native speaker checks the strings. Missing strings show in English.
 - **Contract gaps found while laying out screens.** Raise these with the team:
