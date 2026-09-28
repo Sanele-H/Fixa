@@ -76,6 +76,49 @@ def test_a_failed_backend_shows_the_original_flagged():
     assert translation.flag_reason == FLAG_REASON_UNAVAILABLE
 
 
+@pytest.mark.parametrize(
+    "error",
+    [
+        TypeError("an empty ANTHROPIC_API_KEY"),
+        IndexError("an Azure reply with no translations"),
+        ModuleNotFoundError("a library that isn't installed"),
+    ],
+)
+def test_any_backend_error_shows_the_original_flagged(error):
+    class RaisingBackend:
+        def translate(self, text, target_lang, source_lang):
+            raise error
+
+    translation = translate("Ngingafika ngoLwesibili", "en", "zu", backend=RaisingBackend())
+    assert translation.text == "Ngingafika ngoLwesibili"
+    assert translation.flag_reason == FLAG_REASON_UNAVAILABLE
+
+
+def test_a_backend_that_cannot_be_created_shows_the_original_flagged(monkeypatch):
+    def fail_to_create_backend():
+        raise RuntimeError("no credentials")
+
+    monkeypatch.setattr("lang.translation.get_backend", fail_to_create_backend)
+    translation = translate("Ngingafika ngoLwesibili", "en", "zu")
+    assert translation.flag_reason == FLAG_REASON_UNAVAILABLE
+
+
+@pytest.mark.parametrize(
+    "reply",
+    [
+        "It costs [[0]] and [[3]].",  # [[3]] was made up: there is only one value
+        "It costs [[0]], yes [[0]].",  # the same value twice
+    ],
+)
+def test_a_made_up_or_repeated_value_flags_the_message(reply):
+    translation = translate("Kubiza R450.", "en", "zu", backend=ScriptedBackend(reply))
+    assert translation.flag_reason == FLAG_REASON_AMOUNT_CHANGED
+
+
+def test_a_blank_message_keeps_the_senders_language():
+    assert translate("   ", "en", "zu").source_lang == "zu"
+
+
 def test_same_language_is_not_sent_to_a_backend():
     backend = ScriptedBackend("should not be used")
     translation = translate("Hello", "en", "en", backend=backend)

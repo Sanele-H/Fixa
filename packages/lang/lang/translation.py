@@ -8,16 +8,12 @@ import logging
 import re
 from collections import OrderedDict
 
-import anthropic
-
-from lang.backends import TranslationBackend, TranslationFailedError, get_backend
+from lang.backends import TranslationBackend, get_backend
 from lang.models import Lang, Translation
 from lang.protection import ProtectedValue, protect, restore
 from lang.quality import FLAG_REASON_AMOUNT_CHANGED, FLAG_REASON_UNAVAILABLE, find_quality_problem
 
 logger = logging.getLogger(__name__)
-
-BACKEND_ERRORS = (TranslationFailedError, anthropic.APIError, OSError, KeyError)
 
 # isiZulu and isiXhosa attach "at" to a value with a hyphen ("ngo-9am"), but backends leave a space
 # after the hyphen ("ngo- 9am"). Only closes the gap before a number, price or phone number.
@@ -73,7 +69,9 @@ def translate(
     those translations are cached.
     """
     if source_lang == target_lang or not text.strip():
-        return Translation(text=text, original=text, source_lang=target_lang, flagged=False)
+        return Translation(
+            text=text, original=text, source_lang=source_lang or target_lang, flagged=False
+        )
 
     cache_key = (text, target_lang, source_lang)
     if backend is None and cache_key in _translation_cache:
@@ -82,7 +80,7 @@ def translate(
 
     try:
         chosen_backend = backend or get_backend()
-    except (KeyError, ValueError) as error:  # A missing key or unknown backend name in .env
+    except Exception as error:  # A missing key, an unknown backend name, a library not installed
         logger.warning("Translation backend not set up, showing the original: %s", error)
         return unavailable_translation(text, source_lang)
 
@@ -107,8 +105,8 @@ def translate_uncached(
     protected = protect(text)
     try:
         backend_translation = backend.translate(protected.text, target_lang, source_lang)
-    except BACKEND_ERRORS as error:
-        logger.warning("Translation failed, showing the original: %s", error)
+    except Exception:  # Any failure at all: chat must never break because translation did
+        logger.exception("Translation failed, showing the original")
         return unavailable_translation(text, source_lang)
 
     placeholder_text = backend_translation.text
@@ -120,7 +118,7 @@ def translate_uncached(
     if target_lang in HYPHEN_PREFIX_LANGS:
         translated_text = HYPHEN_GAP_PATTERN.sub(r"\1", translated_text)
 
-    if restored.missing:
+    if restored.missing or restored.unexpected:
         flag_reason = FLAG_REASON_AMOUNT_CHANGED
     else:
         flag_reason = find_quality_problem(protected.text, backend_translation.text)

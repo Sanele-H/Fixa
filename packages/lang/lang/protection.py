@@ -94,6 +94,9 @@ class RestoredText(BaseModel):
 
     text: str
     missing: list[ProtectedValue]  # Placeholders the backend dropped. Non-empty means flag it.
+    # Placeholders the backend made up or repeated, such as [[3]] when there were two values, or
+    # [[0]] twice. Non-empty means flag it too.
+    unexpected: list[str] = []
 
 
 def find_protected_spans(text: str) -> list[tuple[int, int, str]]:
@@ -125,16 +128,21 @@ def protect(text: str) -> ProtectedText:
 
 
 def restore(translated_text: str, values: list[ProtectedValue]) -> RestoredText:
-    """Put the protected values back into translated text, and list any the backend dropped."""
+    """Put the protected values back into translated text, and list any the backend dropped,
+    made up or repeated. A made-up placeholder stays as it is; a repeated one gets its value."""
     found_indexes: set[int] = set()
+    unexpected: list[str] = []
 
     def put_value_back(match: re.Match[str]) -> str:
         index = int(match.group(1))
         if index >= len(values):
+            unexpected.append(match.group(0))
             return match.group(0)
+        if index in found_indexes:
+            unexpected.append(match.group(0))
         found_indexes.add(index)
         return values[index].text
 
     restored_text = PLACEHOLDER_PATTERN.sub(put_value_back, translated_text)
     missing = [value for index, value in enumerate(values) if index not in found_indexes]
-    return RestoredText(text=restored_text, missing=missing)
+    return RestoredText(text=restored_text, missing=missing, unexpected=unexpected)

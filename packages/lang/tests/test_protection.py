@@ -114,6 +114,14 @@ def test_restore_reports_a_dropped_placeholder():
     assert [value.text for value in restored.missing] == ["R450"]
 
 
+def test_restore_reports_made_up_and_repeated_placeholders():
+    values = [ProtectedValue(kind="price", text="R450")]
+    restored = restore("It costs [[0]] and [[3]] and [[0]]", values)
+    assert restored.text == "It costs R450 and [[3]] and R450"
+    assert restored.unexpected == ["[[3]]", "[[0]]"]
+    assert restored.missing == []
+
+
 def test_protect_then_restore_without_translation_gives_the_original_back():
     text = "Call 082 123 4567, R450 at 12 Protea Street on 29/09 at 10:00"
     protected = protect(text)
