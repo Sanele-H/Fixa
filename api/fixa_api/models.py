@@ -160,3 +160,17 @@ class IdentityCheck(SQLModel, table=True):
     reference: str
     checked_at: dt.datetime = Field(sa_type=UtcDateTime)
     consent_at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+class OffAppConfirmation(SQLModel, table=True):
+    """The SMS check behind one off-app job: the code the customer must send back, and how many
+    wrong codes came in. Kept apart from OffAppJob, which the seed data fills."""
+
+    __tablename__ = "off_app_confirmation"
+
+    off_app_job_id: str = Field(primary_key=True, foreign_key="off_app_job.id")
+    code: str
+    lang: str
+    sent_at: dt.datetime = Field(sa_type=UtcDateTime)
+    expires_at: dt.datetime = Field(sa_type=UtcDateTime)
+    wrong_attempts: int = 0

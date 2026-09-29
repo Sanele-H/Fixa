@@ -13,7 +13,7 @@ from sqlmodel import SQLModel
 
 from fixa_api import models  # noqa: F401  (imported so its tables exist before create_all)
 from fixa_api.db import engine
-from fixa_api.routes import auth, chat, identity, jobs, providers, records
+from fixa_api.routes import auth, chat, identity, jobs, off_app, providers, records
 
 
 @asynccontextmanager
@@ -25,7 +25,7 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(title="Fixa API", version="0.1.0", lifespan=lifespan)
 
-for router_module in (auth, jobs, providers, chat, identity, records):
+for router_module in (auth, jobs, providers, chat, identity, off_app, records):
     app.include_router(router_module.router)
 
 

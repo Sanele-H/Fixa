@@ -1,23 +1,15 @@
-"""Off-app jobs, the SMS reply webhook, work record export and the plain-HTML link pages."""
+"""Work record export and the plain-HTML link pages (still placeholders until step 12)."""
 
 from html import escape
 from typing import Literal
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from fixa_api.fixtures import load_fixture
 
 router = APIRouter(tags=["records"])
-
-
-class NewOffAppJob(BaseModel):
-    customer_phone: str
-    trade_task: str
-    date: str
-    suburb: str
-    amount_rands: int | None = None
 
 
 class ExportRequest(BaseModel):
@@ -32,17 +24,6 @@ def plain_page(title: str, text: str) -> HTMLResponse:
         "<meta name='viewport' content='width=device-width, initial-scale=1'>"
         f"<title>{title}</title></head><body><h1>{title}</h1><p>{text}</p></body></html>"
     )
-
-
-@router.post("/api/off-app-jobs", status_code=201)
-def log_off_app_job(body: NewOffAppJob):
-    return load_fixture("off_app_job.json")
-
-
-@router.post("/api/sms/inbound")
-async def receive_sms(request: Request) -> dict[str, str]:
-    await request.form()
-    return {"status": "ok"}
 
 
 @router.post("/api/record/export")

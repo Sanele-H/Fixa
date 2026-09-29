@@ -14,18 +14,6 @@ client = TestClient(app)
 ROUTES = [
     ("GET", "/api/health", None, 200, "health.json"),
     ("POST", "/api/auth/otp", {"phone": "+27821234567"}, 204, None),
-    (
-        "POST",
-        "/api/off-app-jobs",
-        {
-            "customer_phone": "+27821234567",
-            "trade_task": "geyser repair",
-            "date": "2026-09-01",
-            "suburb": "Braamfontein",
-        },
-        201,
-        "off_app_job.json",
-    ),
     ("POST", "/api/record/export", {"mode": "arpl"}, 200, "record_export.json"),
 ]
 
@@ -48,12 +36,6 @@ def test_photo_upload_returns_its_fixture():
 
     assert response.status_code == 200
     assert response.json() == read_fixture("photo.json")
-
-
-def test_sms_webhook_accepts_form_fields():
-    response = client.post("/api/sms/inbound", data={"from": "+27821234567", "text": "YES 1234"})
-
-    assert response.status_code == 200
 
 
 @pytest.mark.parametrize("path", ["/record/prov_001", "/verify/FX7K2Q"])

@@ -32,3 +32,31 @@ def details_unlocked_messages(
         name=customer.display_name, phone=customer.phone, address=job.address
     )
     return [(customer.phone, to_customer), (provider.phone, to_provider)]
+
+
+# Sent to the customer of a job a provider logged from before they joined. The customer replies
+# "YES <code>" (or NO), and adds REF if they agree to be listed as a reference.
+# {provider}: the provider's first name. {task}: what was done, already cleaned of contact details.
+OFF_APP_CONFIRMATION = {
+    "en": (
+        "Fixa: {provider} says they did {task} for you in {suburb} on {date}. "
+        "Reply YES {code} to confirm or NO {code}. Add REF if we may list you as a reference."
+    ),
+    "zu": (
+        "Fixa: U-{provider} uthi wenze {task} e-{suburb} ngo-{date}. "
+        "Phendula YEBO {code} ukuqinisekisa noma CHA {code}. "
+        "Engeza REF uma uvuma ukubalwa njengomuntu ongaqinisekisa."
+    ),
+    "xh": (
+        "Fixa: U-{provider} uthi wenze {task} e-{suburb} ngo-{date}. "
+        "Phendula EWE {code} ukuqinisekisa okanye HAYI {code}. "
+        "Yongeza REF ukuba uyavuma ukubalwa njengomntu ongangqinela."
+    ),
+}
+
+
+def off_app_confirmation_message(
+    lang: str, provider_name: str, task: str, suburb: str, date: str, code: str
+) -> str:
+    template = OFF_APP_CONFIRMATION.get(lang, OFF_APP_CONFIRMATION[FALLBACK_LANG])
+    return template.format(provider=provider_name, task=task, suburb=suburb, date=date, code=code)
