@@ -8,7 +8,7 @@ import uuid
 from typing import Annotated, Literal
 
 import numpy as np
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile
 from pydantic import AwareDatetime, BaseModel, Field, field_validator
 from sqlmodel import Session, select
 
@@ -26,6 +26,8 @@ from fixa_api.job_views import (
 from fixa_api.messages import safe_text_for
 from fixa_api.models import Customer, Job, Provider, Quote
 from fixa_api.ranking_inputs import build_candidates, today
+from fixa_api.sms import SmsSender, get_sms_sender, send_safely
+from fixa_api.sms_texts import details_unlocked_messages
 from fixa_api.trades import known_trades
 from lang import understand_job as read_job_description
 from ranking import JobRequest, rank_providers
@@ -39,6 +41,7 @@ User = Annotated[Customer | Provider, Depends(current_user)]
 CustomerUser = Annotated[Customer, Depends(require_role("customer"))]
 ProviderUser = Annotated[Provider, Depends(require_role("provider"))]
 DbSession = Annotated[Session, Depends(get_session)]
+Sender = Annotated[SmsSender, Depends(get_sms_sender)]
 
 
 class UnderstandRequest(BaseModel):
@@ -233,8 +236,15 @@ def find_job_of_accepted_provider(session: Session, job_id: str, provider: Provi
 
 
 @router.post("/jobs/{job_id}/confirm")
-def confirm_job(job_id: str, provider: ProviderUser, session: DbSession):
-    """The provider agrees to the accepted quote. Contact details unlock from here."""
+def confirm_job(
+    job_id: str,
+    provider: ProviderUser,
+    session: DbSession,
+    background: BackgroundTasks,
+    sender: Sender,
+):
+    """The provider agrees to the accepted quote. Contact details unlock from here, and both
+    sides get an SMS in their own language in case a push notification is late."""
     job = find_job_of_accepted_provider(session, job_id, provider)
     move_job(job, states.CONFIRMED)
     for quote in job_quotes(session, job.id):
@@ -243,6 +253,9 @@ def confirm_job(job_id: str, provider: ProviderUser, session: DbSession):
             session.add(quote)
     session.add(job)
     session.commit()
+    customer = session.get(Customer, job.customer_id)
+    for phone, text in details_unlocked_messages(job, customer, provider):
+        background.add_task(send_safely, sender, phone, text, "details unlocked")
     return job_view(session, job, provider)
 
 
