@@ -14,6 +14,7 @@ from sqlmodel import Session, select
 from fixa_api.geo import distance_km
 from fixa_api.job_states import OPEN_FOR_QUOTES, UNLOCKED_STATES
 from fixa_api.models import Customer, Job, Provider, Quote
+from lang import translate
 
 PUBLIC_FIELDS = (
     "id",
@@ -76,11 +77,12 @@ def distance_for(session: Session, job: Job, viewer: Customer | Provider) -> flo
 def job_view(session: Session, job: Job, viewer: Customer | Provider) -> dict[str, Any]:
     """JobPublic for everyone, or JobUnlocked when the gate is open for this viewer."""
     view: dict[str, Any] = {name: getattr(job, name) for name in PUBLIC_FIELDS}
-    # Translation into the reader's language arrives with the chat work; until then the
-    # problem is shown as written.
-    view["problem"] = job.problem
+    # job.problem was scanned when it was posted, so contact details are already hidden. The
+    # reader gets it in their own language, with the text as written one tap away.
+    translation = translate(job.problem, viewer.lang, job.problem_lang)
+    view["problem"] = translation.text
     view["problem_original"] = job.problem
-    view["translation_flagged"] = False
+    view["translation_flagged"] = translation.flagged
     view["distance_km"] = distance_for(session, job, viewer)
     view["created_at"] = iso(job.created_at)
     if is_unlocked_for(job, viewer):
@@ -93,14 +95,19 @@ def job_view(session: Session, job: Job, viewer: Customer | Provider) -> dict[st
     return view
 
 
-def quote_view(quote: Quote) -> dict[str, Any]:
+def quote_view(quote: Quote, viewer: Customer | Provider, sender_lang: str) -> dict[str, Any]:
+    """A quote as the viewer reads it. The note was scanned when it was sent; the viewer gets it
+    in their own language."""
+    message = quote.message
+    if message:
+        message = translate(message, viewer.lang, sender_lang).text
     return {
         "id": quote.id,
         "job_id": quote.job_id,
         "provider_id": quote.provider_id,
         "amount_rands": quote.amount_rands,
         "when": iso(quote.when),
-        "message": quote.message,
+        "message": message,
         "state": quote.state,
         "created_at": iso(quote.created_at),
     }

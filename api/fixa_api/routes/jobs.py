@@ -1,6 +1,6 @@
 """Jobs: posting, the state changes, quotes, the provider feed and the ranked provider list.
 
-Still answering with fixtures until their own steps: understanding a description and photos.
+Still answering with a fixture until its own step: photos.
 """
 
 import datetime as dt
@@ -23,14 +23,16 @@ from fixa_api.job_views import (
     job_view,
     quote_view,
 )
+from fixa_api.messages import safe_text_for
 from fixa_api.models import Customer, Job, Provider, Quote
 from fixa_api.ranking_inputs import build_candidates, today
 from fixa_api.trades import known_trades
+from lang import understand_job as read_job_description
 from ranking import JobRequest, rank_providers
 
 router = APIRouter(prefix="/api", tags=["jobs"])
 
-FEED_LIMIT = 50
+FEED_LIMIT = 20  # each job is translated for the reader, so keep the feed short
 
 Lang = Literal["en", "zu", "xh"]
 User = Annotated[Customer | Provider, Depends(current_user)]
@@ -40,7 +42,7 @@ DbSession = Annotated[Session, Depends(get_session)]
 
 
 class UnderstandRequest(BaseModel):
-    text: str
+    text: str = Field(min_length=1, max_length=1000)
     lang: Lang
 
 
@@ -98,8 +100,10 @@ def job_quotes(session: Session, job_id: str) -> list[Quote]:
 
 
 @router.post("/jobs/understand")
-def understand_job(body: UnderstandRequest):
-    return load_fixture("job_intent.json")
+def understand_job(body: UnderstandRequest, customer: CustomerUser):
+    """Suggest a trade, urgency and size from the customer's own words, in any of our languages.
+    The customer confirms or changes it before posting."""
+    return read_job_description(body.text, body.lang).model_dump()
 
 
 @router.post("/photos")
@@ -124,7 +128,7 @@ def create_job(body: NewJob, customer: CustomerUser, session: DbSession):
         address=customer.address,
         lat=customer.lat,
         lng=customer.lng,
-        problem=body.description,
+        problem=safe_text_for(body.description, body.lang),
         problem_lang=body.lang,
         photo_url=f"/api/photos/{body.photo_id}" if body.photo_id else None,
         created_at=now(),
@@ -183,7 +187,7 @@ def create_quote(job_id: str, body: NewQuote, provider: ProviderUser, session: D
         provider_id=provider.id,
         amount_rands=body.amount_rands,
         when=body.when,
-        message=body.message,
+        message=safe_text_for(body.message, provider.lang) if body.message else None,
         state="open",
         created_at=now(),
     )
@@ -191,7 +195,7 @@ def create_quote(job_id: str, body: NewQuote, provider: ProviderUser, session: D
         move_job(job, states.QUOTING)
     session.add_all([quote, job])
     session.commit()
-    return quote_view(quote)
+    return quote_view(quote, provider, provider.lang)
 
 
 @router.get("/jobs/{job_id}/quotes")
@@ -201,7 +205,8 @@ def read_quotes(job_id: str, user: User, session: DbSession):
     quotes = job_quotes(session, job.id)
     if not is_job_customer(job, user):
         quotes = [quote for quote in quotes if quote.provider_id == user.id]
-    return [quote_view(quote) for quote in quotes]
+    languages = {p.id: p.lang for p in session.exec(select(Provider))}
+    return [quote_view(quote, user, languages[quote.provider_id]) for quote in quotes]
 
 
 @router.post("/quotes/{quote_id}/accept")

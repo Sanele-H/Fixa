@@ -130,7 +130,7 @@ def act(world, user, method, path, state, unlocked=False, **body):
 def new_job(world) -> tuple[str, str]:
     """Lindiwe posts a job and plumber 1 quotes. Returns the job id and quote id."""
     body = {
-        "description": "My geyser is leaking through the ceiling",
+        "description": "My geyser is leaking, call me on 082 555 0101 at 12 Fake Street",
         "lang": "en",
         "trade": "plumbing",
         "urgency": "urgent",
@@ -150,9 +150,14 @@ def quote_as(world, user, job_id, amount) -> str:
         "quoting",
         amount_rands=amount,
         when=QUOTE_TIME,
-        message="Ngingafika ngoLwesibili",
+        message="Ngingafika ngoLwesibili, call 083 555 0102 or a@b.com",
     )
     return response.json()["id"]
+
+
+def chat(world, user, job_id, text, **extra):
+    """Send a chat message that tries to slip contact details through, and check the answer."""
+    return act(world, user, "POST", f"/api/jobs/{job_id}/messages", "chat", text=text, **extra)
 
 
 def set_state(session, job_id: str, state: str) -> None:
@@ -171,6 +176,10 @@ def test_nothing_leaks_at_any_state_of_a_job(world):
     first_quote = quote_as(world, "accepted_provider", job_id, 450)
     quote_as(world, "losing_provider", job_id, 500)
     sweep(world, job_id, first_quote, unlocked=False, state="quoting")
+
+    chat(world, "accepted_provider", job_id, "Call me on 084 555 0103 or mail me at x@y.com")
+    chat(world, "customer", job_id, "zero eight five 555 0104", provider_id="prov_001")
+    sweep(world, job_id, first_quote, unlocked=False, state="quoting with chat")
 
     act(world, "customer", "POST", f"/api/quotes/{first_quote}/accept", "quote_accepted")
     sweep(world, job_id, first_quote, unlocked=False, state="quote_accepted")

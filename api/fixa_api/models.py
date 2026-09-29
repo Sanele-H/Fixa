@@ -122,3 +122,24 @@ class OffAppJob(SQLModel, table=True):
     customer_phone: str
     confirmed_via: str | None = None
     reference_agreed: bool | None = None
+
+
+class Message(SQLModel, table=True):
+    """A chat message on a job, between the customer and one provider.
+
+    original_text is exactly what was typed and is kept for review only: it can hold a phone
+    number the sender tried to slip in, so it is never sent to anyone. safe_text is what the
+    other side may read (contact details hidden until the job is confirmed), and
+    original_lang is the language the sender wrote it in.
+    """
+
+    id: str = Field(primary_key=True)
+    job_id: str = Field(foreign_key="job.id", index=True)
+    sender_id: str = Field(index=True)
+    recipient_id: str = Field(index=True)
+    original_text: str
+    safe_text: str
+    original_lang: str
+    contacts_hidden: bool
+    scam_warnings: list[str] = Field(sa_column=Column(JSON, nullable=False))
+    sent_at: dt.datetime = Field(sa_type=UtcDateTime)

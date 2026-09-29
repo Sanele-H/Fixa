@@ -16,15 +16,6 @@ ROUTES = [
     ("POST", "/api/auth/otp", {"phone": "+27821234567"}, 204, None),
     (
         "POST",
-        "/api/jobs/understand",
-        {"text": "geyser leaking", "lang": "en"},
-        200,
-        "job_intent.json",
-    ),
-    ("GET", "/api/jobs/job_001/messages?after=msg_001", None, 200, "messages.json"),
-    ("POST", "/api/jobs/job_001/messages", {"text": "hello"}, 201, "message.json"),
-    (
-        "POST",
         "/api/identity/check-number",
         {"id_number": "8001015009087"},
         200,

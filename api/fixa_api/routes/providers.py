@@ -20,6 +20,7 @@ from fixa_api.ranking_inputs import (
     today,
 )
 from fixa_api.trades import known_trades
+from lang import translate
 from ranking import list_nearby_providers, price_range, trust_summary
 from ranking.nearby import DEFAULT_RADIUS_KM, MAX_RADIUS_KM
 
@@ -78,7 +79,7 @@ def read_provider(provider_id: str, viewer: User, session: DbSession):
         "trust": trust.to_badge().model_dump(),
         "suburb": provider.suburb,
         "langs": provider.langs,
-        "bio": provider.bio,
+        "bio": translate(provider.bio, viewer.lang, provider.lang).text,
     }
 
 
