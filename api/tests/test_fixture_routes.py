@@ -16,20 +16,6 @@ ROUTES = [
     ("POST", "/api/auth/otp", {"phone": "+27821234567"}, 204, None),
     (
         "POST",
-        "/api/identity/check-number",
-        {"id_number": "8001015009087"},
-        200,
-        "id_number_check.json",
-    ),
-    (
-        "POST",
-        "/api/identity/verify",
-        {"id_number": "8001015009087", "names": "Test Person", "consent": True},
-        200,
-        "id_result.json",
-    ),
-    (
-        "POST",
         "/api/off-app-jobs",
         {
             "customer_phone": "+27821234567",

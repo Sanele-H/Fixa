@@ -143,3 +143,20 @@ class Message(SQLModel, table=True):
     contacts_hidden: bool
     scam_warnings: list[str] = Field(sa_column=Column(JSON, nullable=False))
     sent_at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+class IdentityCheck(SQLModel, table=True):
+    """One ID check a provider ran (POPIA). It keeps only the result: never the ID number, the
+    names, ID photos or the verifier's full response. consent_at is when they agreed."""
+
+    __tablename__ = "identity_check"
+
+    id: str = Field(primary_key=True)
+    provider_id: str = Field(foreign_key="provider.id", index=True)
+    tier: str
+    verified: bool
+    name_match: bool
+    provider: str
+    reference: str
+    checked_at: dt.datetime = Field(sa_type=UtcDateTime)
+    consent_at: dt.datetime = Field(sa_type=UtcDateTime)
