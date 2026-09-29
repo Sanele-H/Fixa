@@ -118,12 +118,6 @@ def test_a_customer_posts_a_job_that_shows_only_the_suburb_and_problem(seeded_cl
     assert not CONTACT_FIELDS & set(job)
 
 
-def test_the_photo_id_becomes_the_photo_url(seeded_client, lindiwe):
-    job = new_job(seeded_client, lindiwe, photo_id="photo_001").json()
-
-    assert job["photo_url"] == "/api/photos/photo_001"
-
-
 def test_only_a_customer_can_post_a_job(seeded_client, plumber):
     assert new_job(seeded_client, plumber).status_code == 403
 

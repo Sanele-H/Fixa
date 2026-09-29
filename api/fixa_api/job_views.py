@@ -14,6 +14,7 @@ from sqlmodel import Session, select
 from fixa_api.geo import distance_km
 from fixa_api.job_states import OPEN_FOR_QUOTES, UNLOCKED_STATES
 from fixa_api.models import Customer, Job, Provider, Quote
+from fixa_api.photos import photo_id_from_url, signed_photo_url
 from lang import translate
 
 PUBLIC_FIELDS = (
@@ -24,7 +25,6 @@ PUBLIC_FIELDS = (
     "urgency",
     "suburb",
     "problem_lang",
-    "photo_url",
 )
 
 
@@ -83,6 +83,9 @@ def job_view(session: Session, job: Job, viewer: Customer | Provider) -> dict[st
     view["problem"] = translation.text
     view["problem_original"] = job.problem
     view["translation_flagged"] = translation.flagged
+    view["photo_url"] = (
+        signed_photo_url(photo_id_from_url(job.photo_url)) if job.photo_url else None
+    )
     view["distance_km"] = distance_for(session, job, viewer)
     view["created_at"] = iso(job.created_at)
     if is_unlocked_for(job, viewer):

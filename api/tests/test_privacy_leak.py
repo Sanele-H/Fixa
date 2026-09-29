@@ -255,6 +255,7 @@ def test_every_route_is_covered_by_this_test_or_marked_as_not_about_jobs():
         "/api/auth/otp",
         "/api/auth/verify",
         "/api/photos",
+        "/api/photos/{photo_id}",
         "/api/jobs/understand",
         "/api/jobs/{job_id}/messages",
         "/api/providers",

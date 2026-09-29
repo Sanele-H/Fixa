@@ -28,10 +28,3 @@ def test_route_returns_its_fixture(method, path, body, status, fixture):
     assert response.status_code == status
     if fixture is not None:
         assert response.json() == read_fixture(fixture)
-
-
-def test_photo_upload_returns_its_fixture():
-    response = client.post("/api/photos", files={"photo": ("leak.jpg", b"jpeg", "image/jpeg")})
-
-    assert response.status_code == 200
-    assert response.json() == read_fixture("photo.json")

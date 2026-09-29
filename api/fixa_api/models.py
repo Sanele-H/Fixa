@@ -193,3 +193,14 @@ class ExportedRecord(SQLModel, table=True):
     issued_on: dt.date
     created_at: dt.datetime = Field(sa_type=UtcDateTime)
     pdf: bytes = Field(sa_column=Column(LargeBinary, nullable=False))
+
+
+class Photo(SQLModel, table=True):
+    """An uploaded photo. The image itself lives in the photo store (local disk, or Supabase
+    Storage when live); this row says who uploaded it and when. It has been re-encoded, so it
+    holds no EXIF data such as the phone's GPS location."""
+
+    id: str = Field(primary_key=True)
+    owner_id: str = Field(index=True)
+    size_bytes: int
+    created_at: dt.datetime = Field(sa_type=UtcDateTime)

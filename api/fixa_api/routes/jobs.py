@@ -1,21 +1,17 @@
-"""Jobs: posting, the state changes, quotes, the provider feed and the ranked provider list.
-
-Still answering with a fixture until its own step: photos.
-"""
+"""Jobs: posting, the state changes, quotes, the provider feed and the ranked provider list."""
 
 import datetime as dt
 import uuid
 from typing import Annotated, Literal
 
 import numpy as np
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import AwareDatetime, BaseModel, Field, field_validator
 from sqlmodel import Session, select
 
 from fixa_api import job_states as states
 from fixa_api.auth import current_user, require_role
 from fixa_api.db import get_session
-from fixa_api.fixtures import load_fixture
 from fixa_api.job_views import (
     can_see_job,
     is_job_customer,
@@ -24,7 +20,8 @@ from fixa_api.job_views import (
     quote_view,
 )
 from fixa_api.messages import safe_text_for
-from fixa_api.models import Customer, Job, Provider, Quote
+from fixa_api.models import Customer, Job, Photo, Provider, Quote
+from fixa_api.photos import PHOTO_URL_PREFIX
 from fixa_api.ranking_inputs import build_candidates, today
 from fixa_api.sms import SmsSender, get_sms_sender, send_safely
 from fixa_api.sms_texts import details_unlocked_messages
@@ -89,6 +86,22 @@ def find_job(session: Session, job_id: str, viewer: Customer | Provider) -> Job:
     return job
 
 
+def attach_photo(session: Session, customer: Customer, photo_id: str | None) -> str | None:
+    """The link to store for a job's photo. It must be the customer's own upload, not already
+    used on another job."""
+    if photo_id is None:
+        return None
+    photo = session.get(Photo, photo_id)
+    url = f"{PHOTO_URL_PREFIX}{photo_id}"
+    taken = session.exec(select(Job).where(Job.photo_url == url)).first()
+    if photo is None or photo.owner_id != customer.id or taken is not None:
+        raise HTTPException(
+            status_code=422,
+            detail={"error": "invalid_photo", "message": "That photo can't be used for this job"},
+        )
+    return url
+
+
 def move_job(job: Job, new_state: str) -> None:
     try:
         states.check_transition(job.state, new_state)
@@ -109,15 +122,11 @@ def understand_job(body: UnderstandRequest, customer: CustomerUser):
     return read_job_description(body.text, body.lang).model_dump()
 
 
-@router.post("/photos")
-def upload_photo(photo: UploadFile):
-    return load_fixture("photo.json")
-
-
 @router.post("/jobs", status_code=201)
 def create_job(body: NewJob, customer: CustomerUser, session: DbSession):
     """Post a job. The address and location come from the customer's account and the suburb
     from their home, so whatever suburb the phone sends can't misplace the job."""
+    photo_url = attach_photo(session, customer, body.photo_id)
     job = Job(
         id=new_id("job"),
         customer_id=customer.id,
@@ -133,7 +142,7 @@ def create_job(body: NewJob, customer: CustomerUser, session: DbSession):
         lng=customer.lng,
         problem=safe_text_for(body.description, body.lang),
         problem_lang=body.lang,
-        photo_url=f"/api/photos/{body.photo_id}" if body.photo_id else None,
+        photo_url=photo_url,
         created_at=now(),
     )
     session.add(job)
