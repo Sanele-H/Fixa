@@ -1,0 +1,271 @@
+"""Jobs: posting, the state changes, quotes and the provider feed.
+
+Still answering with fixtures until their own steps: understanding a description, photos and the
+ranked provider list.
+"""
+
+import datetime as dt
+import json
+import uuid
+from functools import cache
+from pathlib import Path
+from typing import Annotated, Literal
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from pydantic import AwareDatetime, BaseModel, Field, field_validator
+from sqlmodel import Session, select
+
+from fixa_api import job_states as states
+from fixa_api.auth import current_user, require_role
+from fixa_api.db import get_session
+from fixa_api.fixtures import load_fixture
+from fixa_api.job_views import (
+    can_see_job,
+    is_job_customer,
+    is_job_provider,
+    job_view,
+    quote_view,
+)
+from fixa_api.models import Customer, Job, Provider, Quote
+
+router = APIRouter(prefix="/api", tags=["jobs"])
+
+GLOSSARY_PATH = Path(__file__).resolve().parents[3] / "data" / "glossary.json"
+FEED_LIMIT = 50
+
+Lang = Literal["en", "zu", "xh"]
+User = Annotated[Customer | Provider, Depends(current_user)]
+CustomerUser = Annotated[Customer, Depends(require_role("customer"))]
+ProviderUser = Annotated[Provider, Depends(require_role("provider"))]
+DbSession = Annotated[Session, Depends(get_session)]
+
+
+@cache
+def known_trades() -> set[str]:
+    """The trade ids in data/glossary.json."""
+    glossary = json.loads(GLOSSARY_PATH.read_text(encoding="utf-8"))
+    return {trade["id"] for trade in glossary["trades"]}
+
+
+class UnderstandRequest(BaseModel):
+    text: str
+    lang: Lang
+
+
+class NewJob(BaseModel):
+    description: str = Field(min_length=1, max_length=1000)
+    lang: Lang
+    trade: str
+    urgency: Literal["low", "normal", "urgent"]
+    size: Literal["small", "medium", "large"]
+    suburb: str
+    photo_id: str | None = None
+
+    @field_validator("trade")
+    @classmethod
+    def trade_must_be_known(cls, trade: str) -> str:
+        if trade not in known_trades():
+            raise ValueError(f"trade must be one of {sorted(known_trades())}")
+        return trade
+
+
+class NewQuote(BaseModel):
+    amount_rands: int = Field(gt=0, le=1_000_000)
+    when: AwareDatetime
+    message: str | None = Field(default=None, max_length=500)
+
+
+def now() -> dt.datetime:
+    return dt.datetime.now(dt.UTC)
+
+
+def new_id(prefix: str) -> str:
+    return f"{prefix}_{uuid.uuid4().hex[:8]}"
+
+
+def find_job(session: Session, job_id: str, viewer: Customer | Provider) -> Job:
+    """The job, or 404. Someone who may not see a job gets the same 404 as a job that isn't
+    there, so job ids can't be probed."""
+    job = session.get(Job, job_id)
+    if job is None or not can_see_job(session, job, viewer):
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
+
+
+def move_job(job: Job, new_state: str) -> None:
+    try:
+        states.check_transition(job.state, new_state)
+    except states.InvalidTransitionError as problem:
+        raise HTTPException(status_code=409, detail=str(problem)) from None
+    job.state = new_state
+
+
+def job_quotes(session: Session, job_id: str) -> list[Quote]:
+    query = select(Quote).where(Quote.job_id == job_id).order_by(Quote.created_at)
+    return list(session.exec(query))
+
+
+@router.post("/jobs/understand")
+def understand_job(body: UnderstandRequest):
+    return load_fixture("job_intent.json")
+
+
+@router.post("/photos")
+def upload_photo(photo: UploadFile):
+    return load_fixture("photo.json")
+
+
+@router.post("/jobs", status_code=201)
+def create_job(body: NewJob, customer: CustomerUser, session: DbSession):
+    """Post a job. The address and location come from the customer's account and the suburb
+    from their home, so whatever suburb the phone sends can't misplace the job."""
+    job = Job(
+        id=new_id("job"),
+        customer_id=customer.id,
+        state=states.POSTED,
+        trade=body.trade,
+        trade_task=body.trade,
+        size=body.size,
+        urgency=body.urgency,
+        needs_licence=False,
+        suburb=customer.suburb,
+        address=customer.address,
+        lat=customer.lat,
+        lng=customer.lng,
+        problem=body.description,
+        problem_lang=body.lang,
+        photo_url=f"/api/photos/{body.photo_id}" if body.photo_id else None,
+        created_at=now(),
+    )
+    session.add(job)
+    session.commit()
+    return job_view(session, job, customer)
+
+
+@router.get("/jobs/{job_id}")
+def read_job(job_id: str, user: User, session: DbSession):
+    return job_view(session, find_job(session, job_id, user), user)
+
+
+@router.get("/jobs/{job_id}/providers")
+def read_ranked_providers(job_id: str):
+    return load_fixture("ranked_providers.json")
+
+
+@router.get("/feed")
+def read_feed(provider: ProviderUser, session: DbSession):
+    """Open jobs in the provider's trades, newest first: the suburb and the problem only."""
+    query = (
+        select(Job)
+        .where(Job.state.in_(states.OPEN_FOR_QUOTES), Job.trade.in_(provider.trades))
+        .order_by(Job.created_at.desc())
+        .limit(FEED_LIMIT)
+    )
+    return [job_view(session, job, provider) for job in session.exec(query)]
+
+
+@router.post("/jobs/{job_id}/quotes", status_code=201)
+def create_quote(job_id: str, body: NewQuote, provider: ProviderUser, session: DbSession):
+    job = find_job(session, job_id, provider)
+    if job.state not in states.OPEN_FOR_QUOTES:
+        raise HTTPException(status_code=409, detail="This job is no longer asking for quotes")
+    already_open = [
+        quote
+        for quote in job_quotes(session, job.id)
+        if quote.provider_id == provider.id and quote.state == "open"
+    ]
+    if already_open:
+        raise HTTPException(status_code=409, detail="You already have an open quote on this job")
+    quote = Quote(
+        id=new_id("quote"),
+        job_id=job.id,
+        provider_id=provider.id,
+        amount_rands=body.amount_rands,
+        when=body.when,
+        message=body.message,
+        state="open",
+        created_at=now(),
+    )
+    if job.state == states.POSTED:
+        move_job(job, states.QUOTING)
+    session.add_all([quote, job])
+    session.commit()
+    return quote_view(quote)
+
+
+@router.get("/jobs/{job_id}/quotes")
+def read_quotes(job_id: str, user: User, session: DbSession):
+    """The customer sees every quote on their job; a provider sees only their own."""
+    job = find_job(session, job_id, user)
+    quotes = job_quotes(session, job.id)
+    if not is_job_customer(job, user):
+        quotes = [quote for quote in quotes if quote.provider_id == user.id]
+    return [quote_view(quote) for quote in quotes]
+
+
+@router.post("/quotes/{quote_id}/accept")
+def accept_quote(quote_id: str, customer: CustomerUser, session: DbSession):
+    quote = session.get(Quote, quote_id)
+    job = session.get(Job, quote.job_id) if quote else None
+    if job is None or not is_job_customer(job, customer):
+        raise HTTPException(status_code=404, detail="Quote not found")
+    if quote.state != "open":
+        raise HTTPException(status_code=409, detail="This quote is no longer open")
+    move_job(job, states.QUOTE_ACCEPTED)
+    quote.state = "accepted"
+    job.provider_id = quote.provider_id
+    session.add_all([quote, job])
+    session.commit()
+    return job_view(session, job, customer)
+
+
+def find_job_of_accepted_provider(session: Session, job_id: str, provider: Provider) -> Job:
+    job = session.get(Job, job_id)
+    if job is None or not is_job_provider(job, provider):
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
+
+
+@router.post("/jobs/{job_id}/confirm")
+def confirm_job(job_id: str, provider: ProviderUser, session: DbSession):
+    """The provider agrees to the accepted quote. Contact details unlock from here."""
+    job = find_job_of_accepted_provider(session, job_id, provider)
+    move_job(job, states.CONFIRMED)
+    for quote in job_quotes(session, job.id):
+        if quote.state == "open":
+            quote.state = "declined"
+            session.add(quote)
+    session.add(job)
+    session.commit()
+    return job_view(session, job, provider)
+
+
+@router.post("/jobs/{job_id}/decline")
+def decline_job(job_id: str, provider: ProviderUser, session: DbSession):
+    """The provider turns down the accepted quote. The job goes back to quoting and nothing
+    personal has been shared."""
+    job = find_job_of_accepted_provider(session, job_id, provider)
+    move_job(job, states.QUOTING)
+    for quote in job_quotes(session, job.id):
+        if quote.state == "accepted":
+            quote.state = "declined"
+            session.add(quote)
+    job.provider_id = None
+    session.add(job)
+    session.commit()
+    return job_view(session, job, provider)
+
+
+@router.post("/jobs/{job_id}/cancel")
+def cancel_job(job_id: str, customer: CustomerUser, session: DbSession):
+    job = session.get(Job, job_id)
+    if job is None or not is_job_customer(job, customer):
+        raise HTTPException(status_code=404, detail="Job not found")
+    move_job(job, states.CANCELLED)
+    for quote in job_quotes(session, job.id):
+        if quote.state == "open":
+            quote.state = "withdrawn"
+            session.add(quote)
+    session.add(job)
+    session.commit()
+    return job_view(session, job, customer)
