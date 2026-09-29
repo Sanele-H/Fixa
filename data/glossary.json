@@ -1,13 +1,32 @@
 {
-  "_about": "Trade glossary: 40 household-repair situations across 11 trades, with English trade terms and their isiZulu and isiXhosa forms. P3 moves the full glossary from the speech-recognition work into this file on Day 1. Until then it holds only the terms quoted in the project overview.",
+  "_about": "Trade glossary (P3): the words that point to each trade, in English, isiZulu and isiXhosa. understand_job() and translation read this file. Each form is matched anywhere inside a word, so a stem like 'payipi' also finds 'ipayipi' and 'kwepayipi'. The build plan's full list is 40 situations across 11 trades; the app and seed data use plumbing and electrical so far, so those come first. isiZulu forms are checked by P3; isiXhosa forms still need a first-language check.",
   "trades": [
-    { "id": "plumbing", "labels": { "en": "Plumbing", "zu": null, "xh": null }, "licensed_tasks": ["geyser installation"] },
-    { "id": "electrical", "labels": { "en": "Electrical", "zu": null, "xh": null }, "licensed_tasks": ["work needing a Certificate of Compliance"] }
+    { "id": "plumbing", "labels": { "en": "Plumbing", "zu": "Amapayipi", "xh": "Imibhobho" }, "licensed_tasks": ["geyser installation"] },
+    { "id": "electrical", "labels": { "en": "Electrical", "zu": "Ugesi", "xh": "Umbane" }, "licensed_tasks": ["work needing a Certificate of Compliance"] }
   ],
   "terms": [
-    { "en": "geyser", "trade": "plumbing", "zu": [], "xh": [], "unsorted_forms": ["igiza"] },
-    { "en": "pipe", "trade": "plumbing", "zu": [], "xh": [], "unsorted_forms": ["ipayipi"] },
-    { "en": "electricity", "trade": "electrical", "zu": [], "xh": [], "unsorted_forms": ["ugesi", "umbane"] }
+    { "en": "geyser", "trade": "plumbing", "zu": ["geyser", "igiza", "giza"], "xh": ["geyser", "igiza"] },
+    { "en": "pipe", "trade": "plumbing", "zu": ["payipi"], "xh": ["mbhobho", "payipi"] },
+    { "en": "tap", "trade": "plumbing", "zu": ["mpompi"], "xh": ["mpompo", "mpompi"] },
+    { "en": "toilet", "trade": "plumbing", "zu": ["indlu yangasese", "toilet", "thoyilethi"], "xh": ["indlu yangasese", "toilet"] },
+    { "en": "sink", "trade": "plumbing", "zu": ["sinki"], "xh": ["sinki"] },
+    { "en": "drain", "trade": "plumbing", "zu": ["drain", "udreyini"], "xh": ["drain"] },
+    { "en": "shower", "trade": "plumbing", "zu": ["shawa"], "xh": ["shawa"] },
+    { "en": "bath", "trade": "plumbing", "zu": ["bhavu"], "xh": ["bhafu"] },
+    { "en": "blocked", "trade": "plumbing", "zu": ["valilekile", "vinjiwe"], "xh": ["valekile", "vingcileyo"] },
+    { "en": "leak", "trade": "plumbing", "zu": ["vuza"], "xh": ["vuza"] },
+    { "en": "plumber", "trade": "plumbing", "zu": ["plumber"], "xh": ["plumber"] },
+    { "en": "electricity", "trade": "electrical", "zu": ["gesi"], "xh": ["mbane"] },
+    { "en": "lights", "trade": "electrical", "zu": ["zibani", "isibani", "light"], "xh": ["izibane", "isibane", "light"] },
+    { "en": "plug", "trade": "electrical", "zu": ["plagi", "plug"], "xh": ["plagi", "plug"] },
+    { "en": "socket", "trade": "electrical", "zu": ["socket", "sokhethi"], "xh": ["socket"] },
+    { "en": "switch", "trade": "electrical", "zu": ["switch", "swishi"], "xh": ["switch"] },
+    { "en": "wiring", "trade": "electrical", "zu": ["wiring", "izintambo"], "xh": ["wiring", "iintambo"] },
+    { "en": "prepaid meter", "trade": "electrical", "zu": ["imitha", "meter"], "xh": ["imitha", "meter"] },
+    { "en": "tripping", "trade": "electrical", "zu": ["trip", "cisha"], "xh": ["trip", "cima"] },
+    { "en": "DB board", "trade": "electrical", "zu": ["db board", "distribution board"], "xh": ["db board"] },
+    { "en": "sparks", "trade": "electrical", "zu": ["spark", "inhlansi"], "xh": ["spark", "intlantsi"] },
+    { "en": "electrician", "trade": "electrical", "zu": ["electrician"], "xh": ["electrician"] }
   ],
   "situations": []
 }
