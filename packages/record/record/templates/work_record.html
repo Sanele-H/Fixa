@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ display_name }}: work record on Fixa{% endblock %}
+{% block content %}
+<h1>{{ display_name }}</h1>
+<p class="note">Work record on Fixa · {{ trades | join(", ") }}</p>
+<p>{{ job_count }} confirmed job{{ "" if job_count == 1 else "s" }}{% if experience_text %}, {{ experience_text }}{% endif %}.</p>
+<p class="note">Jobs are confirmed by the customer in the app, or by replying to an SMS or USSD message.</p>
+
+{% if trade_sections %}
+{% for section in trade_sections %}
+<h2>{{ section.title }}</h2>
+<table>
+  <tr><th>Trade task</th><th>Jobs</th><th>From</th><th>To</th></tr>
+  {% for row in section.task_rows %}
+  <tr><td>{{ row.trade_task }}</td><td>{{ row.job_count }}</td><td>{{ row.first_done_on }}</td><td>{{ row.last_done_on }}</td></tr>
+  {% endfor %}
+</table>
+{% endfor %}
+{% endif %}
+
+{% if vouches %}
+<h2>What customers say</h2>
+{% for vouch in vouches %}
+<blockquote>“{{ vouch.text }}”</blockquote>
+<p class="note">Customer in {{ vouch.suburb }}, {{ vouch.given_on }}</p>
+{% endfor %}
+{% endif %}
+
+{% if recent_jobs %}
+<h2>Recent jobs</h2>
+<table>
+  <tr><th>Date</th><th>Trade task</th><th>Suburb</th><th>Confirmed</th></tr>
+  {% for job in recent_jobs %}
+  <tr><td>{{ job.done_on }}</td><td>{{ job.trade_task }}</td><td>{{ job.suburb }}</td><td>{{ job.confirmed_via }}</td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+{% endblock %}
