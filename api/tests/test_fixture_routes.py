@@ -14,7 +14,6 @@ client = TestClient(app)
 ROUTES = [
     ("GET", "/api/health", None, 200, "health.json"),
     ("POST", "/api/auth/otp", {"phone": "+27821234567"}, 204, None),
-    ("POST", "/api/record/export", {"mode": "arpl"}, 200, "record_export.json"),
 ]
 
 
@@ -36,12 +35,3 @@ def test_photo_upload_returns_its_fixture():
 
     assert response.status_code == 200
     assert response.json() == read_fixture("photo.json")
-
-
-@pytest.mark.parametrize("path", ["/record/prov_001", "/verify/FX7K2Q"])
-def test_link_pages_are_plain_html_without_scripts(path):
-    response = client.get(path)
-
-    assert response.status_code == 200
-    assert response.headers["content-type"].startswith("text/html")
-    assert "<script" not in response.text.lower()

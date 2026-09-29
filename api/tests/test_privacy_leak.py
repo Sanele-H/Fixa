@@ -265,14 +265,17 @@ def test_every_route_is_covered_by_this_test_or_marked_as_not_about_jobs():
         "/api/off-app-jobs",
         "/api/sms/inbound",
         "/api/record/export",
+        "/api/record/exports/{filename}",
         "/record/{provider_id}",
         "/verify/{code}",
     }
     covered = {re.sub(r"\{[^}]+\}", "{}", path) for path in covered}
+    # The schema lists every route, including those added through routers (app.routes doesn't).
     actual = {
-        re.sub(r"\{[^}]+\}", "{}", route.path)
-        for route in app.routes
-        if hasattr(route, "path") and route.path.startswith(("/api", "/record", "/verify"))
+        re.sub(r"\{[^}]+\}", "{}", path)
+        for path in app.openapi()["paths"]
+        if path.startswith(("/api", "/record", "/verify"))
     }
+    assert len(actual) > 20, "the route list came back nearly empty"
 
     assert actual - covered == set(), f"routes the leak test doesn't know about: {actual - covered}"

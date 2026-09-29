@@ -2,7 +2,7 @@
 
 import datetime as dt
 
-from sqlalchemy import JSON, Column, DateTime, Dialect, TypeDecorator
+from sqlalchemy import JSON, Column, DateTime, Dialect, LargeBinary, TypeDecorator
 from sqlmodel import Field, SQLModel
 
 
@@ -174,3 +174,22 @@ class OffAppConfirmation(SQLModel, table=True):
     sent_at: dt.datetime = Field(sa_type=UtcDateTime)
     expires_at: dt.datetime = Field(sa_type=UtcDateTime)
     wrong_attempts: int = 0
+
+
+class ExportedRecord(SQLModel, table=True):
+    """A work record a provider exported, kept so /verify/{code} can check it later.
+
+    evidence is exactly what was hashed (no customer names, numbers or addresses), and pdf is
+    the file the provider downloads and shares.
+    """
+
+    __tablename__ = "exported_record"
+
+    verify_code: str = Field(primary_key=True)
+    provider_id: str = Field(foreign_key="provider.id", index=True)
+    mode: str
+    sha256: str
+    evidence: dict = Field(sa_column=Column(JSON, nullable=False))
+    issued_on: dt.date
+    created_at: dt.datetime = Field(sa_type=UtcDateTime)
+    pdf: bytes = Field(sa_column=Column(LargeBinary, nullable=False))
