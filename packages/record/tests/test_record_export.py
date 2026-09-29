@@ -1,4 +1,4 @@
-"""build_record and verify_record. Step 0: a summary PDF, but real hashing and verify checks."""
+"""build_record and verify_record: modes, hashing, the verify link, and what's never printed."""
 
 import json
 import re
@@ -12,40 +12,41 @@ from record import (
     ArplTradeError,
     RecordEvidence,
     RecordJob,
+    RecordPhoto,
     StoredRecord,
+    Vouch,
     build_record,
     verify_record,
 )
-from record.export import build_record_lines
 
 FIXTURES_PATH = Path(__file__).resolve().parents[3] / "contracts" / "fixtures"
 VERIFY_CODE_PATTERN = re.compile(r"[A-HJ-NP-Z2-9]{6}")
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 ISSUED_ON = date(2026, 9, 29)
+BASE_URL = "https://fixa.example"
 
 
-def make_evidence(trades: list[str] | None = None) -> RecordEvidence:
-    """Makes a record with two confirmed jobs in the first trade given (plumbing by default)."""
+def make_job(trade: str = "plumbing", **fields) -> RecordJob:
+    """Makes a confirmed job; any RecordJob field can be passed in."""
+    job_fields = {
+        "done_on": date(2026, 8, 14),
+        "suburb": "Soweto",
+        "trade": trade,
+        "trade_task": "Replace geyser valve",
+        "confirmed_via": "sms",
+        "amount_rands": 380,
+    }
+    return RecordJob(**{**job_fields, **fields})
+
+
+def make_evidence(trades: list[str] | None = None, **fields) -> RecordEvidence:
+    """Makes a record with two confirmed jobs in the first trade (plumbing by default)."""
     trades = trades or ["plumbing"]
-    jobs = [
-        RecordJob(
-            done_on=date(2026, 8, 14),
-            suburb="Soweto",
-            trade=trades[0],
-            trade_task="Replace geyser valve",
-            confirmed_via="sms",
-            amount_rands=380,
-        ),
-        RecordJob(
-            done_on=date(2026, 9, 2),
-            suburb="Braamfontein",
-            trade=trades[0],
-            trade_task="Fix a dripping tap",
-            confirmed_via="app",
-            amount_rands=450,
-        ),
-    ]
-    return RecordEvidence(provider_id="prov_002", display_name="Sipho", trades=trades, jobs=jobs)
+    fields.setdefault(
+        "jobs",
+        [make_job(trades[0]), make_job(trades[0], done_on=date(2026, 9, 2), confirmed_via="app")],
+    )
+    return RecordEvidence(provider_id="prov_002", display_name="Sipho", trades=trades, **fields)
 
 
 def store(evidence: RecordEvidence, mode: str) -> StoredRecord:
@@ -88,9 +89,24 @@ def test_changing_a_job_or_the_mode_changes_the_hash():
     assert build_record(evidence, "statement").sha256 != original_hash
 
 
+def test_empty_optional_fields_and_photo_bytes_leave_the_hash_alone():
+    plain = make_evidence()
+    with_empty_fields = make_evidence(vouches=[], arpl_trade=None)
+    assert build_record(plain, "arpl").sha256 == build_record(with_empty_fields, "arpl").sha256
+    with_photo = make_evidence(jobs=[make_job(photos=[RecordPhoto(photo_id="p1", kind="after")])])
+    without_bytes = build_record(with_photo, "arpl").sha256
+    assert build_record(with_photo, "arpl", photos={"p1": b"not an image"}).sha256 == without_bytes
+
+
 def test_arpl_mode_needs_a_trade_with_an_arpl_toolkit():
     with pytest.raises(ArplTradeError):
         build_record(make_evidence(["cleaning"]), "arpl")
+
+
+def test_arpl_trade_must_be_one_of_the_providers_toolkit_trades():
+    with pytest.raises(ArplTradeError):
+        build_record(make_evidence(["plumbing"], arpl_trade="electrical"), "arpl")
+    assert build_record(make_evidence(["plumbing"], arpl_trade="plumbing"), "arpl").pdf_bytes
 
 
 def test_statement_mode_works_for_every_trade():
@@ -103,20 +119,21 @@ def test_unknown_mode_is_refused():
 
 
 @pytest.mark.parametrize("customer_field", ["customer_name", "customer_phone", "address"])
-def test_record_job_refuses_customer_details(customer_field):
-    job_fields = make_evidence().jobs[0].model_dump()
+def test_jobs_and_vouches_refuse_customer_details(customer_field):
     with pytest.raises(ValidationError):
-        RecordJob(**job_fields, **{customer_field: "x"})
+        make_job(**{customer_field: "x"})
+    with pytest.raises(ValidationError):
+        Vouch(text="Great work", suburb="Soweto", given_on=ISSUED_ON, **{customer_field: "x"})
 
 
-def test_arpl_record_says_it_is_not_a_qualification():
-    lines = build_record_lines(make_evidence(), "arpl", "FX7K2Q", "0" * 64)
-    assert any("It is not a qualification" in line for line in lines)
+def test_the_verify_link_is_in_the_pdf_when_there_is_a_base_url():
+    doc = build_record(make_evidence(), "arpl", verify_base_url=BASE_URL + "/")
+    assert f"{BASE_URL}/verify/{doc.verify_code}".encode() in doc.pdf_bytes
 
 
-def test_statement_says_it_is_not_a_bank_statement():
-    lines = build_record_lines(make_evidence(), "statement", "FX7K2Q", "0" * 64)
-    assert any("Customer-confirmed, not a bank statement" in line for line in lines)
+def test_no_absolute_link_without_a_base_url():
+    doc = build_record(make_evidence(), "arpl")
+    assert BASE_URL.encode() not in doc.pdf_bytes
 
 
 def test_verify_confirms_an_unchanged_record():
@@ -124,6 +141,7 @@ def test_verify_confirms_an_unchanged_record():
     result = verify_record(stored.verify_code.lower(), stored)
     assert result.status == "genuine"
     assert (result.display_name, result.n_jobs, result.issued_on) == ("Sipho", 2, ISSUED_ON)
+    assert (result.first_job_on, result.last_job_on) == (date(2026, 8, 14), date(2026, 9, 2))
 
 
 def test_verify_spots_a_changed_record():

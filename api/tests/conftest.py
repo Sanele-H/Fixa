@@ -33,3 +33,20 @@ def client(session):
     app.dependency_overrides[get_session] = lambda: session
     yield TestClient(app)
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def seeded_client(client, seeded_session):
+    """A test client on a database that has the demo data loaded."""
+    return client
+
+
+@pytest.fixture
+def log_in(seeded_client):
+    """log_in("082 000 0001") returns the Authorization header for that demo user."""
+
+    def sign_in(phone: str) -> dict[str, str]:
+        response = seeded_client.post("/api/auth/verify", json={"phone": phone, "otp": "123456"})
+        return {"Authorization": f"Bearer {response.json()['token']}"}
+
+    return sign_in

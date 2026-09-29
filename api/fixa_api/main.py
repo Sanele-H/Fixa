@@ -2,8 +2,8 @@
 
 API docs: http://localhost:8000/docs
 
-This is the starting shell: only /api/health exists. P2's Day 1 task is to make every route in
-contracts/api.md return its fixture, then replace each with real code behind the same shape.
+Every route in contracts/api.md exists and returns its fixture. Each is replaced with real code
+behind the same shape, one area at a time.
 """
 
 from contextlib import asynccontextmanager
@@ -13,6 +13,7 @@ from sqlmodel import SQLModel
 
 from fixa_api import models  # noqa: F401  (imported so its tables exist before create_all)
 from fixa_api.db import engine
+from fixa_api.routes import auth, chat, identity, jobs, off_app, photos, providers, records
 
 
 @asynccontextmanager
@@ -23,6 +24,9 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(title="Fixa API", version="0.1.0", lifespan=lifespan)
+
+for router_module in (auth, jobs, providers, chat, identity, off_app, photos, records):
+    app.include_router(router_module.router)
 
 
 @app.get("/api/health")

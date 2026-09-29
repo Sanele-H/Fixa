@@ -2,7 +2,7 @@
 
 import datetime as dt
 
-from sqlalchemy import JSON, Column, DateTime, Dialect, TypeDecorator
+from sqlalchemy import JSON, Column, DateTime, Dialect, LargeBinary, TypeDecorator
 from sqlmodel import Field, SQLModel
 
 
@@ -122,3 +122,85 @@ class OffAppJob(SQLModel, table=True):
     customer_phone: str
     confirmed_via: str | None = None
     reference_agreed: bool | None = None
+
+
+class Message(SQLModel, table=True):
+    """A chat message on a job, between the customer and one provider.
+
+    original_text is exactly what was typed and is kept for review only: it can hold a phone
+    number the sender tried to slip in, so it is never sent to anyone. safe_text is what the
+    other side may read (contact details hidden until the job is confirmed), and
+    original_lang is the language the sender wrote it in.
+    """
+
+    id: str = Field(primary_key=True)
+    job_id: str = Field(foreign_key="job.id", index=True)
+    sender_id: str = Field(index=True)
+    recipient_id: str = Field(index=True)
+    original_text: str
+    safe_text: str
+    original_lang: str
+    contacts_hidden: bool
+    scam_warnings: list[str] = Field(sa_column=Column(JSON, nullable=False))
+    sent_at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+class IdentityCheck(SQLModel, table=True):
+    """One ID check a provider ran (POPIA). It keeps only the result: never the ID number, the
+    names, ID photos or the verifier's full response. consent_at is when they agreed."""
+
+    __tablename__ = "identity_check"
+
+    id: str = Field(primary_key=True)
+    provider_id: str = Field(foreign_key="provider.id", index=True)
+    tier: str
+    verified: bool
+    name_match: bool
+    provider: str
+    reference: str
+    checked_at: dt.datetime = Field(sa_type=UtcDateTime)
+    consent_at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+class OffAppConfirmation(SQLModel, table=True):
+    """The SMS check behind one off-app job: the code the customer must send back, and how many
+    wrong codes came in. Kept apart from OffAppJob, which the seed data fills."""
+
+    __tablename__ = "off_app_confirmation"
+
+    off_app_job_id: str = Field(primary_key=True, foreign_key="off_app_job.id")
+    code: str
+    lang: str
+    sent_at: dt.datetime = Field(sa_type=UtcDateTime)
+    expires_at: dt.datetime = Field(sa_type=UtcDateTime)
+    wrong_attempts: int = 0
+
+
+class ExportedRecord(SQLModel, table=True):
+    """A work record a provider exported, kept so /verify/{code} can check it later.
+
+    evidence is exactly what was hashed (no customer names, numbers or addresses), and pdf is
+    the file the provider downloads and shares.
+    """
+
+    __tablename__ = "exported_record"
+
+    verify_code: str = Field(primary_key=True)
+    provider_id: str = Field(foreign_key="provider.id", index=True)
+    mode: str
+    sha256: str
+    evidence: dict = Field(sa_column=Column(JSON, nullable=False))
+    issued_on: dt.date
+    created_at: dt.datetime = Field(sa_type=UtcDateTime)
+    pdf: bytes = Field(sa_column=Column(LargeBinary, nullable=False))
+
+
+class Photo(SQLModel, table=True):
+    """An uploaded photo. The image itself lives in the photo store (local disk, or Supabase
+    Storage when live); this row says who uploaded it and when. It has been re-encoded, so it
+    holds no EXIF data such as the phone's GPS location."""
+
+    id: str = Field(primary_key=True)
+    owner_id: str = Field(index=True)
+    size_bytes: int
+    created_at: dt.datetime = Field(sa_type=UtcDateTime)
