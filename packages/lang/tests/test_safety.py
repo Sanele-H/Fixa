@@ -28,6 +28,11 @@ from lang.safety import (
         # isiZulu and isiXhosa glue prefixes straight onto the number
         "Inombolo yami ngu0821234567",
         "Inombolo yami ngu082 123 4567",
+        # isiZulu digit words, alone or mixed with digits and English
+        "Ngishayele ku iqanda isishiyagalombili kubili kanye kubili kuthathu kune kuhlanu "
+        "isithupha isikhombisa",
+        "Inombolo yami ngu o82 kanye kubili kuthathu kune kuhlanu isithupha isikhombisa",
+        "Ngishayele ku iqanda eight two kanye kubili kuthathu 4567",
     ],
 )
 def test_disguised_phone_numbers_are_hidden(text):
@@ -51,6 +56,9 @@ def test_disguised_phone_numbers_are_hidden(text):
         "I'm 10 minutes down the road",
         "Give me 2 days to close it",
         "I'm 3 houses down the street",
+        # isiZulu digit words are everyday words too: "kanye" is once or together, "kune" there is
+        "Ngizofika kanye nomsizi wami, kune pipe elivuzayo, R450.",
+        "Ngiyeza kanye kanye, ngo-10:30 kusasa.",
     ],
 )
 def test_prices_times_and_sizes_are_never_hidden(text):
