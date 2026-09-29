@@ -1,16 +1,13 @@
-"""Jobs: posting, the state changes, quotes and the provider feed.
+"""Jobs: posting, the state changes, quotes, the provider feed and the ranked provider list.
 
-Still answering with fixtures until their own steps: understanding a description, photos and the
-ranked provider list.
+Still answering with fixtures until their own steps: understanding a description and photos.
 """
 
 import datetime as dt
-import json
 import uuid
-from functools import cache
-from pathlib import Path
 from typing import Annotated, Literal
 
+import numpy as np
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from pydantic import AwareDatetime, BaseModel, Field, field_validator
 from sqlmodel import Session, select
@@ -27,10 +24,12 @@ from fixa_api.job_views import (
     quote_view,
 )
 from fixa_api.models import Customer, Job, Provider, Quote
+from fixa_api.ranking_inputs import build_candidates, today
+from fixa_api.trades import known_trades
+from ranking import JobRequest, rank_providers
 
 router = APIRouter(prefix="/api", tags=["jobs"])
 
-GLOSSARY_PATH = Path(__file__).resolve().parents[3] / "data" / "glossary.json"
 FEED_LIMIT = 50
 
 Lang = Literal["en", "zu", "xh"]
@@ -38,13 +37,6 @@ User = Annotated[Customer | Provider, Depends(current_user)]
 CustomerUser = Annotated[Customer, Depends(require_role("customer"))]
 ProviderUser = Annotated[Provider, Depends(require_role("provider"))]
 DbSession = Annotated[Session, Depends(get_session)]
-
-
-@cache
-def known_trades() -> set[str]:
-    """The trade ids in data/glossary.json."""
-    glossary = json.loads(GLOSSARY_PATH.read_text(encoding="utf-8"))
-    return {trade["id"] for trade in glossary["trades"]}
 
 
 class UnderstandRequest(BaseModel):
@@ -148,8 +140,17 @@ def read_job(job_id: str, user: User, session: DbSession):
 
 
 @router.get("/jobs/{job_id}/providers")
-def read_ranked_providers(job_id: str):
-    return load_fixture("ranked_providers.json")
+def read_ranked_providers(job_id: str, customer: CustomerUser, session: DbSession):
+    """The providers for this job, best first. A fresh random generator per search is what lets
+    newcomers be shown some of the time (see ranking.rank_providers)."""
+    job = session.get(Job, job_id)
+    if job is None or not is_job_customer(job, customer):
+        raise HTTPException(status_code=404, detail="Job not found")
+    request = JobRequest(
+        trade=job.trade, size=job.size, needs_licence=job.needs_licence, posted_on=today()
+    )
+    ranked = rank_providers(request, build_candidates(session, job), np.random.default_rng())
+    return [provider.model_dump() for provider in ranked]
 
 
 @router.get("/feed")

@@ -1,4 +1,4 @@
-"""Routes that still answer with their fixture (until their own step replaces them)."""
+"""Routes that still answer with their fixture. The real ones are tested in their own files."""
 
 import json
 
@@ -20,16 +20,6 @@ ROUTES = [
         {"text": "geyser leaking", "lang": "en"},
         200,
         "job_intent.json",
-    ),
-    ("GET", "/api/jobs/job_001/providers", None, 200, "ranked_providers.json"),
-    ("GET", "/api/providers?trade=plumbing", None, 200, "nearby_providers.json"),
-    ("GET", "/api/providers/prov_001", None, 200, "provider_profile.json"),
-    (
-        "GET",
-        "/api/price-range?trade=plumbing&size=small&suburb=Braamfontein",
-        None,
-        200,
-        "price_range.json",
     ),
     ("GET", "/api/jobs/job_001/messages?after=msg_001", None, 200, "messages.json"),
     ("POST", "/api/jobs/job_001/messages", {"text": "hello"}, 201, "message.json"),
@@ -96,12 +86,3 @@ def test_link_pages_are_plain_html_without_scripts(path):
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/html")
     assert "<script" not in response.text.lower()
-
-
-@pytest.mark.parametrize("radius", ["0", "-1", "31"])
-def test_nearby_providers_rejects_a_bad_radius(radius):
-    assert client.get(f"/api/providers?trade=plumbing&radius_km={radius}").status_code == 422
-
-
-def test_nearby_providers_needs_a_trade():
-    assert client.get("/api/providers").status_code == 422
