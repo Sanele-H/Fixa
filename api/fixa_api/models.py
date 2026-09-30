@@ -256,3 +256,17 @@ class Report(SQLModel, table=True):
     note: str | None = None
     status: str = "open"
     created_at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+class CustomerVouch(SQLModel, table=True):
+    """A customer's own words about a provider they hired: a few lines, with the suburb and date
+    only. One per customer and provider. The text was scanned, so it holds no contact details."""
+
+    __tablename__ = "customer_vouch"
+
+    id: str = Field(primary_key=True)
+    provider_id: str = Field(foreign_key="provider.id", index=True)
+    customer_id: str = Field(index=True)
+    text: str
+    suburb: str
+    created_at: dt.datetime = Field(sa_type=UtcDateTime)

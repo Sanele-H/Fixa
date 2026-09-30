@@ -6,8 +6,8 @@ job's customer never appears by name, number or address, only the suburb, date a
 
 from sqlmodel import Session, select
 
-from fixa_api.models import Job, OffAppJob, Provider, Quote
-from record import RecordEvidence, RecordJob
+from fixa_api.models import CustomerVouch, Job, OffAppJob, Provider, Quote
+from record import RecordEvidence, RecordJob, Vouch
 
 ACCEPTED = "accepted"
 CONFIRMED_OFF_APP = "confirmed"
@@ -57,6 +57,15 @@ def off_app_record_jobs(session: Session, provider: Provider) -> list[RecordJob]
     ]
 
 
+def vouches_for(session: Session, provider: Provider) -> list[Vouch]:
+    """Customers' own words about the provider, each with its suburb and date only."""
+    rows = session.exec(select(CustomerVouch).where(CustomerVouch.provider_id == provider.id))
+    return [
+        Vouch(text=row.text, suburb=row.suburb, given_on=row.created_at.date())
+        for row in sorted(rows, key=lambda row: row.created_at)
+    ]
+
+
 def build_evidence(session: Session, provider: Provider) -> RecordEvidence:
     """Everything an export or the public record page is built from, oldest job first."""
     jobs = in_app_record_jobs(session, provider) + off_app_record_jobs(session, provider)
@@ -66,4 +75,5 @@ def build_evidence(session: Session, provider: Provider) -> RecordEvidence:
         display_name=provider.display_name,
         trades=provider.trades,
         jobs=jobs,
+        vouches=vouches_for(session, provider),
     )

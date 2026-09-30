@@ -26,6 +26,7 @@ from fixa_api.routes import (
     providers,
     records,
     reports,
+    vouches,
 )
 
 
@@ -64,6 +65,7 @@ for router_module in (
     photos,
     records,
     reports,
+    vouches,
 ):
     app.include_router(router_module.router)
 
