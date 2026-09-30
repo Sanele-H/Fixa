@@ -4,6 +4,7 @@ import type { Language, Message } from "../api/types";
 import { formatTime } from "../format";
 import { LANGUAGE_NAMES } from "../i18n";
 import { Banner, Button, Icon } from "../ui";
+import { ReportButton } from "./ReportButton";
 
 type MessageBubbleProps = {
   message: Message;
@@ -56,6 +57,7 @@ export function MessageBubble({ message, isMine, appLanguage, isTranslating, onT
       {message.scam_warnings.map((warning) => (
         <Banner key={warning} tone="warning" title={warning} />
       ))}
+      {!isMine && <ReportButton targetType="message" targetId={message.id} />}
       <footer className="bubble__meta">
         <time dateTime={message.sent_at}>{formatTime(message.sent_at, i18n.language)}</time>
         {isOtherLanguage && isTranslating && (

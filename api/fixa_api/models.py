@@ -204,3 +204,69 @@ class Photo(SQLModel, table=True):
     owner_id: str = Field(index=True)
     size_bytes: int
     created_at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+class JobEvent(SQLModel, table=True):
+    """Something that happened on a job: a check-in, a check-out, marking it done, a no-show or
+    the two-week "still working?" answer. A log only, so the job's own row stays as it is."""
+
+    __tablename__ = "job_event"
+
+    id: str = Field(primary_key=True)
+    job_id: str = Field(foreign_key="job.id", index=True)
+    kind: str
+    actor_id: str
+    at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+class BlockLog(SQLModel, table=True):
+    """A request the illegal-request check refused, kept for the team to review. The text is
+    what the person wrote (cut to 500 characters). It is never published or delivered."""
+
+    __tablename__ = "block_log"
+
+    id: str = Field(primary_key=True)
+    user_id: str = Field(index=True)
+    kind: str  # job_post, understand, quote, message or off_app_job
+    category: str
+    text: str
+    at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+class AccountRestriction(SQLModel, table=True):
+    """An account that can no longer post, quote or message until the team reviews it. Delete
+    the row to lift it."""
+
+    __tablename__ = "account_restriction"
+
+    user_id: str = Field(primary_key=True)
+    since: dt.datetime = Field(sa_type=UtcDateTime)
+    reason: str
+
+
+class Report(SQLModel, table=True):
+    """Something a person reported with the report button, for the team to review. The note is
+    for the team only; it is never shown to anyone else."""
+
+    id: str = Field(primary_key=True)
+    reporter_id: str = Field(index=True)
+    target_type: str  # job, provider or message
+    target_id: str
+    reason: str
+    note: str | None = None
+    status: str = "open"
+    created_at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+class CustomerVouch(SQLModel, table=True):
+    """A customer's own words about a provider they hired: a few lines, with the suburb and date
+    only. One per customer and provider. The text was scanned, so it holds no contact details."""
+
+    __tablename__ = "customer_vouch"
+
+    id: str = Field(primary_key=True)
+    provider_id: str = Field(foreign_key="provider.id", index=True)
+    customer_id: str = Field(index=True)
+    text: str
+    suburb: str
+    created_at: dt.datetime = Field(sa_type=UtcDateTime)

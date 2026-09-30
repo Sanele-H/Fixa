@@ -36,6 +36,8 @@ export type NewJob = {
   size: JobSize;
   suburb: string;
   photo_id?: string;
+  /** Insist on a licensed provider. The server also spots licensed work by itself. */
+  needs_licence?: boolean;
 };
 
 /**
@@ -49,13 +51,13 @@ export type NewQuote = {
 };
 
 /** Refreshes the lists a job shows up in: the feed and people's own jobs. */
-function invalidateJobLists(queryClient: QueryClient) {
+export function invalidateJobLists(queryClient: QueryClient) {
   queryClient.invalidateQueries({ queryKey: jobKeys.feed });
   queryClient.invalidateQueries({ queryKey: jobKeys.myJobs });
 }
 
 /** Puts the job the server just answered with into the cache, and refreshes everything under it and the lists. */
-function updateCachedJob(queryClient: QueryClient, job: JobPublic | JobUnlocked) {
+export function updateCachedJob(queryClient: QueryClient, job: JobPublic | JobUnlocked) {
   queryClient.setQueryData(jobKeys.job(job.id), job);
   queryClient.invalidateQueries({ queryKey: jobKeys.job(job.id) });
   invalidateJobLists(queryClient);

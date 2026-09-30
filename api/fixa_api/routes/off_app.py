@@ -7,14 +7,17 @@ import secrets
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Form, HTTPException
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 from sqlmodel import Session
 
 from fixa_api import off_app
 from fixa_api.auth import require_role
+from fixa_api.blocking import refuse_if_prohibited
 from fixa_api.db import get_session
 from fixa_api.models import Provider
 from fixa_api.sms import SmsSender, get_sms_sender
+from fixa_api.ussd import ussd_reply
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["off-app jobs"])
@@ -36,6 +39,7 @@ class NewOffAppJob(BaseModel):
 def log_off_app_job(body: NewOffAppJob, provider: ProviderUser, session: DbSession, sender: Sender):
     """Log a past job. The customer is texted to confirm it, and it only counts once they do.
     The customer's number is never sent back."""
+    refuse_if_prohibited(session, provider, body.trade_task, "off_app_job")
     try:
         job = off_app.log_off_app_job(
             session,
@@ -87,3 +91,16 @@ def receive_sms(
     outcome = off_app.handle_reply(session, from_phone, text)
     logger.info("SMS reply handled: %s", outcome)
     return {"status": "ok"}
+
+
+@router.post("/api/ussd", response_class=PlainTextResponse)
+def receive_ussd(
+    session: DbSession,
+    phone_number: Annotated[str, Form(alias="phoneNumber", max_length=30)],
+    text: Annotated[str, Form(max_length=100)] = "",
+    secret: str | None = None,
+) -> str:
+    """Africa's Talking's USSD callback: the next screen of the menu where a customer on a
+    feature phone confirms an off-app job. Register .../api/ussd?secret=<SMS_WEBHOOK_SECRET>."""
+    check_webhook_secret(secret)
+    return ussd_reply(session, phone_number, text)

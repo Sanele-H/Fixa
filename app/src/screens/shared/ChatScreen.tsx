@@ -8,7 +8,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { generatePath, useParams, useSearchParams } from "react-router";
 import { useMessages, useSendMessage } from "../../api/chat";
-import { getErrorMessageKey } from "../../api/errors";
+import { ErrorBanner } from "../../components/ErrorBanner";
 import { useProviderProfile } from "../../api/providers";
 import type { Language, Message } from "../../api/types";
 import { CHAT_WITH_PARAM, PATHS } from "../../app/paths";
@@ -126,7 +126,7 @@ function Composer({ jobId, providerId }: MessageListProps) {
     <>
       {sendMessage.isError && (
         <div className="screen">
-          <Banner tone="warning" title={t(getErrorMessageKey(sendMessage.error))} />
+          <ErrorBanner error={sendMessage.error} />
         </div>
       )}
       <form className="composer" onSubmit={send}>

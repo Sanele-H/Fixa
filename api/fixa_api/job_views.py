@@ -25,6 +25,7 @@ PUBLIC_FIELDS = (
     "urgency",
     "suburb",
     "problem_lang",
+    "needs_licence",
 )
 
 
@@ -52,6 +53,8 @@ def can_see_job(session: Session, job: Job, viewer: Customer | Provider) -> bool
         return True
     if viewer.role != "provider":
         return False
+    if job.needs_licence and not viewer.licensed:
+        return False  # licensed work is never shown to, or quoted on by, unlicensed providers
     if has_quote_on(session, job, viewer):
         return True
     return job.state in OPEN_FOR_QUOTES and job.trade in viewer.trades

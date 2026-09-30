@@ -3,7 +3,7 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { generatePath, useNavigate, useParams } from "react-router";
-import { getErrorMessageKey } from "../../api/errors";
+import { ErrorBanner } from "../../components/ErrorBanner";
 import { useCreateQuote, useJob, usePriceRange, type NewQuote } from "../../api/jobs";
 import type { JobPublic, PriceRange } from "../../api/types";
 import { PATHS } from "../../app/paths";
@@ -114,7 +114,7 @@ function QuoteForm({ job }: QuoteFormProps) {
       />
       <TextArea label={t("quote.messageLabel")} rows={3} value={message} onChange={(event) => setMessage(event.target.value)} />
 
-      {createQuote.isError && <Banner tone="warning" title={t(getErrorMessageKey(createQuote.error))} />}
+      {createQuote.isError && <ErrorBanner error={createQuote.error} />}
 
       <Button type="submit" isBlock icon="send" disabled={createQuote.isPending || amountRands <= 0}>
         {t("quote.send")}

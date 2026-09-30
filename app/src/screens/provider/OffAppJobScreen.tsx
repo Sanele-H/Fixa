@@ -4,6 +4,7 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { getErrorCode, getErrorMessageKey } from "../../api/errors";
+import { ErrorBanner } from "../../components/ErrorBanner";
 import { useLogOffAppJob, type NewOffAppJob } from "../../api/record";
 import type { OffAppJob } from "../../api/types";
 import { PATHS } from "../../app/paths";
@@ -114,7 +115,7 @@ function OffAppForm({ onLogged }: OffAppFormProps) {
         {t("offApp.smsNoteBody")}
       </Banner>
 
-      {logOffAppJob.isError && <Banner tone="warning" title={t(getOffAppErrorKey(logOffAppJob.error))} />}
+      {logOffAppJob.isError && <ErrorBanner error={logOffAppJob.error} overrideKey={getOffAppErrorKey(logOffAppJob.error)} />}
 
       <Button type="submit" isBlock icon="send" disabled={logOffAppJob.isPending}>
         {t("offApp.submit")}

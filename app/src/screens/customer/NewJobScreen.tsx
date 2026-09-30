@@ -6,6 +6,7 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { generatePath, useNavigate } from "react-router";
 import { getErrorMessageKey } from "../../api/errors";
+import { ErrorBanner } from "../../components/ErrorBanner";
 import { useCreateJob, useUnderstandJob, type NewJob } from "../../api/jobs";
 import { useUploadPhoto } from "../../api/photos";
 import { JOB_SIZES, TRADES, URGENCIES, type JobIntent, type Language, type TradeId } from "../../api/types";
@@ -127,6 +128,7 @@ export default function NewJobScreen() {
   const navigate = useNavigate();
   const [description, setDescription] = useState("");
   const [details, setDetails] = useState<JobDetails | null>(null);
+  const [needsLicence, setNeedsLicence] = useState(false);
   const understandJob = useUnderstandJob();
   const createJob = useCreateJob();
   const jobPhoto = useJobPhoto();
@@ -150,6 +152,7 @@ export default function NewJobScreen() {
       lang: language,
       suburb: me.suburb,
       photo_id: jobPhoto.photo?.photo_id,
+      needs_licence: needsLicence || undefined,
     };
     createJob.mutate(newJob, { onSuccess: (job) => navigate(generatePath(PATHS.jobProviders, { jobId: job.id })) });
   }
@@ -176,11 +179,15 @@ export default function NewJobScreen() {
       {details && (
         <>
           <DetailsCard details={details} onChange={setDetails} />
+          <label className="checkbox-row">
+            <input type="checkbox" checked={needsLicence} onChange={(event) => setNeedsLicence(event.target.checked)} />
+            {t("newJob.licensedOnly")}
+          </label>
           <PhotoPicker {...jobPhoto} />
         </>
       )}
 
-      {requestError && <Banner tone="warning" title={t(getErrorMessageKey(requestError))} />}
+      {requestError && <ErrorBanner error={requestError} />}
 
       {details && (
         <Button isBlock onClick={() => postJob(details)} disabled={createJob.isPending || jobPhoto.isBusy}>

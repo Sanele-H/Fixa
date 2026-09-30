@@ -1,0 +1,72 @@
+{
+  "_about": "Phrases that ask for or offer illegal electricity work, per category and language, as regular expressions matched against lowercased text. Tampering-specific phrases only: never bare words like 'meter' or 'transformer', so genuine problems ('my prepaid meter isn't accepting my token', 'the transformer on our street is sparking') pass. The English list was written by P2 from the plan's examples. NEEDS A NATIVE-SPEAKER CHECK: the isiZulu (zu) and isiXhosa (xh) lists are first drafts.",
+  "categories": {
+    "illegal_connection": {
+      "en": [
+        "\\billegal(?:ly)? (?:connect(?:ion|ions|ing|or|ors|ed)?|electricity|power)\\b",
+        "\\bconnect(?:ing)? .{0,30}\\billegally\\b",
+        "\\bsteal(?:ing)? (?:electricity|power)\\b",
+        "\\bfree electricity\\b",
+        "\\bunmetered (?:connection|electricity|power)\\b",
+        "\\bconnect (?:me|us|my (?:house|home|shack|room)|the (?:house|shack)) (?:directly )?(?:to|from) the (?:pole|power ?line|line|street ?light|transformer|mini ?sub(?:station)?)\\b",
+        "\\bhook(?:ing)? up (?:to |from )?(?:the )?(?:pole|power ?line)\\b",
+        "\\b(?:direct|illegal) connection from (?:the )?pole\\b"
+      ],
+      "zu": [
+        "\\bizinyoka\\b",
+        "\\bugesi ongekho emthethweni\\b",
+        "\\bukweba ugesi\\b",
+        "\\bukuxhumela ugesi ngokungemthetho\\b"
+      ],
+      "xh": [
+        "\\bizinyoka\\b",
+        "\\bumbane ongekho mthethweni\\b",
+        "\\bukuba umbane\\b",
+        "\\bukuxhuma umbane ngokungekho mthethweni\\b"
+      ]
+    },
+    "infrastructure_tampering": {
+      "en": [
+        "\\b(?:tamper(?:ing)? with|open(?:ing)?|break(?:ing)? into|strip(?:ping)?|steal(?:ing)?|cut(?:ting)?|tap(?:ping)? into|splic(?:e|ing) into|connect(?:ing)? to|bypass(?:ing)?) (?:the |a |an |eskom |municipal |city power )*(?:transformers?|mini ?sub(?:station)?s?|substations?|(?:municipal|eskom|city power|street|underground|overhead) (?:cables?|lines?|power ?lines?)|cable box(?:es)?)\\b"
+      ],
+      "zu": [
+        "\\buku(?:vula|ephula|weba)\\s+(?:i-?)?(?:transformer|itransfoma)"
+      ],
+      "xh": [
+        "\\buku(?:vula|phula|ba)\\s+(?:i-?)?(?:transformer|itransfoma)"
+      ]
+    },
+    "meter_tampering": {
+      "en": [
+        "\\b(?:by-?pass(?:ing)?|tamper(?:ing)? with|jump(?:ing)?|rig(?:ging)?|hack(?:ing)?|cheat(?:ing)?|reverse|reversing|slow(?:ing)? down|freez(?:e|ing)|manipulat(?:e|ing)) (?:with )?(?:the |my |our |a |this |that |your )?(?:prepaid |electricity |electric |smart )*meters?\\b",
+        "\\bmake (?:the|my|our) meter (?:run |go )?(?:slower|backwards)\\b",
+        "\\bi (?:can|will|could) (?:fix|repair|sort(?: out)?|adjust|reset) (?:your|ur|the|any) (?:prepaid |electricity )*meter\\b",
+        "\\bwe (?:can|will|do) (?:fix|repair|sort(?: out)?|adjust|reset) (?:your|ur|the|any) (?:prepaid |electricity )*meter\\b"
+      ],
+      "zu": [
+        "\\bukweqa\\s+(?:i-?)?imitha\\b",
+        "\\buku(?:phazamisa|khohlisa|ephula)\\s+(?:i-?)?imitha\\b"
+      ],
+      "xh": [
+        "\\bukugqitha\\s+(?:i-?)?imitha\\b",
+        "\\buku(?:phazamisa|khohlisa)\\s+(?:i-?)?imitha\\b"
+      ]
+    },
+    "illegal_vouchers": {
+      "en": [
+        "\\bghost (?:vouchers?|units?|tokens?|electricity)\\b",
+        "\\bcheap(?:er)? (?:prepaid )?(?:units|vouchers?|tokens?)\\b",
+        "\\b(?:double|extra|bonus|unlimited) (?:units|electricity vouchers?)\\b",
+        "\\b\\d+\\s?(?:units|kwh)\\s+for\\s+r\\s?\\d+\\b"
+      ],
+      "zu": [
+        "\\bamayunithi ashibhile\\b",
+        "\\bama-?voucher ashibhile\\b"
+      ],
+      "xh": [
+        "\\biiyunithi ezishiphu\\b",
+        "\\bii-?vawusha ezishiphu\\b"
+      ]
+    }
+  }
+}

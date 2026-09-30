@@ -3,6 +3,7 @@ import { generatePath } from "react-router";
 import { useMyJobs } from "../../api/jobs";
 import { PATHS } from "../../app/paths";
 import { DescribeJobCard } from "../../components/DescribeJobCard";
+import { FollowUps } from "../../components/FollowUps";
 import { JobCard } from "../../components/JobCard";
 import { EmptyNote, LoadError, LoadingNote } from "../../components/LoadState";
 import { useCurrentUser } from "../../session/SessionContext";
@@ -39,6 +40,8 @@ export default function HomeScreen() {
         eyebrow={me.suburb}
         title={t("home.greeting", { name: me.display_name })}
       />
+
+      <FollowUps />
 
       <DescribeJobCard hint={t("home.describeJobHint")} />
 

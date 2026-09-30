@@ -29,6 +29,8 @@ class JobIntent(BaseModel):
     urgency: Urgency
     size: JobSize
     confidence: float  # 0 to 1
+    # None when the text is fine, else the category of illegal electricity work it asks for
+    prohibited: str | None = None
 
 
 class Finding(BaseModel):
@@ -45,6 +47,9 @@ class SafetyResult(BaseModel):
     safe_text: str
     findings: list[Finding]
     scam_warnings: list[str]
+    # None when the text is fine, else illegal_connection, infrastructure_tampering,
+    # meter_tampering or illegal_vouchers. A flagged text must not be published or delivered.
+    prohibited: str | None = None
 
 
 class Quote(BaseModel):

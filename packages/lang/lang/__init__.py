@@ -9,12 +9,17 @@ Public functions (the contract; signatures change only with the team's agreement
     scan_message(text, lang, contacts_unlocked) -> SafetyResult(safe_text, findings, scam_warnings)
     extract_quote(text) -> Quote(amount_rands, when) | None
     get_scam_warning_texts(scam_warnings, lang) -> list[str], in the reader's language
+    refusal_message(category, lang) -> str: why illegal electricity work was refused, and where
+        to go instead. JobIntent.prohibited and SafetyResult.prohibited name the category
+        (illegal_connection, infrastructure_tampering, meter_tampering or illegal_vouchers),
+        or are None when the text is fine.
 
 Proposed (not agreed yet):
     transcribe(audio, mime_type, lang=None) -> Transcript(text, lang, confidence)
     detect_language(text, sender_lang) -> Lang, the language a message is really written in
 
-Data P3 owns: data/glossary.json, data/test_messages.json, data/number_words.json.
+Data P3 owns: data/glossary.json, data/test_messages.json, data/number_words.json,
+data/prohibited_terms.json.
 
 Step 0 (Day 1): stubs with the correct return types, so the API can import them (lang/stubs.py).
 Real so far: translate (lang/translation.py), with backends picked by TRANSLATION_BACKEND, and
@@ -31,6 +36,7 @@ from lang.models import (
     Transcript,
     Translation,
 )
+from lang.prohibited import find_prohibited, refusal_message
 from lang.quotes import extract_quote
 from lang.safety import get_scam_warning_texts, scan_message
 from lang.stubs import transcribe
@@ -46,7 +52,9 @@ __all__ = [
     "Translation",
     "detect_language",
     "extract_quote",
+    "find_prohibited",
     "get_scam_warning_texts",
+    "refusal_message",
     "scan_message",
     "transcribe",
     "translate",

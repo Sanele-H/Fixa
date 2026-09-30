@@ -11,6 +11,7 @@ import re
 from pathlib import Path
 
 from lang.models import JobIntent, JobSize, Lang, Urgency
+from lang.prohibited import find_prohibited
 
 GLOSSARY_PATH = Path(__file__).resolve().parents[3] / "data" / "glossary.json"
 FALLBACK_TRADE = "plumbing"  # Most household repairs in the seed data are plumbing
@@ -197,4 +198,5 @@ def understand_job(text: str, lang: Lang) -> JobIntent:
         urgency=guess_urgency(lowered_text),
         size=guess_size(lowered_text),
         confidence=get_confidence(best_count, is_tied=best_count > 0 and len(best_trades) > 1),
+        prohibited=find_prohibited(text),
     )

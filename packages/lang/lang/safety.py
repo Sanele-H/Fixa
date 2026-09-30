@@ -15,6 +15,7 @@ import re
 from pathlib import Path
 
 from lang.models import Finding, Lang, SafetyResult
+from lang.prohibited import find_prohibited
 from lang.protection import NOT_A_LINKING_WORD, NOT_A_QUANTITY
 
 HIDDEN_CONTACT_TEXT = "[contact hidden until the job is confirmed]"
@@ -241,10 +242,16 @@ def scan_message(text: str, lang: Lang, contacts_unlocked: bool) -> SafetyResult
     """
     findings = find_contact_findings(text)
     scam_warnings = find_scam_warnings(text, findings)
+    prohibited = find_prohibited(text)
     if contacts_unlocked:
-        return SafetyResult(safe_text=text, findings=findings, scam_warnings=scam_warnings)
+        return SafetyResult(
+            safe_text=text, findings=findings, scam_warnings=scam_warnings, prohibited=prohibited
+        )
     return SafetyResult(
-        safe_text=hide_findings(text, findings), findings=findings, scam_warnings=scam_warnings
+        safe_text=hide_findings(text, findings),
+        findings=findings,
+        scam_warnings=scam_warnings,
+        prohibited=prohibited,
     )
 
 
