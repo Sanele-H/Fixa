@@ -100,7 +100,7 @@ They come first in each table, so their ids match the fixtures:
 
 ## Known gaps in v1
 
-- **Only 2 trades.** The glossary has 2 of the 11 trades so far. Other trades get generic small, medium and large jobs until they have task lists.
+- **The demo trades come first.** Plumbing and electrical make the first 60 providers and their jobs, from the seed's main random stream, so those rows (and the ids the tests and demo use) stay the same as trades are added. The other 11 trades get 40 more providers and their jobs afterwards, from a second stream.
 - **English job descriptions.** P3 translates them for each reader. The only isiZulu text is the placeholder in `quote_001`, from the fixture.
 - **No photos yet.** `photo_url` is `null` everywhere, including `job_001`, because the fixture's `photo_001` has no file.
 - **Before/after photos and vouches** come in the Day 4 seed.

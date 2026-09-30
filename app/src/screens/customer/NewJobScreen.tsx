@@ -48,6 +48,8 @@ function clearStoredNewJobDraft(): void {
 
 /** Confidence at or below this value means the suggestion is uncertain; show a hint to check. */
 const LOW_CONFIDENCE_THRESHOLD = 0.4;
+/** The server refuses longer directions (NewJob.directions in api/fixa_api/routes/jobs.py). */
+const MAX_DIRECTIONS_LENGTH = 500;
 
 /** What the customer confirms after the suggestion: the trade, how soon and how big. */
 type JobDetails = Pick<NewJob, "trade" | "urgency" | "size">;
@@ -166,6 +168,7 @@ export default function NewJobScreen() {
   const [details, setDetails] = useState<JobDetails | null>(null);
   const [confidence, setConfidence] = useState(0);
   const [needsLicence, setNeedsLicence] = useState(false);
+  const [directions, setDirections] = useState("");
   const understandJob = useUnderstandJob();
   const createJob = useCreateJob();
   const jobPhoto = useJobPhoto();
@@ -201,6 +204,7 @@ export default function NewJobScreen() {
       suburb: me.suburb,
       photo_id: jobPhoto.photo?.photo_id,
       needs_licence: needsLicence || undefined,
+      directions: directions.trim() || undefined,
     };
     createJob.mutate(newJob, {
       onSuccess: (job) => {
@@ -240,6 +244,13 @@ export default function NewJobScreen() {
             <input type="checkbox" checked={needsLicence} onChange={(event) => setNeedsLicence(event.target.checked)} />
             {t("newJob.licensedOnly")}
           </label>
+          <TextArea
+            label={t("newJob.directionsLabel")}
+            placeholder={t("newJob.directionsHint")}
+            value={directions}
+            maxLength={MAX_DIRECTIONS_LENGTH}
+            onChange={(event) => setDirections(event.target.value)}
+          />
           <PhotoPicker {...jobPhoto} />
         </>
       )}

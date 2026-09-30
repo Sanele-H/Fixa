@@ -134,7 +134,9 @@
     "photoAlt": "Your photo of the problem",
     "removePhoto": "Remove photo",
     "licensedOnly": "Only licensed providers (the law requires it for some work)",
-    "suggestedUnsure": "We're not sure what trade this is — please check."
+    "suggestedUnsure": "We're not sure what trade this is — please check.",
+    "directionsLabel": "Directions for the provider (optional)",
+    "directionsHint": "Gate code, landmark, which door to use…"
   },
   "providers": {
     "title": "Who can help",
@@ -196,6 +198,8 @@
     "lockedBody": "Phone numbers and the address unlock when the provider confirms the job.",
     "unlockedTitle": "Contact details",
     "address": "Address",
+    "directions": "Directions",
+    "getDirections": "Get directions",
     "customerPhone": "Customer's phone",
     "providerPhone": "Provider's phone"
   },

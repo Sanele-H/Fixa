@@ -20,7 +20,6 @@ ARPL_TRADE_TITLES = {
     "welding": "Welder",
     "bricklaying": "Bricklayer",
     "mechanic": "Automotive Motor Mechanic",
-    "painting": "Painter",
 }
 MERSETA_TOOLKIT_TRADE_TITLES = [
     "Diesel Mechanic", "Automotive Motor Mechanic", "Boilermaker", "Welder", "Pipe-Fitter",

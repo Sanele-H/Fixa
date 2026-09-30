@@ -98,6 +98,22 @@ def test_an_unknown_job_gets_a_low_confidence_guess():
     assert intent.trade == "other"
 
 
+@pytest.mark.parametrize(
+    ("text", "trade"),
+    [
+        ("Water pipe burst on our street", "plumbing"),  # "tree" is inside "street"
+        ("My fibre router box has no power", "other"),  # "ibr" is inside "fibre"
+        ("Carpet needs cleaning", "other"),  # "car" is inside "carpet"
+        ("Imoto iyakhala kakhulu", "mechanic"),  # "akha" (build) is inside "iyakhala"
+    ],
+)
+def test_english_words_do_not_match_inside_other_words(text, trade):
+    """English words match whole, so a short one never finds a trade inside a longer word."""
+    intent = understand_job(text, "en")
+    assert intent.trade == trade
+    assert intent.confidence != 0.4  # not a tie with a trade the text never mentions
+
+
 def test_more_matching_words_means_more_confidence():
     one_word = understand_job("My geyser is broken", "en").confidence
     three_words = understand_job("My geyser pipe is leaking under the sink", "en").confidence

@@ -66,3 +66,14 @@ def test_a_new_database_needs_nothing_added():
     assert add_missing_columns(engine) == []
     column_names = {column["name"] for column in inspect(engine).get_columns("safety_timer")}
     assert {"reason", "alert_at"} <= column_names
+
+
+def test_a_job_table_without_directions_gets_the_column():
+    engine = create_database_engine(IN_MEMORY_DATABASE_URL)
+    SQLModel.metadata.create_all(engine)
+    with engine.begin() as connection:
+        connection.execute(text("ALTER TABLE job DROP COLUMN directions"))
+
+    assert add_missing_columns(engine) == ["job.directions"]
+    column_names = {column["name"] for column in inspect(engine).get_columns("job")}
+    assert "directions" in column_names

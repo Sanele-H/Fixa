@@ -7,6 +7,7 @@ from sqlmodel import select
 
 from fixa_api.fixtures import FIXTURES_PATH
 from fixa_api.models import Job, OffAppJob, Provider, Quote
+from fixa_api.trades import known_trades
 from ranking import PriceRange
 
 LINDIWE = "082 000 0001"  # cust_001, Braamfontein
@@ -247,7 +248,7 @@ def test_the_price_range_is_built_from_accepted_quotes_only(
         list(seeded_session.exec(select(Quote).where(Quote.state == "accepted")))
     )
     assert len(seen["quotes"]) == accepted_in_database > 0
-    assert {quote.trade for quote in seen["quotes"]} <= {"plumbing", "electrical"}
+    assert {quote.trade for quote in seen["quotes"]} <= known_trades()
 
 
 def test_the_price_range_is_null_when_there_is_not_enough_data(seeded_client, lindiwe, monkeypatch):

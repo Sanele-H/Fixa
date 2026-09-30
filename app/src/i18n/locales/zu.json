@@ -135,7 +135,9 @@
     "photoAlt": "Isithombe sakho senkinga",
     "removePhoto": "Susa isithombe",
     "licensedOnly": "Abakhi abanamalayisense kuphela (umthetho uyafuna kuyo imisebenzi ethile)",
-    "suggestedUnsure": "Asiqiniseki ukuthi lo msebenzi ungowohlobo luni — sicela uhlole."
+    "suggestedUnsure": "Asiqiniseki ukuthi lo msebenzi ungowohlobo luni — sicela uhlole.",
+    "directionsLabel": "Iziqondiso zomsebenzi (ngokuthanda)",
+    "directionsHint": "Ikhodi yesango, indawo ephawulekayo, umnyango okufanele usetshenziswe…"
   },
   "providers": {
     "title": "Ubani ongasiza",
@@ -197,6 +199,8 @@
     "lockedBody": "Izinombolo zocingo nekheli kuvuleka uma umsebenzi eqinisekisa umsebenzi.",
     "unlockedTitle": "Imininingwane yokuxhumana",
     "address": "Ikheli",
+    "directions": "Iziqondiso",
+    "getDirections": "Thola iziqondiso",
     "customerPhone": "Inombolo yekhasimende",
     "providerPhone": "Inombolo yomsebenzi"
   },

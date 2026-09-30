@@ -30,7 +30,21 @@ ADDED_COLUMNS = [
     # PR #35: timers started by checking in, and a grace period after "Are you OK?"
     AddedColumn("safety_timer", "reason", default_sql="'manual'"),
     AddedColumn("safety_timer", "alert_at", fill_from_column="due_at"),
+    # PR #37: optional directions for the provider; existing jobs have none
+    AddedColumn("job", "directions"),
 ]
+
+
+def list_missing_columns(engine: Engine) -> list[AddedColumn]:
+    """The columns in ADDED_COLUMNS whose table exists but doesn't have them yet."""
+    inspector = inspect(engine)
+    return [
+        added_column
+        for added_column in ADDED_COLUMNS
+        if inspector.has_table(added_column.table_name)
+        and added_column.column_name
+        not in {column["name"] for column in inspector.get_columns(added_column.table_name)}
+    ]
 
 
 def add_missing_columns(engine: Engine) -> list[str]:
@@ -40,16 +54,13 @@ def add_missing_columns(engine: Engine) -> list[str]:
     Postgres each get their own type. New columns are added as nullable, since existing rows
     only get their value after the column exists. Returns the "table.column" names it added.
     """
-    inspector = inspect(engine)
+    # Look before writing: on SQLite the inspector shares the one connection, and each look
+    # would roll back the fills made so far in the transaction below.
+    missing_columns = list_missing_columns(engine)
     added_names = []
     with engine.begin() as connection:
-        for added_column in ADDED_COLUMNS:
+        for added_column in missing_columns:
             table_name, column_name = added_column.table_name, added_column.column_name
-            if not inspector.has_table(table_name):
-                continue
-            existing_names = {column["name"] for column in inspector.get_columns(table_name)}
-            if column_name in existing_names:
-                continue
             model_column = SQLModel.metadata.tables[table_name].c[column_name]
             column_type = model_column.type.compile(dialect=engine.dialect)
             default = f" DEFAULT {added_column.default_sql}" if added_column.default_sql else ""

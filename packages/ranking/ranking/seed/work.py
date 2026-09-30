@@ -336,6 +336,22 @@ TRADE_TASKS = {
             15000,
         ),
     ],
+    "other": [
+        TradeTask(
+            "Hang curtain rails", "I need curtain rails put up in two bedrooms", "small", 350
+        ),
+        TradeTask(
+            "Assemble furniture", "I need a flat-pack wardrobe and a bed put together", "small", 450
+        ),
+        TradeTask("Mount a TV", "I want my TV mounted on the lounge wall", "small", 400),
+        TradeTask("Fix a handrail", "The handrail on the outside steps is loose", "small", 400),
+        TradeTask(
+            "Clear out a garage",
+            "The garage is full of rubble that needs taking away",
+            "medium",
+            1200,
+        ),
+    ],
 }
 # Trades without their own task list yet get one generic job per size, at these prices.
 GENERIC_TASK_PRICES_RANDS = {"small": 450, "medium": 1200, "large": 4000}
@@ -354,7 +370,7 @@ TRADE_WEIGHTS = {
     "painting": 1.5,
     "appliance_repair": 1.0,
     "groundskeeping": 1.0,
-    "other": 0.5,
+    "other": 1.5,  # the fallback trade for jobs nothing else matches
 }
 OTHER_TRADE_WEIGHT = 1.0
 TASK_SIZE_WEIGHTS = {"small": 3.0, "medium": 2.0, "large": 1.0}  # small jobs are the most common
