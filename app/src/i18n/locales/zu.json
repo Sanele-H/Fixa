@@ -198,7 +198,9 @@
     "emptyBody": "Sawubona, noma ubuze ngomsebenzi.",
     "pickThreadTitle": "Khetha omkhulumisa naye",
     "pickThreadBody": "Umuntu ngamunye onikeze inani unengxoxo yakhe. Vula eyodwa kusuka enanini labo ekhasini lomsebenzi wakho.",
-    "openJob": "Yiya kumsebenzi wami"
+    "openJob": "Yiya kumsebenzi wami",
+    "notSentYet": "Akuthunyelwanga kumanje",
+    "tapToRetry": "Thinta ukuze uzame futhi"
   },
   "profile": {
     "share": "Yabelana ngephrofayili",

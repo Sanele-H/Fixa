@@ -198,7 +198,9 @@
     "emptyBody": "Bhotani, okanye ubuze ngomsebenzi.",
     "pickThreadTitle": "Khetha omxolelayo naye",
     "pickThreadBody": "Umntu ngamnye onikeze ixabiso unengxoxo yakhe. Vula enye ukusuka kwixabiso lakhe kwiphepha lomsebenzi.",
-    "openJob": "Yiya kumsebenzi wam"
+    "openJob": "Yiya kumsebenzi wam",
+    "notSentYet": "Ayikathunyelwa",
+    "tapToRetry": "Cofa ukuze uzame kwakhona"
   },
   "profile": {
     "share": "Yabelana ngeprofayili",

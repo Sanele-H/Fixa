@@ -197,7 +197,9 @@
     "emptyBody": "Say hello, or ask about the job.",
     "pickThreadTitle": "Pick who to chat with",
     "pickThreadBody": "Each person who quoted has their own chat. Open one from their quote on your job page.",
-    "openJob": "Go to my job"
+    "openJob": "Go to my job",
+    "notSentYet": "Not sent yet",
+    "tapToRetry": "Tap to retry"
   },
   "profile": {
     "share": "Share profile",
