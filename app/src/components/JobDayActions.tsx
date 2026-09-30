@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useCheckIn, useCheckOut, useFinishJob } from "../api/lifecycle";
-import { recordKeyMoment } from "../api/safety";
+import { recordKeyMoment, useOnMyWay } from "../api/safety";
 import { useJobQuotes } from "../api/jobs";
 import { useProviderProfile } from "../api/providers";
 import type { JobPublic, JobUnlocked } from "../api/types";
@@ -69,6 +69,24 @@ function TakePhotoLink({ job }: { job: Job }) {
   );
 }
 
+/** "I'm on my way": tells the customer, and records where the provider left from. */
+function OnMyWayButton({ job }: { job: Job }) {
+  const { t } = useTranslation();
+  const onMyWay = useOnMyWay(job.id);
+
+  if (onMyWay.isSuccess) {
+    return <Banner tone="info" title={t("lifecycle.onMyWayDone")} />;
+  }
+  return (
+    <>
+      {onMyWay.isError && <ErrorBanner error={onMyWay.error} />}
+      <Button variant="secondary" isBlock icon="send" onClick={() => onMyWay.mutate()} disabled={onMyWay.isPending}>
+        {t("lifecycle.onMyWay")}
+      </Button>
+    </>
+  );
+}
+
 /** The provider's side, only for the provider who was picked for this job. */
 export function ProviderDayActions({ job }: { job: Job }) {
   const { t } = useTranslation();
@@ -78,6 +96,7 @@ export function ProviderDayActions({ job }: { job: Job }) {
   if (job.state === "confirmed") {
     return (
       <Card tone="lime">
+        <OnMyWayButton job={job} />
         <p className="section-title">{t("lifecycle.arrivedTitle")}</p>
         <p className="small">{t("lifecycle.arrivedBody")}</p>
         {checkIn.isError && <ErrorBanner error={checkIn.error} />}
