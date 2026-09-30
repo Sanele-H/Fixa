@@ -25,6 +25,7 @@ app/dev-dist/
 .DS_Store
 Thumbs.db
 .idea/
+.qoder/
 
 # Playwright end-to-end test output
 e2e/results/
