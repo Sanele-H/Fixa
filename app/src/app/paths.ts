@@ -26,6 +26,7 @@ export const PATHS = {
   verifyId: "/verify-id",
   offAppJob: "/off-app-jobs/new",
   myRecord: "/my-record",
+  camera: "/camera",
   // Development only
   devScreens: "/dev/screens",
 } as const;

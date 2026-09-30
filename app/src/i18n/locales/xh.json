@@ -374,6 +374,18 @@
     "button": "Faka i-Fixa",
     "dismiss": "Susa"
   },
+  "camera": {
+    "title": "Thatha ifoto",
+    "subtitle": "Ixesha ne-suburb zibhalwa kwifoto. Akukho GPS igcinwayo.",
+    "capture": "Thatha ifoto",
+    "retake": "Phinda uthathe",
+    "uploading": "Ilayisha ifoto yakho…",
+    "uploaded": "Ifoto ilayishiwe",
+    "photoId": "I-ID yefoto: {{id}}",
+    "noCameraTitle": "Ikhamera ayifumaneki",
+    "noCameraBody": "I-browser okanye ifoni yakho ayivumeli ukusebenzisa ikhamera kweli phepha.",
+    "backToJob": "Buyela emsebenzini"
+  },
   "share": {
     "trusted": "Yabelana nomntu endimthembayo",
     "title": "Umsebenzi we-Fixa ka-{{name}}",

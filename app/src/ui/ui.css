@@ -930,6 +930,32 @@ button.card:active {
   color: var(--color-on-inverse-muted);
 }
 
+/* ---------- Camera preview: full-bleed video with a dark background ---------- */
+
+.camera-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-lg);
+  background: #000;
+  overflow: hidden;
+}
+
+.camera-preview__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-preview__loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--color-on-inverse);
+  font-size: var(--text-sm);
+}
+
 .card--inverse .slot__label {
   color: var(--color-on-inverse);
 }

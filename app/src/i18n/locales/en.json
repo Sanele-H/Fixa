@@ -373,6 +373,18 @@
     "button": "Install Fixa",
     "dismiss": "Dismiss"
   },
+  "camera": {
+    "title": "Take a photo",
+    "subtitle": "The time and suburb are stamped on the photo. No GPS is saved.",
+    "capture": "Take photo",
+    "retake": "Retake",
+    "uploading": "Uploading your photo…",
+    "uploaded": "Photo uploaded",
+    "photoId": "Photo ID: {{id}}",
+    "noCameraTitle": "Camera not available",
+    "noCameraBody": "Your browser or phone doesn't allow camera access from this page.",
+    "backToJob": "Back to job"
+  },
   "share": {
     "trusted": "Share with someone I trust",
     "title": "Fixa job with {{name}}",

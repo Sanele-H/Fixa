@@ -374,6 +374,18 @@
     "button": "Faka i-Fixa",
     "dismiss": "Susa"
   },
+  "camera": {
+    "title": "Thatha isithombe",
+    "subtitle": "Isikhathi ne-suburb kufakwa esithombeni. Ayikho i-GPS egcinwayo.",
+    "capture": "Thatha isithombe",
+    "retake": "Phinda uthathe",
+    "uploading": "Ilayisha isithombe sakho…",
+    "uploaded": "Isithombe silayishiwe",
+    "photoId": "I-ID yesithombe: {{id}}",
+    "noCameraTitle": "Ikhamera ayitholakali",
+    "noCameraBody": "I-brawuza noma ifoni yakho ayivumeli ukusebenzisa ikhamera kuleli khasi.",
+    "backToJob": "Buyela kumsebenzi"
+  },
   "share": {
     "trusted": "Yabelana nomuntu engimthembayo",
     "title": "Umsebenzi we-Fixa no-{{name}}",
