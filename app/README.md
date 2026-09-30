@@ -37,7 +37,7 @@ src/i18n/        i18next setup; locales/en.json has every string
 src/api/         client.ts (fetch + token), errors.ts, queryClient.ts, one hooks file per area,
                  types.ts (TypeScript shapes copied from contracts/api.md)
 src/session/     SessionContext.tsx (who is logged in), token.ts (the saved login token)
-src/dev/         samples.ts (fixture data for the screens) and the /dev/screens page
+src/dev/         the /dev/screens page
 ```
 
 ## Talking to the API
@@ -51,12 +51,10 @@ The app calls the real API; there are no mocks. Log in with a seeded account: cu
 
 ## What's left for you
 
-- **Slots.** Dashed boxes labelled `P1 · …` mark space left on purpose. Each one says what goes there and which endpoint feeds it. To list them all, run `grep -rn "<Slot" src`. Delete each one as you build it.
-- **Sample data:** replace every import of `src/dev/samples.ts` with a hook from `src/api/`, then delete that file.
+- **Slots.** Every screen is connected to the API now, so none are left. `Slot` stays in the kit for marking new space while building (`grep -rn "<Slot" src` lists them).
 - **isiZulu and isiXhosa:** `zu.json` and `xh.json` are empty until a native speaker checks the strings. Missing strings show in English.
 - **Contract gaps found while laying out screens.** Raise these with the team:
-  - No endpoint lists a customer's own jobs (Home screen).
-  - No endpoint returns the "My record" contents or months of experience.
+  - The "My record" screen has the ARPL months (`GET /api/record/summary`) but not the jobs grouped by task, photos or vouches. The public record page (`/record/{provider_id}`) shows those.
   - The provider profile has no list of work photos.
   - "Well below the range" is under 80% of its low end, the same rule as `ranking.is_underpriced` (PR #23). The Quote screen applies it itself, since the API doesn't expose it.
 
