@@ -242,3 +242,17 @@ class AccountRestriction(SQLModel, table=True):
     user_id: str = Field(primary_key=True)
     since: dt.datetime = Field(sa_type=UtcDateTime)
     reason: str
+
+
+class Report(SQLModel, table=True):
+    """Something a person reported with the report button, for the team to review. The note is
+    for the team only; it is never shown to anyone else."""
+
+    id: str = Field(primary_key=True)
+    reporter_id: str = Field(index=True)
+    target_type: str  # job, provider or message
+    target_id: str
+    reason: str
+    note: str | None = None
+    status: str = "open"
+    created_at: dt.datetime = Field(sa_type=UtcDateTime)
