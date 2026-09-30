@@ -3,12 +3,13 @@ import { generatePath } from "react-router";
 import { PATHS } from "../../app/paths";
 import { DescribeJobCard } from "../../components/DescribeJobCard";
 import { JobCard } from "../../components/JobCard";
-import { sampleJobPublic, sampleMe } from "../../dev/samples";
+import { sampleJobPublic } from "../../dev/samples";
+import { useCurrentUser } from "../../session/SessionContext";
 import { Avatar, CardLink, Icon, IconButton, Screen, ScreenHeader, Slot } from "../../ui";
 
 export default function HomeScreen() {
   const { t } = useTranslation();
-  const me = sampleMe;
+  const me = useCurrentUser();
 
   return (
     <Screen hasNav>
