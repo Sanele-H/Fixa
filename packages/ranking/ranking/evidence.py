@@ -1,6 +1,6 @@
 """Counts taken from a provider's job evidence, shared by the trust summary and the ranking."""
 
-from ranking.models import Candidate, Evidence, ProviderStats, TrustBreakdown
+from ranking.models import Candidate, Evidence, NearbyCandidate, ProviderStats, TrustBreakdown
 
 # Providers with fewer completed in-app jobs than this are newcomers.
 ESTABLISHED_AT_COMPLETED_JOBS = 3
@@ -58,8 +58,8 @@ def build_trust_breakdown(stats: ProviderStats) -> TrustBreakdown:
     )
 
 
-def build_evidence(candidate: Candidate) -> Evidence:
-    """Builds the evidence strip for a provider card."""
+def build_evidence(candidate: Candidate | NearbyCandidate) -> Evidence:
+    """Builds the evidence strip for a provider card, in the ranked list or the nearby list."""
     return Evidence(
         jobs=count_completed_jobs(candidate.stats),
         repeat_customers=candidate.stats.repeat_customers,

@@ -26,6 +26,7 @@ const flowRoutes: RouteObject[] = [
   { path: PATHS.welcome, lazy: loadScreen(() => import("../screens/start/WelcomeScreen")) },
   { path: PATHS.login, lazy: loadScreen(() => import("../screens/start/LoginScreen")) },
   { path: PATHS.newJob, lazy: loadScreen(() => import("../screens/customer/NewJobScreen")) },
+  { path: PATHS.nearby, lazy: loadScreen(() => import("../screens/customer/NearbyProvidersScreen")) },
   { path: PATHS.jobProviders, lazy: loadScreen(() => import("../screens/customer/RankedProvidersScreen")) },
   { path: PATHS.job, lazy: loadScreen(() => import("../screens/shared/JobScreen")) },
   { path: PATHS.jobChat, lazy: loadScreen(() => import("../screens/shared/ChatScreen")) },

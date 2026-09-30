@@ -1,6 +1,6 @@
 // Entry point for the PWA (P1). Loads the styles and the chosen language, then renders the router.
-// Still to add (P1): TanStack Query's QueryClientProvider, MSW in development, and
-// vite-plugin-pwa (see vite.config.ts).
+// Still to add (P1): TanStack Query's QueryClientProvider and MSW in development.
+// The service worker is registered by vite-plugin-pwa (see vite.config.ts), not from here.
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";

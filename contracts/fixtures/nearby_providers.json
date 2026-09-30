@@ -1,0 +1,465 @@
+[
+  {
+    "provider_id": "prov_019",
+    "display_name": "Sibusiso Z.",
+    "suburb": "Braamfontein",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "zu",
+      "en"
+    ],
+    "distance_km": 0.3,
+    "is_newcomer": true,
+    "id_badge": "id_number",
+    "evidence": {
+      "jobs": 0,
+      "repeat_customers": 0,
+      "photos": 0,
+      "off_app_confirmed": 5
+    }
+  },
+  {
+    "provider_id": "prov_004",
+    "display_name": "Thandeka R.",
+    "suburb": "Braamfontein",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "zu",
+      "en"
+    ],
+    "distance_km": 1.0,
+    "is_newcomer": false,
+    "id_badge": "id_number",
+    "evidence": {
+      "jobs": 6,
+      "repeat_customers": 1,
+      "photos": 0,
+      "off_app_confirmed": 0
+    }
+  },
+  {
+    "provider_id": "prov_046",
+    "display_name": "Nyasha G.",
+    "suburb": "Hillbrow",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "en"
+    ],
+    "distance_km": 1.5,
+    "is_newcomer": false,
+    "id_badge": "none",
+    "evidence": {
+      "jobs": 17,
+      "repeat_customers": 3,
+      "photos": 0,
+      "off_app_confirmed": 1
+    }
+  },
+  {
+    "provider_id": "prov_011",
+    "display_name": "Themba B.",
+    "suburb": "Fordsburg",
+    "trades": [
+      "electrical",
+      "plumbing"
+    ],
+    "langs": [
+      "zu",
+      "en"
+    ],
+    "distance_km": 1.6,
+    "is_newcomer": false,
+    "id_badge": "id_number",
+    "evidence": {
+      "jobs": 10,
+      "repeat_customers": 1,
+      "photos": 0,
+      "off_app_confirmed": 2
+    }
+  },
+  {
+    "provider_id": "prov_001",
+    "display_name": "Thabo",
+    "suburb": "Parktown",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "en",
+      "zu"
+    ],
+    "distance_km": 1.8,
+    "is_newcomer": false,
+    "id_badge": "id_number",
+    "evidence": {
+      "jobs": 9,
+      "repeat_customers": 2,
+      "photos": 14,
+      "off_app_confirmed": 3
+    }
+  },
+  {
+    "provider_id": "prov_035",
+    "display_name": "Nyasha R.",
+    "suburb": "Hillbrow",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "en"
+    ],
+    "distance_km": 2.2,
+    "is_newcomer": false,
+    "id_badge": "none",
+    "evidence": {
+      "jobs": 18,
+      "repeat_customers": 3,
+      "photos": 0,
+      "off_app_confirmed": 3
+    }
+  },
+  {
+    "provider_id": "prov_042",
+    "display_name": "Tatenda B.",
+    "suburb": "Mayfair",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "en"
+    ],
+    "distance_km": 2.4,
+    "is_newcomer": true,
+    "id_badge": "none",
+    "evidence": {
+      "jobs": 1,
+      "repeat_customers": 0,
+      "photos": 0,
+      "off_app_confirmed": 3
+    }
+  },
+  {
+    "provider_id": "prov_031",
+    "display_name": "Nomvula T.",
+    "suburb": "Parktown",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "zu",
+      "en"
+    ],
+    "distance_km": 2.4,
+    "is_newcomer": false,
+    "id_badge": "none",
+    "evidence": {
+      "jobs": 5,
+      "repeat_customers": 2,
+      "photos": 0,
+      "off_app_confirmed": 0
+    }
+  },
+  {
+    "provider_id": "prov_057",
+    "display_name": "Palesa M.",
+    "suburb": "Berea",
+    "trades": [
+      "plumbing",
+      "electrical"
+    ],
+    "langs": [
+      "en",
+      "zu"
+    ],
+    "distance_km": 2.5,
+    "is_newcomer": false,
+    "id_badge": "home_affairs",
+    "evidence": {
+      "jobs": 3,
+      "repeat_customers": 0,
+      "photos": 0,
+      "off_app_confirmed": 0
+    }
+  },
+  {
+    "provider_id": "prov_032",
+    "display_name": "Siphokazi R.",
+    "suburb": "Melville",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "xh",
+      "en"
+    ],
+    "distance_km": 2.6,
+    "is_newcomer": false,
+    "id_badge": "id_number",
+    "evidence": {
+      "jobs": 7,
+      "repeat_customers": 1,
+      "photos": 0,
+      "off_app_confirmed": 0
+    }
+  },
+  {
+    "provider_id": "prov_024",
+    "display_name": "Farai R.",
+    "suburb": "Berea",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "en"
+    ],
+    "distance_km": 2.7,
+    "is_newcomer": false,
+    "id_badge": "none",
+    "evidence": {
+      "jobs": 10,
+      "repeat_customers": 1,
+      "photos": 0,
+      "off_app_confirmed": 0
+    }
+  },
+  {
+    "provider_id": "prov_041",
+    "display_name": "Nomvula H.",
+    "suburb": "Berea",
+    "trades": [
+      "electrical",
+      "plumbing"
+    ],
+    "langs": [
+      "zu",
+      "en"
+    ],
+    "distance_km": 2.8,
+    "is_newcomer": false,
+    "id_badge": "id_number",
+    "evidence": {
+      "jobs": 19,
+      "repeat_customers": 3,
+      "photos": 0,
+      "off_app_confirmed": 0
+    }
+  },
+  {
+    "provider_id": "prov_043",
+    "display_name": "Palesa H.",
+    "suburb": "Berea",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "en",
+      "zu"
+    ],
+    "distance_km": 2.9,
+    "is_newcomer": false,
+    "id_badge": "home_affairs",
+    "evidence": {
+      "jobs": 19,
+      "repeat_customers": 3,
+      "photos": 0,
+      "off_app_confirmed": 1
+    }
+  },
+  {
+    "provider_id": "prov_017",
+    "display_name": "Tshepo T.",
+    "suburb": "Yeoville",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "en",
+      "zu"
+    ],
+    "distance_km": 3.1,
+    "is_newcomer": false,
+    "id_badge": "id_number",
+    "evidence": {
+      "jobs": 9,
+      "repeat_customers": 0,
+      "photos": 0,
+      "off_app_confirmed": 0
+    }
+  },
+  {
+    "provider_id": "prov_002",
+    "display_name": "Sipho",
+    "suburb": "Braamfontein",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "zu",
+      "en"
+    ],
+    "distance_km": 3.1,
+    "is_newcomer": true,
+    "id_badge": "home_affairs",
+    "evidence": {
+      "jobs": 0,
+      "repeat_customers": 0,
+      "photos": 0,
+      "off_app_confirmed": 1
+    }
+  },
+  {
+    "provider_id": "prov_018",
+    "display_name": "Anele M.",
+    "suburb": "Melville",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "xh",
+      "en"
+    ],
+    "distance_km": 3.1,
+    "is_newcomer": false,
+    "id_badge": "id_number",
+    "evidence": {
+      "jobs": 13,
+      "repeat_customers": 2,
+      "photos": 0,
+      "off_app_confirmed": 0
+    }
+  },
+  {
+    "provider_id": "prov_021",
+    "display_name": "Mandla Z.",
+    "suburb": "Auckland Park",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "zu",
+      "en"
+    ],
+    "distance_km": 3.2,
+    "is_newcomer": true,
+    "id_badge": "id_number",
+    "evidence": {
+      "jobs": 1,
+      "repeat_customers": 0,
+      "photos": 0,
+      "off_app_confirmed": 4
+    }
+  },
+  {
+    "provider_id": "prov_003",
+    "display_name": "Nosipho",
+    "suburb": "Yeoville",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "xh",
+      "en"
+    ],
+    "distance_km": 3.6,
+    "is_newcomer": false,
+    "id_badge": "id_number",
+    "evidence": {
+      "jobs": 16,
+      "repeat_customers": 2,
+      "photos": 0,
+      "off_app_confirmed": 70
+    }
+  },
+  {
+    "provider_id": "prov_027",
+    "display_name": "Karabo D.",
+    "suburb": "Yeoville",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "en",
+      "zu"
+    ],
+    "distance_km": 3.9,
+    "is_newcomer": true,
+    "id_badge": "none",
+    "evidence": {
+      "jobs": 1,
+      "repeat_customers": 0,
+      "photos": 0,
+      "off_app_confirmed": 0
+    }
+  },
+  {
+    "provider_id": "prov_049",
+    "display_name": "Sibusiso P.",
+    "suburb": "Yeoville",
+    "trades": [
+      "electrical",
+      "plumbing"
+    ],
+    "langs": [
+      "zu",
+      "en"
+    ],
+    "distance_km": 3.9,
+    "is_newcomer": false,
+    "id_badge": "none",
+    "evidence": {
+      "jobs": 22,
+      "repeat_customers": 4,
+      "photos": 0,
+      "off_app_confirmed": 0
+    }
+  },
+  {
+    "provider_id": "prov_051",
+    "display_name": "Zodwa T.",
+    "suburb": "Rosebank",
+    "trades": [
+      "electrical",
+      "plumbing"
+    ],
+    "langs": [
+      "zu",
+      "en"
+    ],
+    "distance_km": 5.8,
+    "is_newcomer": false,
+    "id_badge": "none",
+    "evidence": {
+      "jobs": 16,
+      "repeat_customers": 3,
+      "photos": 0,
+      "off_app_confirmed": 0
+    }
+  },
+  {
+    "provider_id": "prov_028",
+    "display_name": "Luthando D.",
+    "suburb": "Sandton",
+    "trades": [
+      "plumbing"
+    ],
+    "langs": [
+      "xh",
+      "en"
+    ],
+    "distance_km": 9.5,
+    "is_newcomer": false,
+    "id_badge": "id_number",
+    "evidence": {
+      "jobs": 5,
+      "repeat_customers": 0,
+      "photos": 0,
+      "off_app_confirmed": 0
+    }
+  }
+]

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Check a Fixa record{% endblock %}
+{% block content %}
+<h1>Check a Fixa record</h1>
+<p class="note">Verify code {{ verify_code }}</p>
+{% if status == "genuine" %}
+<p class="status status-genuine">This record is genuine and unchanged since Fixa issued it.</p>
+{% elif status == "changed" %}
+<p class="status status-changed">This record no longer matches what Fixa issued. Don't rely on it.</p>
+{% else %}
+<p class="status status-unknown">Fixa has no record with this code. Check the code and try again.</p>
+{% endif %}
+
+{% if status != "unknown" %}
+<table>
+  <tr><th>Provider</th><td>{{ display_name }}</td></tr>
+  <tr><th>Record</th><td>{{ mode_name }}</td></tr>
+  <tr><th>Confirmed jobs</th><td>{{ n_jobs }}</td></tr>
+  {% if first_job_on %}<tr><th>Jobs from</th><td>{{ first_job_on }} to {{ last_job_on }}</td></tr>{% endif %}
+  <tr><th>Issued</th><td>{{ issued_on }}</td></tr>
+</table>
+<p class="note">The fingerprint below should match the one printed on the record:</p>
+<p class="fingerprint">{{ sha256 }}</p>
+{% if mode == "arpl" %}
+<p class="note">This record supports an ARPL trade test application. It is not a qualification: merSETA reviews the application, and the trade test is still required.</p>
+{% else %}
+<p class="note">Customer-confirmed, not a bank statement.</p>
+{% endif %}
+{% endif %}
+{% endblock %}
