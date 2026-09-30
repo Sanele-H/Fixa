@@ -16,10 +16,12 @@ import {
   useJobQuotes,
 } from "../../api/jobs";
 import { useProviderProfile } from "../../api/providers";
-import { isJobUnlocked, type JobPublic, type JobState, type JobUnlocked, type Quote } from "../../api/types";
+import { isJobUnlocked, type JobPublic, type JobState, type JobUnlocked, type PaymentMethod, type Quote } from "../../api/types";
 import { CHAT_WITH_PARAM, getHomePath, PATHS } from "../../app/paths";
 import { getTradeLabel, TradeChip } from "../../components/Badges";
 import { ContactCard } from "../../components/ContactCard";
+import { PaymentCard } from "../../components/PaymentCard";
+import { PaymentMethodPicker } from "../../components/PaymentMethods";
 import { CustomerDayActions, ProviderDayActions } from "../../components/JobDayActions";
 import { ReportButton } from "../../components/ReportButton";
 import { SafetyCard } from "../../components/SafetyCard";
@@ -80,11 +82,15 @@ type CustomerQuoteProps = {
   quote: Quote;
 };
 
-/** One quote as the customer sees it: who, when, how much, and what they can do with it. */
+/**
+ * One quote as the customer sees it: who, when, how much, and what they can do with it. Before
+ * accepting, the customer picks one of the ways to pay the quote offers.
+ */
 function CustomerQuote({ job, quote }: CustomerQuoteProps) {
   const { t } = useTranslation();
   const provider = useProviderProfile(quote.provider_id);
   const acceptQuote = useAcceptQuote();
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(quote.payment_methods[0]);
   const providerName = provider.data?.display_name ?? t("role.provider");
   const canAccept = quote.state === "open" && OPEN_FOR_QUOTES.includes(job.state);
 
@@ -100,13 +106,20 @@ function CustomerQuote({ job, quote }: CustomerQuoteProps) {
           {quote.state !== "open" && quote.state !== "accepted" && (
             <p className="small muted">{t(`job.quoteState.${quote.state}`)}</p>
           )}
+          {canAccept && quote.payment_methods.length > 1 && (
+            <PaymentMethodPicker quote={quote} value={paymentMethod} onChange={setPaymentMethod} />
+          )}
           {acceptQuote.isError && <Banner tone="warning" title={t(getErrorMessageKey(acceptQuote.error))} />}
           <div className="row">
             <ButtonLink to={buildChatPath(job.id, quote.provider_id)} variant="secondary" isSmall icon="chat">
               {t("job.message")}
             </ButtonLink>
             {canAccept && (
-              <Button isSmall onClick={() => acceptQuote.mutate(quote.id)} disabled={acceptQuote.isPending}>
+              <Button
+                isSmall
+                onClick={() => acceptQuote.mutate({ quoteId: quote.id, paymentMethod })}
+                disabled={acceptQuote.isPending}
+              >
                 {t("job.accept")}
               </Button>
             )}
@@ -176,6 +189,7 @@ function ProviderQuote({ job }: { job: Job }) {
   return (
     <>
       {isAcceptedProvider && <AcceptedQuoteActions job={job} />}
+      {(isAcceptedProvider || isPickedProvider) && <PaymentCard jobId={job.id} />}
       {isPickedProvider && <ProviderDayActions job={job} />}
       {isPickedProvider && <SafetyCard jobId={job.id} state={job.state} />}
       {isDoneJob && isJobUnlocked(job) && (
@@ -242,6 +256,7 @@ function JobDetails({ job }: { job: Job }) {
       <ProblemCard job={job} />
       <JobStateRuler state={job.state} />
       <ContactCard job={job} />
+      {role === "customer" && !OPEN_FOR_QUOTES.includes(job.state) && <PaymentCard jobId={job.id} />}
 
       <section className="stack">
         <div className="row row--between">

@@ -32,6 +32,9 @@ ADDED_COLUMNS = [
     AddedColumn("safety_timer", "alert_at", fill_from_column="due_at"),
     # PR #37: optional directions for the provider; existing jobs have none
     AddedColumn("job", "directions"),
+    # Payments: the ways a quote accepts payment (older quotes: in the app after, or cash)
+    AddedColumn("quote", "payment_methods", default_sql='\'["in_app_after", "cash"]\''),
+    AddedColumn("quote", "deposit_rands"),
 ]
 
 

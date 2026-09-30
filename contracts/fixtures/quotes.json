@@ -7,6 +7,12 @@
     "when": "2026-09-29T10:00:00+02:00",
     "message": "Ngingafika ngoLwesibili, R450.",
     "state": "open",
-    "created_at": "2026-09-29T08:20:00+02:00"
+    "created_at": "2026-09-29T08:20:00+02:00",
+    "payment_methods": [
+      "in_app_after",
+      "in_app_split",
+      "cash"
+    ],
+    "deposit_rands": 200
   }
 ]

@@ -29,6 +29,7 @@ from fixa_api.routes import (
     lifecycle,
     notifications,
     off_app,
+    payments,
     photos,
     places,
     providers,
@@ -103,6 +104,7 @@ for router_module in (
     vouches,
     notifications,
     safety_routes,
+    payments,
 ):
     app.include_router(router_module.router)
 

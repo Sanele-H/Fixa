@@ -484,5 +484,69 @@
     "areYouOk": "Are you OK?",
     "areYouOkBody": "Your safety timer is up. Tap “I'm safe”, or we'll alert your trusted contact at {{time}}.",
     "timerFromCheckIn": "Started when you checked in. It stops when you tap “I've finished the work”."
+  },
+  "payment": {
+    "methodsLabel": "How can the customer pay?",
+    "method": {
+      "in_app_after": "In the app, after the job",
+      "in_app_split": "Deposit, then the rest",
+      "cash": "Cash"
+    },
+    "methodHint": {
+      "in_app_after": "The full price in Fixa once the customer says it's done.",
+      "in_app_split": "A deposit in Fixa once you confirm, the rest once it's done.",
+      "cash": "Paid to you directly. Fixa doesn't handle cash."
+    },
+    "depositLabel": "Deposit (at most {{max}})",
+    "depositTooHigh": "A deposit can be at most half the price: {{max}}.",
+    "pickOne": "Pick at least one way to pay.",
+    "offered": "Pay: {{methods}}",
+    "withDeposit": "{{method}} ({{deposit}} deposit)",
+    "chooseLabel": "How will you pay?",
+    "planTitle": "How this job is paid",
+    "plan": {
+      "cash": "{{total}} in cash, straight to the provider. Fixa doesn't handle cash.",
+      "in_app_after": "{{total}} in the app once the job is done.",
+      "in_app_split": "{{deposit}} deposit in the app once confirmed, then {{rest}} once it's done."
+    },
+    "paidSoFar": "Paid so far: {{amount}}",
+    "pay": {
+      "deposit": "Pay {{amount}} deposit",
+      "balance": "Pay the remaining {{amount}}",
+      "full": "Pay {{amount}}"
+    },
+    "waitingFor": {
+      "deposit": "Waiting for the {{amount}} deposit.",
+      "balance": "Waiting for the remaining {{amount}}.",
+      "full": "Waiting for {{amount}}."
+    },
+    "secureNote": "You'll pay on the payment company's own page. Fixa never sees your card.",
+    "confirming": "Waiting for the payment company to confirm your payment…",
+    "cancelled": "Payment cancelled. Nothing was taken.",
+    "changeButton": "Change how we pay",
+    "changeHint": "Nothing changes until the other side agrees.",
+    "changeSend": "Ask them",
+    "changeCancel": "Never mind",
+    "changeByMe": "You asked to change to: {{plan}}. Waiting for an answer.",
+    "changeByThem": "They asked to change to: {{plan}}.",
+    "changeAgree": "Agree",
+    "changeDecline": "Keep the current plan",
+    "changeWithdraw": "Take it back",
+    "receiptsTitle": "Receipts",
+    "receiptKind": {
+      "deposit": "Deposit",
+      "balance": "Balance",
+      "full": "Full payment"
+    },
+    "gateway": {
+      "mock": "Test payment",
+      "payfast": "PayFast"
+    },
+    "receiptRef": "Ref {{reference}}",
+    "refund": {
+      "refunded": "Refunded",
+      "refund_owed": "Refund on its way: the Fixa team will pay it back",
+      "under_review": "Under review: the job was cancelled after work started, so the Fixa team will decide"
+    }
   }
 }

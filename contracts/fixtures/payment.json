@@ -1,0 +1,24 @@
+{
+  "plan": {
+    "method": "in_app_split",
+    "total_rands": 450,
+    "deposit_rands": 200,
+    "agreed_at": "2026-09-29T09:00:00+00:00"
+  },
+  "paid_rands": 200,
+  "due": null,
+  "can_change": false,
+  "change": null,
+  "receipts": [
+    {
+      "id": "pay_3f9c1a7e5b2d4c6e8a10",
+      "kind": "deposit",
+      "amount_rands": 200,
+      "paid_at": "2026-09-29T09:40:00+00:00",
+      "gateway": "mock",
+      "reference": "MOCK-3F9C1A7E5B2D4C6E8A10",
+      "refund_state": null,
+      "refund_at": null
+    }
+  ]
+}

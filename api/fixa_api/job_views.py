@@ -127,4 +127,6 @@ def quote_view(quote: Quote, viewer: Customer | Provider, sender_lang: str) -> d
         "message": message,
         "state": quote.state,
         "created_at": iso(quote.created_at),
+        "payment_methods": quote.payment_methods,
+        "deposit_rands": quote.deposit_rands,
     }

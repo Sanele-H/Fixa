@@ -31,6 +31,12 @@ def push_turned_off(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def mock_payments(monkeypatch):
+    """Pay through the test checkout in every test, whatever PAYMENT_PROVIDER .env has."""
+    monkeypatch.setenv("PAYMENT_PROVIDER", "mock")
+
+
+@pytest.fixture(autouse=True)
 def fake_geocoder(monkeypatch):
     """Name places from the seed suburbs, never by asking Nominatim over the network."""
     monkeypatch.setenv("GEOCODER", "fake")

@@ -20,6 +20,7 @@
 | Urgency | `low` · `normal` · `urgent` |
 | Job state | `posted` → `quoting` → `quote_accepted` → **`confirmed`** → `in_progress` → `done` → `followed_up`, plus `cancelled` |
 | Quote state | `open` · `accepted` · `declined` · `withdrawn` |
+| Payment method | `in_app_after` · `in_app_split` · `cash` |
 | ID badge | `none` · `id_number` · `home_affairs` |
 | Record mode | `arpl` · `statement` |
 
@@ -69,9 +70,9 @@
 | GET | `/api/providers/{provider_id}` | user | | `provider_profile.json` |
 | GET | `/api/feed` | provider | | `feed.json` |
 | GET | `/api/price-range` | user | `?trade=&size=&suburb=` | `price_range.json`, or `null` below 8 quotes |
-| POST | `/api/jobs/{job_id}/quotes` | provider | `{amount_rands, when, message?}` | 201 `quote.json` |
+| POST | `/api/jobs/{job_id}/quotes` | provider | `{amount_rands, when, message?, payment_methods?, deposit_rands?}` | 201 `quote.json`. `payment_methods` defaults to `["in_app_after", "cash"]`; `deposit_rands` is needed with `in_app_split` (at most half the amount) |
 | GET | `/api/jobs/{job_id}/quotes` | job's customer, quoting provider | | `quotes.json` |
-| POST | `/api/quotes/{quote_id}/accept` | job's customer | | `job_public.json` (state `quote_accepted`) |
+| POST | `/api/quotes/{quote_id}/accept` | job's customer | `{payment_method?}` (one of the quote's; left out, its first) | `job_public.json` (state `quote_accepted`). Agrees the payment plan |
 | POST | `/api/jobs/{job_id}/confirm` | accepted provider | | `job_unlocked.json` (state `confirmed`) |
 | POST | `/api/jobs/{job_id}/decline` | accepted provider | | `job_public.json` (state `quoting`) |
 | POST | `/api/jobs/{job_id}/cancel` | job's customer | | `job_public.json` (state `cancelled`) |
@@ -95,7 +96,7 @@ These are the shapes of the objects in the fixtures, and each fixture is the sou
 - **JobUnlocked**: JobPublic plus `address, directions, customer_phone, provider_phone, provider_photo_url`
 - **RankedProvider**: `provider_id, display_name, trades, distance_km, is_newcomer, id_badge, evidence {jobs, repeat_customers, photos, off_app_confirmed}, trust {score, low, high, label}`
 - **NearbyProvider**: `provider_id, display_name, suburb, trades, langs, distance_km, is_newcomer, id_badge, evidence {jobs, repeat_customers, photos, off_app_confirmed}` (no `trust`)
-- **Quote**: `id, job_id, provider_id, amount_rands, when, message, state, created_at`
+- **Quote**: `id, job_id, provider_id, amount_rands, when, message, state, created_at, payment_methods, deposit_rands`
 - **Message**: `id, job_id, sender_id, recipient_id, text, original, original_lang, flagged, flag_reason, contacts_hidden, scam_warnings, sent_at`. A customer has one thread per quoting provider; `sender_id` and `recipient_id` say which.
 - **PriceRange**: `trade, size, suburb, low_rands, high_rands, n_quotes`
 
@@ -125,3 +126,42 @@ Added on 30 Sep for the demo (branch `safety-features`). Every route needs a log
 - **SafetyTimer**: `id, state (running|asking|safe|missed), reason (manual|check_in), started_at, due_at, alert_at`. From GET, a missed timer also has `contact_notified` (the SMS really went) and `whatsapp_url` (or null)
 - **KeyMoment**: `moment, role, name, is_me, at, distance_km`
 - **Inbox**: `unread, items [{id, kind, title, body, job_id, created_at, read}]`. Kinds: `quote_received, quote_accepted, job_confirmed, job_declined, message, on_my_way, checked_in, checked_out, job_done, panic_sent, panic_not_sent, panic_no_contact, timer_check, timer_missed, timer_missed_not_sent, timer_missed_no_contact`
+
+## Payments
+
+Added on 1 Oct (branch `payments`). Only the job's customer and its picked provider can see or change a job's payment (404 for anyone else). Only the customer pays.
+
+**Agreeing how to pay:**
+
+- The quote lists the ways the provider accepts: `in_app_after` (the full price in the app at "It's done"), `in_app_split` (a deposit once the provider confirms, the rest at "It's done") and `cash` (off the app; Fixa never touches it).
+- The deposit is at most half the quote (422 `deposit_too_high`).
+- The customer picks one way when accepting. That is the payment plan.
+- Either side can ask to change the plan. It changes only when the other side agrees, and only before the work starts (`quote_accepted` or `confirmed`) and before any money has been paid (409 `plan_locked`). One request can wait at a time (409 `change_pending`).
+- If the provider declines the job, its plan is dropped; the next accepted quote brings its own.
+
+**Paying in the app:**
+
+- The card details are typed on the payment company's own hosted page, never in Fixa. `POST /api/jobs/{job_id}/payments` answers where to send the browser, and the company tells the server the result (a webhook).
+- `PAYMENT_PROVIDER=mock` (the default): our own test checkout page, with no card and no money moved. It confirms through the same code as a real webhook.
+- `PAYMENT_PROVIDER=payfast`: PayFast's sandbox (or live, with `PAYFAST_SANDBOX=false`). A notice counts only if its signature is right, it's for our merchant, PayFast's own server confirms it (`/eng/query/validate`), and the amount matches to the cent. Notices are idempotent. Starting a new checkout cancels an unfinished one, so a late notice for the old one isn't counted.
+- **Why PayFast:** it's South African and settles in rands. Besides cards, its hosted page offers Instant EFT and QR payments, which matter for customers without a credit card. Its sandbox is free and needs no registered business, and its webhook can be checked back with PayFast.
+- **Refunds, when a job with money paid is cancelled.** The rule follows whose fault it is, so there's no refund button either side could game:
+  - The provider didn't turn up (`POST /done` with `completed: false`): all refunded.
+  - The customer cancelled before the provider checked in (`quote_accepted` or `confirmed`): all refunded. No work had started, and the deposit is at most half.
+  - The customer cancelled after check-in: `under_review`, and the Fixa team decides.
+  - "Refunded" is instant on the test checkout. With PayFast it's recorded as `refund_owed`, and the team pays it back from PayFast's dashboard (PayFast's refund API isn't wired in yet).
+- **Live setup:** set `PUBLIC_API_URL` so PayFast can reach the webhook (a laptop's localhost can't receive it; use the tunnel or Render), and `PUBLIC_APP_URL` for the return page.
+
+| Method | Path | Who | Body | Returns |
+|---|---|---|---|---|
+| GET | `/api/jobs/{job_id}/payment` | job's customer, picked provider | | **JobPayment** (`payment.json`) |
+| POST | `/api/jobs/{job_id}/payment/changes` | job's customer, picked provider | `{method, deposit_rands?}` | 201 **JobPayment**. The other side gets an inbox item |
+| POST | `/api/jobs/{job_id}/payment/changes/{change_id}/agree` | the other side | | **JobPayment** with the new plan. 403 for your own change |
+| POST | `/api/jobs/{job_id}/payment/changes/{change_id}/decline` | either side | | **JobPayment**. From the asker, it withdraws the request |
+| POST | `/api/jobs/{job_id}/payments` | job's customer | | 201 **Checkout**. 409 `nothing_due` |
+| GET, POST | `/api/payments/mock/{payment_id}` | anyone with the link | form `paid=yes\|no` | The test checkout page; the POST redirects (303) to `/jobs/{job_id}?payment=<id>` or `?payment_cancelled=<id>` |
+| POST | `/api/payments/payfast/notify` | PayFast | PayFast's ITN form | 200 `OK`, or 400 for a notice that isn't genuine. 404 unless `PAYMENT_PROVIDER=payfast` |
+
+- **JobPayment**: `plan ({method, total_rands, deposit_rands, agreed_at} or null), paid_rands, due ({kind, amount_rands} or null), can_change, change ({id, method, deposit_rands, proposed_by_me, created_at} or null), receipts [{id, kind, amount_rands, paid_at, gateway (mock|payfast), reference, refund_state (refunded|refund_owed|under_review or null), refund_at}]`. `paid_rands` leaves out refunded payments. `kind` is `deposit`, `balance` (the rest after a deposit) or `full`.
+- **Checkout**: `payment_id, checkout_url, method (GET|POST), fields`. For `POST`, submit `fields` to `checkout_url` as a form (PayFast's signed form).
+- Inbox kinds added: `payment_change_asked, payment_change_agreed, payment_change_declined, payment_received` (to the provider), `payment_receipt` (to the customer), and `refund_done, refund_owed, refund_review` (to both).

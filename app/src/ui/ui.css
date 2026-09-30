@@ -851,6 +851,14 @@ button.card:active {
 
 /* ---------- Checkbox row ---------- */
 
+/* A group of checkboxes with a visible legend, without the browser's box around it. */
+.plain-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
 .checkbox-row {
   display: flex;
   align-items: flex-start;

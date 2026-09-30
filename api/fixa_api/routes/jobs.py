@@ -23,8 +23,16 @@ from fixa_api.job_views import (
 )
 from fixa_api.licence import needs_licence_for
 from fixa_api.messages import safe_text_for
-from fixa_api.models import Customer, Job, Photo, Provider, Quote
+from fixa_api.models import DEFAULT_QUOTE_PAYMENT_METHODS, Customer, Job, Photo, Provider, Quote
 from fixa_api.notifications import notify
+from fixa_api.payment_plans import (
+    IN_APP_SPLIT,
+    check_deposit,
+    create_plan,
+    delete_plan,
+    read_pending_change,
+    settle_cancelled_job,
+)
 from fixa_api.photos import PHOTO_URL_PREFIX
 from fixa_api.ranking_inputs import build_candidates, today
 from fixa_api.routes.places import find_place_or_refuse
@@ -41,6 +49,7 @@ FEED_LIMIT = 20  # each job is translated for the reader, so keep the feed short
 MY_JOBS_LIMIT = 20  # the same reason, for GET /api/jobs
 
 Lang = Literal["en", "zu", "xh"]
+PaymentMethod = Literal["in_app_after", "in_app_split", "cash"]
 User = Annotated[Customer | Provider, Depends(current_user)]
 CustomerUser = Annotated[Customer, Depends(require_role("customer"))]
 ProviderUser = Annotated[Provider, Depends(require_role("provider"))]
@@ -84,9 +93,28 @@ class NewJob(BaseModel):
 
 
 class NewQuote(BaseModel):
+    """A quote, and the ways the provider accepts payment. deposit_rands is needed (at most
+    half the amount) when in_app_split is offered, and ignored otherwise."""
+
     amount_rands: int = Field(gt=0, le=1_000_000)
     when: AwareDatetime
     message: str | None = Field(default=None, max_length=500)
+    payment_methods: list[PaymentMethod] = Field(
+        default_factory=lambda: list(DEFAULT_QUOTE_PAYMENT_METHODS), min_length=1
+    )
+    deposit_rands: int | None = Field(default=None, gt=0)
+
+    @field_validator("payment_methods")
+    @classmethod
+    def drop_repeated_methods(cls, methods: list[str]) -> list[str]:
+        return list(dict.fromkeys(methods))
+
+
+class AcceptQuote(BaseModel):
+    """How the customer will pay: one of the quote's payment_methods. Left out, the quote's
+    first one."""
+
+    payment_method: PaymentMethod | None = None
 
 
 def now() -> dt.datetime:
@@ -258,6 +286,9 @@ def create_quote(job_id: str, body: NewQuote, provider: ProviderUser, session: D
     ]
     if already_open:
         raise HTTPException(status_code=409, detail="You already have an open quote on this job")
+    deposit_rands = None
+    if IN_APP_SPLIT in body.payment_methods:
+        deposit_rands = check_deposit(IN_APP_SPLIT, body.deposit_rands, body.amount_rands)
     quote = Quote(
         id=new_id("quote"),
         job_id=job.id,
@@ -267,6 +298,8 @@ def create_quote(job_id: str, body: NewQuote, provider: ProviderUser, session: D
         message=safe_text_for(body.message, provider.lang) if body.message else None,
         state="open",
         created_at=now(),
+        payment_methods=body.payment_methods,
+        deposit_rands=deposit_rands,
     )
     if job.state == states.POSTED:
         move_job(job, states.QUOTING)
@@ -295,13 +328,19 @@ def read_quotes(job_id: str, user: User, session: DbSession):
 
 
 @router.post("/quotes/{quote_id}/accept")
-def accept_quote(quote_id: str, customer: CustomerUser, session: DbSession):
+def accept_quote(
+    quote_id: str, customer: CustomerUser, session: DbSession, body: AcceptQuote | None = None
+):
+    """The customer picks a quote and one of the ways it can be paid. The payment plan is agreed
+    here (see payment_plans.py); the body can be left out, for the quote's first way."""
     quote = session.get(Quote, quote_id)
     job = session.get(Job, quote.job_id) if quote else None
     if job is None or not is_job_customer(job, customer):
         raise HTTPException(status_code=404, detail="Quote not found")
     if quote.state != "open":
         raise HTTPException(status_code=409, detail="This quote is no longer open")
+    # The plan first: a way to pay the quote doesn't offer is refused before anything changes.
+    create_plan(session, job, quote, body.payment_method if body else None)
     move_job(job, states.QUOTE_ACCEPTED)
     quote.state = "accepted"
     job.provider_id = quote.provider_id
@@ -360,6 +399,7 @@ def decline_job(job_id: str, provider: ProviderUser, session: DbSession):
         if quote.state == "accepted":
             quote.state = "declined"
             session.add(quote)
+    delete_plan(session, job.id)  # the next accepted quote brings its own
     job.provider_id = None
     session.add(job)
     session.commit()
@@ -378,11 +418,17 @@ def cancel_job(job_id: str, customer: CustomerUser, session: DbSession):
     job = session.get(Job, job_id)
     if job is None or not is_job_customer(job, customer):
         raise HTTPException(status_code=404, detail="Job not found")
+    state_before = job.state
     move_job(job, states.CANCELLED)
     for quote in job_quotes(session, job.id):
         if quote.state == "open":
             quote.state = "withdrawn"
             session.add(quote)
+    change = read_pending_change(session, job.id)
+    if change is not None:
+        change.state = "withdrawn"
+        session.add(change)
     session.add(job)
     session.commit()
+    settle_cancelled_job(session, job, state_before)  # refunds any deposit, or holds it
     return job_view(session, job, customer)
