@@ -516,6 +516,27 @@ button.card:active {
   color: var(--color-on-inverse);
 }
 
+/* A long list of options (trades): natural widths, scrolled sideways with a swipe. */
+.segmented--scroll {
+  position: relative; /* options' offsetLeft is measured from the row */
+  display: flex;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.segmented--scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.segmented--scroll .segmented__option {
+  flex: none;
+  padding-inline: var(--space-4);
+  white-space: nowrap;
+  scroll-snap-align: center;
+}
+
 .card--inverse .segmented {
   background: var(--color-inverse-raised);
 }

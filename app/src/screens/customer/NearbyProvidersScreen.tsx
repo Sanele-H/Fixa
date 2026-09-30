@@ -87,7 +87,13 @@ function NearbyFilters(props: NearbyFiltersProps) {
   return (
     <Card>
       <p className="eyebrow">{t("nearby.trade")}</p>
-      <Segmented label={t("nearby.trade")} options={tradeOptions} value={props.trade} onChange={props.onTradeChange} />
+      <Segmented
+        label={t("nearby.trade")}
+        options={tradeOptions}
+        value={props.trade}
+        onChange={props.onTradeChange}
+        isScrollable
+      />
       <p className="eyebrow">{t("nearby.language")}</p>
       <Segmented
         label={t("nearby.language")}

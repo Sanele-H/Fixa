@@ -142,6 +142,7 @@ function DetailsCard({ details, confidence, onChange }: DetailsCardProps) {
       <Segmented
         label={t("newJob.trade")}
         options={tradeOptions}
+        isScrollable
         value={details.trade}
         onChange={(trade) => onChange({ ...details, trade })}
       />
