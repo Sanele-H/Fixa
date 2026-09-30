@@ -287,7 +287,10 @@
     "exportArpl": "Export for ARPL",
     "exportStatement": "Work statement",
     "verifyCode": "Verify code",
-    "verifyCodeHint": "Anyone can check your record is genuine"
+    "verifyCodeHint": "Anyone can check your record is genuine",
+    "noArplTrade": "ARPL covers trades with a merSETA toolkit, and yours aren't on the list yet. Your record still counts.",
+    "pdfDownloaded": "Your PDF is downloaded. Anyone can check it with the verify code.",
+    "linkCopied": "Link copied. Paste it into WhatsApp or an SMS."
   },
   "notFound": {
     "title": "Page not found",
