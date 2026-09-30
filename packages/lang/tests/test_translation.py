@@ -21,6 +21,7 @@ from lang.quality import (
     FLAG_REASON_NOT_TRANSLATED,
     FLAG_REASON_UNAVAILABLE,
 )
+from lang.safety import HIDDEN_CONTACT_TEXT
 from lang.translation import translate
 
 
@@ -230,6 +231,52 @@ def test_spaces_azure_dropped_around_values_are_put_back_in_english():
     assert (
         translation.text == "It takes R350 to get there, and I'll be there in 20 minutes. On 3 Oct?"
     )
+
+
+def test_a_space_azure_dropped_after_a_comma_is_put_back_in_every_language():
+    english = translate(
+        "Ngingafika ngoLwesibili ngo-10:30, R450.",
+        "en",
+        "zu",
+        backend=ScriptedBackend("I can come on Tuesday,[[0]],[[1]]."),
+    )
+    isizulu = translate(
+        "I can come on Tuesday, 10:30.",
+        "zu",
+        "en",
+        backend=ScriptedBackend("Ngingafika ngoLwesibili,[[0]]."),
+    )
+    assert english.text == "I can come on Tuesday, 10:30, R450."
+    assert isizulu.text == "Ngingafika ngoLwesibili, 10:30."
+
+
+def test_the_backend_never_sees_the_hidden_contact_marker():
+    backend = ScriptedBackend("Ngishayele ucingo [[0]]")
+    translate(f"Call me {HIDDEN_CONTACT_TEXT}", "zu", "en", backend=backend)
+    assert backend.sent_text == "Call me [[0]]"
+
+
+@pytest.mark.parametrize(
+    ("target_lang", "expected_marker"),
+    [
+        ("zu", "[imininingwane yokuxhumana ifihliwe kuze kuqinisekiswe umsebenzi]"),
+        ("en", HIDDEN_CONTACT_TEXT),
+        # No isiXhosa wording from a first-language speaker yet, so it stays English
+        ("xh", HIDDEN_CONTACT_TEXT),
+    ],
+)
+def test_the_hidden_contact_marker_comes_back_in_the_readers_language(
+    target_lang, expected_marker
+):
+    source_lang = "zu" if target_lang == "en" else "en"
+    translation = translate(
+        f"Call me {HIDDEN_CONTACT_TEXT} after 5",
+        target_lang,
+        source_lang,
+        backend=ScriptedBackend("Translated [[0]] after [[1]]"),
+    )
+    assert translation.text == f"Translated {expected_marker} after 5"
+    assert not translation.flagged
 
 
 def test_isizulu_attached_values_keep_their_hyphen():

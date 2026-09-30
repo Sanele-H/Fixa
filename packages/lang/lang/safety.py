@@ -16,9 +16,14 @@ from pathlib import Path
 
 from lang.models import Finding, Lang, SafetyResult
 from lang.prohibited import find_prohibited
-from lang.protection import NOT_A_LINKING_WORD, NOT_A_QUANTITY
+from lang.protection import HIDDEN_CONTACT_TEXT, NOT_A_LINKING_WORD, NOT_A_QUANTITY
 
-HIDDEN_CONTACT_TEXT = "[contact hidden until the job is confirmed]"
+# The hidden-contact marker in the reader's language; translate() swaps it in. isiZulu by P3.
+# isiXhosa stays English until an isiXhosa speaker gives the wording.
+HIDDEN_CONTACT_TEXTS: dict[str, str] = {
+    "en": HIDDEN_CONTACT_TEXT,
+    "zu": "[imininingwane yokuxhumana ifihliwe kuze kuqinisekiswe umsebenzi]",
+}
 MIN_PHONE_DIGITS = 9  # 082 123 4567 has 10; 9 allows for one missed digit
 
 NUMBER_WORDS_PATH = Path(__file__).resolve().parents[3] / "data" / "number_words.json"

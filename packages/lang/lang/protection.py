@@ -14,6 +14,11 @@ PLACEHOLDER_FORMAT = "[[{index}]]"
 # Backends sometimes add spaces inside the brackets or drop one bracket, so restore() accepts those.
 PLACEHOLDER_PATTERN = re.compile(r"\[\[?\s*(\d+)\s*\]\]?")
 
+# What scan_message() puts in place of a contact detail. It's protected like a value, so a backend
+# can't reword it ("[oxhumana naye ufihliwe…]"), and translate() puts it back in the reader's
+# language.
+HIDDEN_CONTACT_TEXT = "[contact hidden until the job is confirmed]"
+
 STREET_WORDS = (
     "street|st|road|rd|avenue|ave|drive|dr|crescent|cres|lane|close|way|place|"
     "straat|weg|laan|rylaan|singel"
@@ -53,6 +58,7 @@ RAND_AMOUNT = rf"{RAND_DIGITS}(?:[.,]\d{{2}})?"
 # so numbers are bounded by "not a digit" rather than by a word boundary. The rand sign is a
 # case-sensitive capital R, so "for 5 days" is not read as a price.
 PROTECTED_PATTERNS = [
+    ("hidden", re.escape(HIDDEN_CONTACT_TEXT)),
     ("email", r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+"),
     ("link", r"(?:https?://|www\.)\S+"),
     ("phone", r"(?<!\d)(?:\+27|0)(?:[\s-]?\d){9}(?!\d)"),
@@ -78,7 +84,9 @@ COMPILED_PATTERNS = [
 class ProtectedValue(BaseModel):
     """One value taken out of the text, in the order it appeared."""
 
-    kind: str  # "price", "time", "date", "phone", "address", "email", "link" or "number"
+    # "price", "time", "date", "phone", "address", "email", "link", "number", or "hidden" for the
+    # hidden-contact marker
+    kind: str
     text: str
 
 

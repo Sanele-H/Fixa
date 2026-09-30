@@ -12,6 +12,7 @@ from lang.backends import TranslationBackend, get_backend
 from lang.models import Lang, Translation
 from lang.protection import ProtectedValue, protect, restore
 from lang.quality import FLAG_REASON_AMOUNT_CHANGED, FLAG_REASON_UNAVAILABLE, find_quality_problem
+from lang.safety import HIDDEN_CONTACT_TEXTS
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,9 @@ GLUED_BEFORE_PLACEHOLDER_PATTERN = re.compile(r"(?<=[A-Za-z])(?=\[\[\d+\]\])")
 GLUED_AFTER_PLACEHOLDER_PATTERN = re.compile(r"(\[\[\d+\]\])(?=[A-Za-z])")
 SPACE_BEFORE_PUNCTUATION_PATTERN = re.compile(r"(\[\[\d+\]\])\s+([?!.,])")
 SPACING_FIX_LANGS = {"en"}
+# A comma or semicolon is always followed by a space, in every language, but Azure sometimes drops
+# it before a value ("on Tuesday,[[0]]").
+GLUED_AFTER_COMMA_PATTERN = re.compile(r"(?<=[,;])(?=\[\[\d+\]\])")
 
 # "9am" means nothing to someone who reads isiZulu, and a bare "9" loses whether it's morning or
 # night. So the digits stay protected and am/pm becomes the local word for that time of day:
@@ -109,10 +113,13 @@ def translate_uncached(
         logger.exception("Translation failed, showing the original")
         return unavailable_translation(text, source_lang)
 
-    placeholder_text = backend_translation.text
+    placeholder_text = GLUED_AFTER_COMMA_PATTERN.sub(" ", backend_translation.text)
     if target_lang in SPACING_FIX_LANGS:
         placeholder_text = fix_spacing_around_placeholders(placeholder_text)
-    values = [localize_time(value, target_lang) for value in protected.values]
+    values = [
+        localize_hidden_contact(localize_time(value, target_lang), target_lang)
+        for value in protected.values
+    ]
     restored = restore(placeholder_text, values)
     translated_text = restored.text
     if target_lang in HYPHEN_PREFIX_LANGS:
@@ -163,6 +170,13 @@ def localize_time(value: ProtectedValue, target_lang: Lang) -> ProtectedValue:
     hour_24 = hour_12 + 12 if am_or_pm.lower() == "pm" else hour_12
     word = TIME_OF_DAY_WORDS[target_lang][get_time_of_day(hour_24)]
     return value.model_copy(update={"text": f"{hour_text}{minutes_text or ''} {word}"})
+
+
+def localize_hidden_contact(value: ProtectedValue, target_lang: Lang) -> ProtectedValue:
+    """The hidden-contact marker in the reader's language, or English if we have no wording."""
+    if value.kind != "hidden":
+        return value
+    return value.model_copy(update={"text": HIDDEN_CONTACT_TEXTS.get(target_lang, value.text)})
 
 
 def fix_spacing_around_placeholders(text: str) -> str:
