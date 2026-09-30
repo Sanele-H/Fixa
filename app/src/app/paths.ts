@@ -39,6 +39,12 @@ export const PROFILE_FROM_PARAM = "from";
 export const PROFILE_FROM_NEARBY = "nearby";
 export const PROFILE_JOB_PARAM = "job";
 
+/**
+ * A customer has one chat thread per quoting provider, so their chat links carry
+ * ?with=<provider id>. A provider has only one thread per job and needs no parameter.
+ */
+export const CHAT_WITH_PARAM = "with";
+
 /** The first tab each role lands on after login. */
 export function getHomePath(role: Role) {
   return role === "provider" ? PATHS.feed : PATHS.home;

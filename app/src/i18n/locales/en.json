@@ -149,7 +149,28 @@
     "progress": "Job progress",
     "quotes": "Quotes",
     "seeProviders": "See who can help",
-    "accept": "Accept quote"
+    "accept": "Accept quote",
+    "photoAlt": "Photo of the problem",
+    "message": "Message",
+    "waitingForProvider": "Waiting for {{name}} to confirm. Contact details unlock when they do.",
+    "quoteState": {
+      "open": "Open",
+      "accepted": "Accepted",
+      "declined": "Not chosen",
+      "withdrawn": "Withdrawn"
+    },
+    "noQuotesTitle": "No quotes yet",
+    "noQuotesBody": "People nearby can see your job. Their quotes show here as they arrive.",
+    "acceptedTitle": "The customer accepted your quote",
+    "acceptedBody": "Confirm to see the address and phone numbers, or decline if you can't do the job.",
+    "confirm": "Confirm the job",
+    "decline": "I can't do it",
+    "yourQuote": "Your quote",
+    "sendQuote": "Send a quote",
+    "cancel": "Cancel this job",
+    "cancelConfirm": "Cancel this job? This can't be undone.",
+    "cancelYes": "Yes, cancel it",
+    "cancelNo": "Keep it"
   },
   "contact": {
     "lockedTitle": "Contact details hidden",
