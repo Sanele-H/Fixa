@@ -4,7 +4,7 @@
 import { useTranslation } from "react-i18next";
 import { generatePath } from "react-router";
 import type { Evidence, Language, NearbyProvider, RankedProvider, Trust } from "../api/types";
-import { PATHS, PROFILE_FROM_NEARBY, PROFILE_FROM_PARAM } from "../app/paths";
+import { PATHS, PROFILE_FROM_NEARBY, PROFILE_FROM_PARAM, PROFILE_JOB_PARAM } from "../app/paths";
 import { formatDistanceKm, formatScoreOutOf100 } from "../format";
 import { LANGUAGE_NAMES } from "../i18n";
 import { Avatar, CardLink, Chip, TrustRange } from "../ui";
@@ -76,10 +76,18 @@ function ProviderCardTop({ provider, whereText }: ProviderCardTopProps) {
   );
 }
 
+type ProviderCardProps = {
+  provider: RankedProvider;
+  /** The job whose ranked list this is, so the profile's back arrow returns to the list. */
+  fromJobId?: string;
+};
+
 /** One provider in the ranked list. The whole card opens their profile. */
-export function ProviderCard({ provider }: { provider: RankedProvider }) {
+export function ProviderCard({ provider, fromJobId }: ProviderCardProps) {
+  const profilePath = generatePath(PATHS.provider, { providerId: provider.provider_id });
+  const linkPath = fromJobId ? `${profilePath}?${PROFILE_JOB_PARAM}=${encodeURIComponent(fromJobId)}` : profilePath;
   return (
-    <CardLink to={generatePath(PATHS.provider, { providerId: provider.provider_id })} tone="raised">
+    <CardLink to={linkPath} tone="raised">
       <ProviderCardTop provider={provider} whereText={formatDistanceKm(provider.distance_km)} />
       <EvidenceStrip evidence={provider.evidence} />
       <ProviderTrust trust={provider.trust} />

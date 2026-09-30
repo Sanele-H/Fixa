@@ -122,7 +122,12 @@
   "providers": {
     "title": "Who can help",
     "subtitle": "Ranked by real work, not stars. New people get a fair chance too.",
-    "newcomer": "New"
+    "newcomer": "New",
+    "waitingTitle": "Quotes come to your job page",
+    "waitingBody": "People who do this work nearby can see your job and send quotes. You choose from them there.",
+    "openJob": "Go to my job",
+    "emptyTitle": "Nobody nearby does this work yet",
+    "emptyBody": "Your job stays open, and anyone new who does this work can still quote."
   },
   "nearby": {
     "title": "Who works near you",
