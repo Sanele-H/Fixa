@@ -370,5 +370,11 @@
     "body": "Faka i-Fixa esikrinini sakho sasekhaya ukuthola amasevisi kalula.",
     "button": "Faka i-Fixa",
     "dismiss": "Susa"
+  },
+  "share": {
+    "trusted": "Yabelana nomuntu engimthembayo",
+    "title": "Umsebenzi we-Fixa no-{{name}}",
+    "text": "Imininingwane yomsebenzi we-Fixa: U-{{name}} uza e-{{suburb}} ngo-{{time}}.",
+    "copied": "Isixhumanisi sikopishiwe"
   }
 }
