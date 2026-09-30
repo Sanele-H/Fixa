@@ -5,16 +5,17 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { TRADES, type Language, type NearbyProvider, type TradeId } from "../../api/types";
+import { useNearbyProviders, type NearbyQuery } from "../../api/providers";
+import { TRADES, type Language, type TradeId } from "../../api/types";
 import { PATHS } from "../../app/paths";
 import { getTradeLabel } from "../../components/Badges";
 import { DescribeJobCard } from "../../components/DescribeJobCard";
+import { LoadError, LoadingNote } from "../../components/LoadState";
 import { NearbyProviderCard } from "../../components/ProviderCard";
-import { sampleNearbyProviders } from "../../dev/samples";
 import { formatRadiusKm } from "../../format";
 import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from "../../i18n";
 import { useCurrentUser } from "../../session/SessionContext";
-import { Button, Card, Screen, ScreenHeader, Segmented, Slot } from "../../ui";
+import { Button, Card, Screen, ScreenHeader, Segmented } from "../../ui";
 
 /** The radius choices, in km. The server allows up to 30 km. */
 const RADIUS_OPTIONS_KM = [2, 5, 10, 20];
@@ -59,23 +60,9 @@ function useRadiusKm() {
   return [radiusKm, updateRadiusKm] as const;
 }
 
-/**
- * Stands in for the server until GET /api/providers is wired up: the same trade, language and
- * radius filters, over the sample list. The sample is the plumbing answer, so "Electrical"
- * only shows the people who do both.
- */
-function filterSampleProviders(
-  providers: NearbyProvider[],
-  trade: TradeId,
-  language: LanguageFilter,
-  radiusKm: number,
-) {
-  return providers.filter(
-    (provider) =>
-      provider.trades.includes(trade) &&
-      provider.distance_km <= radiusKm &&
-      (language === ANY_LANGUAGE || provider.langs.includes(language)),
-  );
+/** The filters as GET /api/providers takes them: no `lang` means any language. */
+function buildNearbyQuery(trade: TradeId, language: LanguageFilter, radiusKm: number): NearbyQuery {
+  return { trade, lang: language === ANY_LANGUAGE ? undefined : language, radius_km: radiusKm };
 }
 
 type NearbyFiltersProps = {
@@ -147,7 +134,8 @@ export default function NearbyProvidersScreen() {
   const [trade, setTrade] = useState<TradeId>(TRADES[0]);
   const [language, setLanguage] = useState<LanguageFilter>(ANY_LANGUAGE);
   const [radiusKm, updateRadiusKm] = useRadiusKm();
-  const providers = filterSampleProviders(sampleNearbyProviders, trade, language, radiusKm);
+  const nearbyProviders = useNearbyProviders(buildNearbyQuery(trade, language, radiusKm));
+  const providers = nearbyProviders.data ?? [];
 
   return (
     <Screen>
@@ -167,18 +155,22 @@ export default function NearbyProvidersScreen() {
         onRadiusChange={updateRadiusKm}
       />
 
-      <section className="stack">
-        <h2 className="section-title">
-          {t("nearby.count", { count: providers.length, radius: formatRadiusKm(radiusKm) })}
-        </h2>
-        {providers.length === 0 ? (
-          <NearbyEmpty radiusKm={radiusKm} onRadiusChange={updateRadiusKm} />
-        ) : (
-          providers.map((provider) => <NearbyProviderCard key={provider.provider_id} provider={provider} />)
+      <section className="stack" aria-busy={nearbyProviders.isFetching}>
+        {nearbyProviders.isPending && <LoadingNote />}
+        {nearbyProviders.isError && <LoadError error={nearbyProviders.error} onRetry={() => nearbyProviders.refetch()} />}
+        {nearbyProviders.isSuccess && (
+          <>
+            <h2 className="section-title">
+              {t("nearby.count", { count: providers.length, radius: formatRadiusKm(radiusKm) })}
+            </h2>
+            {providers.length === 0 ? (
+              <NearbyEmpty radiusKm={radiusKm} onRadiusChange={updateRadiusKm} />
+            ) : (
+              providers.map((provider) => <NearbyProviderCard key={provider.provider_id} provider={provider} />)
+            )}
+          </>
         )}
       </section>
-
-      <Slot label="loading and error states; refetch when a filter changes" source="GET /api/providers?trade=&lang=&radius_km=" />
 
       <DescribeJobCard hint={t("nearby.describeHint")} />
     </Screen>

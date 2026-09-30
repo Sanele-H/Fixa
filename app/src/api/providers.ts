@@ -7,7 +7,7 @@ import type { Language, NearbyProvider, ProviderProfile, RankedProvider, TradeId
 export const providerKeys = {
   /** Under the job's key (see jobs.ts), so it refreshes with the job. */
   ranked: (jobId: string) => ["jobs", jobId, "providers"] as const,
-  nearby: (filters: NearbyFilters) => ["providers", "nearby", filters] as const,
+  nearby: (filters: NearbyQuery) => ["providers", "nearby", filters] as const,
   profile: (providerId: string) => ["providers", providerId] as const,
 };
 
@@ -15,7 +15,7 @@ export const providerKeys = {
  * GET /api/providers filters. `lang` keeps only providers who speak it; leave it out for anyone.
  * `radius_km` defaults to 10 on the server and must be above 0 and at most 30.
  */
-export type NearbyFilters = {
+export type NearbyQuery = {
   trade: TradeId;
   lang?: Language;
   radius_km?: number;
@@ -33,7 +33,7 @@ export function useRankedProviders(jobId: string) {
  * GET /api/providers: who does a trade near the customer, nearest first, with no trust (customer only).
  * While a new filter loads, the previous list stays on screen instead of flashing empty.
  */
-export function useNearbyProviders(filters: NearbyFilters) {
+export function useNearbyProviders(filters: NearbyQuery) {
   return useQuery({
     queryKey: providerKeys.nearby(filters),
     queryFn: () => getJson<NearbyProvider[]>("/api/providers", filters),
