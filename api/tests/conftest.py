@@ -1,5 +1,7 @@
 """Shared test fixtures: a fresh in-memory database per test, so tests never touch fixa.db."""
 
+from collections import OrderedDict
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel
@@ -7,6 +9,18 @@ from sqlmodel import Session, SQLModel
 from fixa_api.db import IN_MEMORY_DATABASE_URL, create_database_engine, get_session
 from fixa_api.main import app
 from fixa_api.seed import SEED_TABLES, create_rows_from_seed_file
+
+
+@pytest.fixture(autouse=True)
+def fake_translation_backend(monkeypatch):
+    """Translate with the fake backend in every test, whatever .env says.
+
+    fixa_api.db loads .env, so a laptop set to TRANSLATION_BACKEND=azure would otherwise make
+    paid calls from the tests, and the chat tests couldn't find the fake's "[en]" language tags.
+    The translation cache starts empty too, so no test sees another test's translations.
+    """
+    monkeypatch.setenv("TRANSLATION_BACKEND", "fake")
+    monkeypatch.setattr("lang.translation._translation_cache", OrderedDict())
 
 
 @pytest.fixture
