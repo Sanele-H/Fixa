@@ -40,6 +40,7 @@ const flowRoutes: RouteObject[] = [
   { path: PATHS.verifyId, lazy: loadScreen(() => import("../screens/provider/VerifyIdScreen")) },
   { path: PATHS.offAppJob, lazy: loadScreen(() => import("../screens/provider/OffAppJobScreen")) },
   { path: PATHS.camera, lazy: loadScreen(() => import("../screens/shared/CameraScreen")) },
+  { path: PATHS.inbox, lazy: loadScreen(() => import("../screens/shared/InboxScreen")) },
 ];
 
 /** A page listing every screen, for moving around while building. Left out of production builds. */

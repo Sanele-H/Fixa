@@ -40,6 +40,8 @@ export default defineConfig({
       },
       workbox: {
         navigateFallbackDenylist: SERVER_PAGE_PATTERNS,
+        // Push notifications: shows them and opens the right screen on a tap (public/push-sw.js).
+        importScripts: ["push-sw.js"],
       },
     }),
   ],

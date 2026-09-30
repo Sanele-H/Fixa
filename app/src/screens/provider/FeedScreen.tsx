@@ -10,8 +10,9 @@ import type { JobPublic, JobState } from "../../api/types";
 import { PATHS } from "../../app/paths";
 import { InstallPromptCard } from "../../components/InstallPrompt";
 import { JobCard } from "../../components/JobCard";
+import { NotificationBell } from "../../components/NotificationBell";
 import { EmptyNote, LoadError, LoadingNote } from "../../components/LoadState";
-import { Banner, IconButton, Screen, ScreenHeader, Segmented } from "../../ui";
+import { Banner, Screen, ScreenHeader, Segmented } from "../../ui";
 
 type FeedFilter = "all" | "urgent";
 const FEED_FILTERS: FeedFilter[] = ["all", "urgent"];
@@ -77,7 +78,7 @@ export default function FeedScreen() {
       <ScreenHeader
         title={t("feed.title")}
         subtitle={t("feed.subtitle")}
-        actions={<IconButton icon="bell" label={t("home.notifications")} />}
+        actions={<NotificationBell />}
       />
 
       <InstallPromptCard />

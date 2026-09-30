@@ -22,6 +22,7 @@ import { getTradeLabel, TradeChip } from "../../components/Badges";
 import { ContactCard } from "../../components/ContactCard";
 import { CustomerDayActions, ProviderDayActions } from "../../components/JobDayActions";
 import { ReportButton } from "../../components/ReportButton";
+import { SafetyCard } from "../../components/SafetyCard";
 import { JobStateRuler } from "../../components/JobStateRuler";
 import { EmptyNote, LoadError, LoadingNote } from "../../components/LoadState";
 import { QuoteCard } from "../../components/QuoteCard";
@@ -176,6 +177,7 @@ function ProviderQuote({ job }: { job: Job }) {
     <>
       {isAcceptedProvider && <AcceptedQuoteActions job={job} />}
       {isPickedProvider && <ProviderDayActions job={job} />}
+      {isPickedProvider && <SafetyCard jobId={job.id} state={job.state} />}
       {isDoneJob && isJobUnlocked(job) && (
         <ButtonLink
           to={`${PATHS.offAppJob}?phone=${encodeURIComponent(job.customer_phone)}&suburb=${encodeURIComponent(job.suburb)}&task=${encodeURIComponent(job.problem.slice(0, 60))}`}
@@ -252,6 +254,7 @@ function JobDetails({ job }: { job: Job }) {
       </section>
 
       {role === "customer" && <CustomerDayActions job={job} />}
+      {role === "customer" && <SafetyCard jobId={job.id} state={job.state} />}
       {role === "customer" && <CancelJob job={job} />}
       {role === "provider" && <ReportButton targetType="job" targetId={job.id} />}
     </>
