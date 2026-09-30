@@ -58,7 +58,7 @@ The app calls the real API; there are no mocks. Log in with a seeded account: cu
   - No endpoint lists a customer's own jobs (Home screen).
   - No endpoint returns the "My record" contents or months of experience.
   - The provider profile has no list of work photos.
-  - "Well below the range" for the underpricing warning isn't decided (P4). For now the Quote screen warns below the range's low end.
+  - "Well below the range" is under 80% of its low end, the same rule as `ranking.is_underpriced` (PR #23). The Quote screen applies it itself, since the API doesn't expose it.
 
 ## Rules the scaffold already follows
 
