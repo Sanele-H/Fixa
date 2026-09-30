@@ -12,6 +12,7 @@ Public functions (the contract; signatures change only with the team's agreement
 
 Proposed (not agreed yet):
     transcribe(audio, mime_type, lang=None) -> Transcript(text, lang, confidence)
+    detect_language(text, sender_lang) -> Lang, the language a message is really written in
 
 Data P3 owns: data/glossary.json, data/test_messages.json, data/number_words.json.
 
@@ -21,6 +22,7 @@ scan_message (lang/safety.py) understand_job (lang/understanding.py) and
 extract_quote (lang/quotes.py). Only transcribe is still a stub.
 """
 
+from lang.detection import detect_language
 from lang.models import (
     Finding,
     JobIntent,
@@ -42,6 +44,7 @@ __all__ = [
     "SafetyResult",
     "Transcript",
     "Translation",
+    "detect_language",
     "extract_quote",
     "get_scam_warning_texts",
     "scan_message",

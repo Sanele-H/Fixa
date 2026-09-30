@@ -54,12 +54,22 @@ class BackendTranslation(BaseModel):
     source_lang: Lang
 
 
+class BackendDetection(BaseModel):
+    """A backend's guess at a text's language: its short code, which may be one we don't
+    support (such as "rw"), and how sure it is, from 0 to 1."""
+
+    code: str
+    score: float
+
+
 class TranslationBackend(Protocol):
-    """Every backend has this one method."""
+    """Every backend translates, and says what language a text is in if it can."""
 
     def translate(
         self, text: str, target_lang: Lang, source_lang: Lang | None
     ) -> BackendTranslation: ...
+
+    def detect(self, text: str) -> BackendDetection | None: ...
 
 
 def get_short_code(code: str | None) -> str:
@@ -86,6 +96,10 @@ class FakeBackend:
         self, text: str, target_lang: Lang, source_lang: Lang | None
     ) -> BackendTranslation:
         return BackendTranslation(text=f"[{target_lang}] {text}", source_lang=source_lang or "en")
+
+    def detect(self, text: str) -> BackendDetection | None:
+        """The fake can't tell languages apart, so callers fall back to what they already know."""
+        return None
 
 
 class ClaudeBackend:
@@ -139,6 +153,11 @@ class ClaudeBackend:
             text=translated_text.strip(), source_lang=to_supported_lang(detected_code)
         )
 
+    def detect(self, text: str) -> BackendDetection | None:
+        """Not wired up yet, so callers fall back to what they already know. Claude would likely
+        tell isiZulu from isiXhosa better than Azure does, at the cost of one call per message."""
+        return None
+
 
 class AzureBackend:
     """Azure AI Translator (REST v3). Needs AZURE_TRANSLATOR_KEY and AZURE_TRANSLATOR_REGION.
@@ -178,6 +197,23 @@ class AzureBackend:
             text=to_plain_text(result["translations"][0]["text"]),
             source_lang=source_lang or to_supported_lang(detected_code),
         )
+
+    def detect(self, text: str) -> BackendDetection | None:
+        """Azure's /detect. Sure about English, but it often mixes up isiZulu and isiXhosa, so
+        lang.detection only half-trusts those answers."""
+        try:
+            response = httpx.post(
+                f"{self.endpoint}/detect",
+                params={"api-version": AZURE_API_VERSION},
+                headers=self.headers,
+                json=[{"Text": text}],
+                timeout=AZURE_TIMEOUT_SECONDS,
+            )
+            response.raise_for_status()
+        except httpx.HTTPError as error:
+            raise TranslationFailedError(f"Azure language detection failed: {error}") from error
+        result = response.json()[0]
+        return BackendDetection(code=get_short_code(result.get("language")), score=result["score"])
 
 
 def to_protected_html(text: str) -> str:

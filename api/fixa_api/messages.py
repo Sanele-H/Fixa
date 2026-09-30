@@ -4,6 +4,9 @@ Every message is scanned by the language package before it is stored, so a phone
 address typed before the job is confirmed never reaches the other side. The reader gets the
 hidden-contact text translated into their own language, with the untranslated hidden-contact
 text one tap away ("See original").
+
+Each message is labelled with the language it's written in (original_lang), detected from the
+text, since people often keep the app in English but write in isiZulu or isiXhosa.
 """
 
 import datetime as dt
@@ -15,7 +18,7 @@ from sqlmodel import Session, select
 from fixa_api import job_states as states
 from fixa_api.job_views import can_see_job, is_job_customer, is_job_provider, iso
 from fixa_api.models import Customer, Job, Message, Provider, Quote
-from lang import get_scam_warning_texts, scan_message, translate
+from lang import detect_language, get_scam_warning_texts, scan_message, translate
 
 MAX_MESSAGE_CHARS = 1000
 
@@ -82,7 +85,7 @@ def send_message(
         recipient_id=recipient_id,
         original_text=text,
         safe_text=result.safe_text,
-        original_lang=sender.lang,
+        original_lang=detect_language(result.safe_text, sender.lang),
         contacts_hidden=result.safe_text != text,
         scam_warnings=result.scam_warnings,
         sent_at=dt.datetime.now(dt.UTC),
