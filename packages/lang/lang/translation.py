@@ -52,6 +52,8 @@ WORD_TO_TIME_OF_DAY = {
     for time_of_day, word in words.items()
 }
 EARLIEST_EVENING_HOUR_AT_NIGHT = 6  # "8 ebusuku" is 8pm, "2 ebusuku" is 2am
+LAST_HOUR_ON_A_12_HOUR_CLOCK = 12  # "14h00 ntambama" is already 24-hour: "14:00", not "14:00pm"
+WHOLE_HOUR_MINUTES = ":00"
 MORNING_START_HOUR = 5  # 24-hour clock: 5:00 to 11:59 is morning
 AFTERNOON_START_HOUR = 12
 EVENING_START_HOUR = 18
@@ -172,7 +174,11 @@ def get_am_or_pm(hour_12: int, time_of_day: str) -> str:
 
 
 def localize_time(value: ProtectedValue, target_lang: Lang) -> ProtectedValue:
-    """Say a time the reader's way: "9am" -> "9 ekuseni", "9 ekuseni" -> "9am" or "9 ntseni"."""
+    """Say a time the reader's way: "9am" -> "9 ekuseni", "9 ekuseni" -> "9am" or "9 ntseni".
+
+    An hour already on the 24-hour clock keeps its digits in English ("14h00 ntambama" ->
+    "14:00"), since adding am/pm would give an impossible time like "14:00pm".
+    """
     if value.kind != "time":
         return value
     am_pm_match = AM_PM_TIME_PATTERN.match(value.text)
@@ -192,7 +198,11 @@ def localize_time(value: ProtectedValue, target_lang: Lang) -> ProtectedValue:
         local_word = TIME_OF_DAY_WORDS[target_lang][time_of_day]
         return value.model_copy(update={"text": f"{hour_text}{minutes_text or ''} {local_word}"})
     minutes = (minutes_text or "").replace("h", ":")
-    am_or_pm = get_am_or_pm(int(hour_text) % 12, time_of_day)
+    hour = int(hour_text)
+    if hour == 0 or hour > LAST_HOUR_ON_A_12_HOUR_CLOCK:
+        # Already on the 24-hour clock, so am/pm would be wrong: "14h00 ntambama" -> "14:00"
+        return value.model_copy(update={"text": f"{hour_text}{minutes or WHOLE_HOUR_MINUTES}"})
+    am_or_pm = get_am_or_pm(hour % 12, time_of_day)
     return value.model_copy(update={"text": f"{hour_text}{minutes}{am_or_pm}"})
 
 
