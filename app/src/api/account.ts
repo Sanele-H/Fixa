@@ -38,12 +38,14 @@ export function useVerifyLoginCode() {
 
 /**
  * PATCH /api/me: saves the language on the account, so the server translates chats, jobs and
- * quotes into it. Updates the cached user with the answer.
+ * quotes into it. Updates the cached user with the answer. A GET /api/me already on its way is
+ * cancelled first, so its older answer can't land after this one.
  */
 export function useUpdateMyLanguage() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (lang: Language) => patchJson<User>("/api/me", { lang }),
+    onMutate: () => queryClient.cancelQueries({ queryKey: accountKeys.me }),
     onSuccess: (user) => queryClient.setQueryData(accountKeys.me, user),
   });
 }
