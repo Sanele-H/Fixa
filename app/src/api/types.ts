@@ -4,7 +4,7 @@
 
 export type Language = "en" | "zu" | "xh";
 export type Role = "customer" | "provider";
-/** One of the 11 trade ids in data/glossary.json, for example "plumbing". */
+/** One of the 13 trade ids in data/glossary.json, for example "plumbing". */
 export type TradeId = string;
 export type JobSize = "small" | "medium" | "large";
 export type Urgency = "low" | "normal" | "urgent";
@@ -21,8 +21,22 @@ export type QuoteState = "open" | "accepted" | "declined" | "withdrawn";
 export type IdBadge = "none" | "id_number" | "home_affairs";
 export type RecordMode = "arpl" | "statement";
 
-/** The trade ids in data/glossary.json so far (2 of the 11). P1: add each one as P3 adds it. */
-export const TRADES: TradeId[] = ["plumbing", "electrical"];
+/** The trade ids in data/glossary.json, in merSETA/QCTO category order. */
+export const TRADES: TradeId[] = [
+  "electrical",
+  "plumbing",
+  "carpentry",
+  "welding",
+  "bricklaying",
+  "mechanic",
+  "roofing",
+  "tiling",
+  "cabinetmaking",
+  "painting",
+  "appliance_repair",
+  "groundskeeping",
+  "other",
+];
 export const JOB_SIZES: JobSize[] = ["small", "medium", "large"];
 export const URGENCIES: Urgency[] = ["low", "normal", "urgent"];
 

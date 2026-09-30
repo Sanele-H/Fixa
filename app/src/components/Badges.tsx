@@ -7,11 +7,21 @@ import { Chip, type ChipTone, type IconName } from "../ui";
 
 /**
  * Icon for each trade, shown beside its name for people who read slowly.
- * P1: add one per trade as data/glossary.json fills in (it has 2 of the 11 so far).
+ * Trades without a specific icon fall back to the wrench.
  */
-const TRADE_ICONS: Record<TradeId, IconName> = {
+const TRADE_ICONS: Partial<Record<TradeId, IconName>> = {
   plumbing: "droplet",
   electrical: "bolt",
+  carpentry: "hammer",
+  welding: "flame",
+  bricklaying: "layers",
+  mechanic: "car",
+  roofing: "layers",
+  tiling: "grid",
+  cabinetmaking: "hammer",
+  painting: "paintRoller",
+  appliance_repair: "washer",
+  groundskeeping: "trees",
 };
 const DEFAULT_TRADE_ICON: IconName = "wrench";
 

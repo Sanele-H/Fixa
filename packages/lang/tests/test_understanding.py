@@ -52,6 +52,21 @@ from lang import understand_job
         ),
         ("Akukho mbane kwisiqingatha sendlu.", "xh", "electrical", "urgent"),
         ("There are sparks coming from the plug", "en", "electrical", "urgent"),
+        ("I need a welder to fix my burglar bars", "en", "welding", "normal"),
+        ("The front gate is broken and needs welding", "en", "welding", "normal"),
+        ("The boundary wall has collapsed", "en", "bricklaying", "normal"),
+        ("I need my car serviced, the brakes are squeaking", "en", "mechanic", "normal"),
+        ("The roof leaks into the passage when it rains", "en", "roofing", "normal"),
+        ("Three floor tiles in the kitchen are cracked", "en", "tiling", "normal"),
+        ("I need a built-in wardrobe for the bedroom", "en", "cabinetmaking", "normal"),
+        ("The lounge needs repainting, walls and ceiling", "en", "painting", "normal"),
+        (
+            "The washing machine won't spin and makes a loud noise",
+            "en",
+            "appliance_repair",
+            "normal",
+        ),
+        ("The lawn needs mowing and the hedges are overgrown", "en", "groundskeeping", "normal"),
     ],
 )
 def test_trade_and_urgency_from_real_descriptions(text, lang, trade, urgency):
@@ -80,6 +95,7 @@ def test_no_rush_is_low_urgency():
 def test_an_unknown_job_gets_a_low_confidence_guess():
     intent = understand_job("Can someone help me with my house?", "en")
     assert intent.confidence <= 0.2
+    assert intent.trade == "other"
 
 
 def test_more_matching_words_means_more_confidence():

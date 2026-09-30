@@ -51,7 +51,21 @@ MAX_HOUSE_NUMBER = 200
 DEMO_SUBURB_WEIGHT = 4.0  # more customers live where the demo happens
 
 ID_BADGE_WEIGHTS = {"none": 0.3, "id_number": 0.4, "home_affairs": 0.3}
-TRADE_PERSON_NAMES = {"plumbing": "Plumber", "electrical": "Electrician"}
+TRADE_PERSON_NAMES = {
+    "plumbing": "Plumber",
+    "electrical": "Electrician",
+    "carpentry": "Carpenter",
+    "welding": "Welder",
+    "bricklaying": "Bricklayer",
+    "mechanic": "Mechanic",
+    "roofing": "Roofer",
+    "tiling": "Tiler",
+    "cabinetmaking": "Cabinetmaker",
+    "painting": "Painter",
+    "appliance_repair": "Appliance technician",
+    "groundskeeping": "Groundskeeper",
+    "other": "Handyman",
+}
 NEWCOMER_SHARE = 0.15  # share of providers who joined in the last few weeks
 NEWCOMER_JOINED_WITHIN_DAYS = 21
 SECOND_TRADE_SHARE = 0.2

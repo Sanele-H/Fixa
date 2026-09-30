@@ -46,8 +46,19 @@
     "provider": "Umakhi/Umsebenzi"
   },
   "trade": {
+    "electrical": "Ugesi",
     "plumbing": "Amapayipi",
-    "electrical": "Ugesi"
+    "carpentry": "Umbazi",
+    "welding": "Umeshisi",
+    "bricklaying": "Umakhi wezitini",
+    "mechanic": "Umeshinisi",
+    "roofing": "Umsebenzi wophahla",
+    "tiling": "Umfaki wamathayela",
+    "cabinetmaking": "Umenzi wamakhabhathi",
+    "painting": "Umupenda",
+    "appliance_repair": "Ukulungisa izinto zikagesi",
+    "groundskeeping": "Umgcini wesizinda",
+    "other": "Okunye"
   },
   "urgency": {
     "low": "Akusheshile",
@@ -123,7 +134,8 @@
     "photoAdding": "Ifaka isithombe sakho…",
     "photoAlt": "Isithombe sakho senkinga",
     "removePhoto": "Susa isithombe",
-    "licensedOnly": "Abakhi abanamalayisense kuphela (umthetho uyafuna kuyo imisebenzi ethile)"
+    "licensedOnly": "Abakhi abanamalayisense kuphela (umthetho uyafuna kuyo imisebenzi ethile)",
+    "suggestedUnsure": "Asiqiniseki ukuthi lo msebenzi ungowohlobo luni — sicela uhlole."
   },
   "providers": {
     "title": "Ubani ongasiza",
