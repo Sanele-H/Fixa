@@ -186,7 +186,7 @@ class AcceptedQuote(BaseModel):
     trade: str
     size: JobSize
     suburb: str
-    amount_rands: int
+    amount_rands: int = Field(gt=0)
 
 
 class PriceRange(BaseModel):
