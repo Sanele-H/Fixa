@@ -12,9 +12,12 @@
     "test:py": "node scripts/run-python.mjs -m pytest",
     "lint:py": "node scripts/run-python.mjs -m ruff check api packages",
     "format:py": "node scripts/run-python.mjs -m ruff format api packages",
-    "build:app": "npm --prefix app run build"
+    "build:app": "npm --prefix app run build",
+    "test:e2e": "playwright test -c e2e",
+    "test:e2e:smoke": "playwright test -c e2e --grep @smoke"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "concurrently": "^10.0.5"
   }
 }
