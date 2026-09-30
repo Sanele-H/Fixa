@@ -1,33 +1,35 @@
 // A provider's public profile: evidence and a trust range, never stars.
 // Opened from the nearby list (?from=nearby), its back arrow returns there and it offers
 // "Describe a job", since customers hire through a job, never straight from a profile.
+// Opened from a job's ranked list (?job=<job id>), its back arrow returns to that list.
 
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router";
-import { getHomePath, PATHS, PROFILE_FROM_NEARBY, PROFILE_FROM_PARAM } from "../../app/paths";
+import { generatePath, useParams, useSearchParams } from "react-router";
+import { useProviderProfile } from "../../api/providers";
+import type { ProviderProfile, Role } from "../../api/types";
+import { getHomePath, PATHS, PROFILE_FROM_NEARBY, PROFILE_FROM_PARAM, PROFILE_JOB_PARAM } from "../../app/paths";
 import { IdBadgeChip, TradeChip } from "../../components/Badges";
 import { DescribeJobCard } from "../../components/DescribeJobCard";
+import { LoadError, LoadingNote } from "../../components/LoadState";
 import { EVIDENCE_KEYS, formatSpokenLanguages, ProviderTrust } from "../../components/ProviderCard";
-import { sampleProviderProfile } from "../../dev/samples";
 import { formatDistanceKm } from "../../format";
 import { useCurrentUser } from "../../session/SessionContext";
-import { Avatar, Card, Chip, IconButton, Screen, ScreenHeader, Slot, Stat } from "../../ui";
+import { Avatar, Card, Chip, IconButton, Screen, ScreenHeader, Stat } from "../../ui";
 
-export default function ProviderProfileScreen() {
+/** Where the back arrow goes: the nearby list, the job's ranked list, or the home tab. */
+function getBackPath(searchParams: URLSearchParams, role: Role) {
+  const fromJobId = searchParams.get(PROFILE_JOB_PARAM);
+  if (searchParams.get(PROFILE_FROM_PARAM) === PROFILE_FROM_NEARBY) {
+    return PATHS.nearby;
+  }
+  return fromJobId ? generatePath(PATHS.jobProviders, { jobId: fromJobId }) : getHomePath(role);
+}
+
+/** Who they are, their trust range and their evidence. */
+function ProfileDetails({ provider }: { provider: ProviderProfile }) {
   const { t } = useTranslation();
-  const { role } = useCurrentUser();
-  const [searchParams] = useSearchParams();
-  const isFromNearby = searchParams.get(PROFILE_FROM_PARAM) === PROFILE_FROM_NEARBY;
-  const provider = sampleProviderProfile;
-
   return (
-    <Screen>
-      <ScreenHeader
-        backTo={isFromNearby ? PATHS.nearby : getHomePath(role)}
-        actions={<IconButton icon="share" label={t("profile.share")} />}
-        eyebrow={`${provider.suburb} · ${formatDistanceKm(provider.distance_km)}`}
-        title={provider.display_name}
-      />
+    <>
 
       <Card tone="raised">
         <div className="row row--nowrap">
@@ -61,9 +63,30 @@ export default function ProviderProfileScreen() {
           </Card>
         ))}
       </div>
+    </>
+  );
+}
 
-      <Slot label="before/after work photos, vouches, report button" source="contract gap: the profile has no photo list yet" minHeightPx={120} />
+export default function ProviderProfileScreen() {
+  const { t } = useTranslation();
+  const { role } = useCurrentUser();
+  const { providerId = "" } = useParams();
+  const [searchParams] = useSearchParams();
+  const isFromNearby = searchParams.get(PROFILE_FROM_PARAM) === PROFILE_FROM_NEARBY;
+  const profile = useProviderProfile(providerId);
+  const provider = profile.data;
 
+  return (
+    <Screen>
+      <ScreenHeader
+        backTo={getBackPath(searchParams, role)}
+        actions={<IconButton icon="share" label={t("profile.share")} />}
+        eyebrow={provider && `${provider.suburb} · ${formatDistanceKm(provider.distance_km)}`}
+        title={provider?.display_name ?? t("role.provider")}
+      />
+      {profile.isPending && <LoadingNote />}
+      {profile.isError && <LoadError error={profile.error} onRetry={() => profile.refetch()} />}
+      {provider && <ProfileDetails provider={provider} />}
       {isFromNearby && role === "customer" && <DescribeJobCard hint={t("nearby.describeHint")} />}
     </Screen>
   );
