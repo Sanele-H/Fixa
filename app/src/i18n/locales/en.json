@@ -122,7 +122,9 @@
     "photoAdding": "Adding your photo…",
     "photoAlt": "Your photo of the problem",
     "removePhoto": "Remove photo",
-    "licensedOnly": "Only licensed providers (the law requires it for some work)"
+    "licensedOnly": "Only licensed providers (the law requires it for some work)",
+    "directionsLabel": "Directions for the provider (optional)",
+    "directionsHint": "Gate code, landmark, which door to use…"
   },
   "providers": {
     "title": "Who can help",
@@ -184,6 +186,8 @@
     "lockedBody": "Phone numbers and the address unlock when the provider confirms the job.",
     "unlockedTitle": "Contact details",
     "address": "Address",
+    "directions": "Directions",
+    "getDirections": "Get directions",
     "customerPhone": "Customer's phone",
     "providerPhone": "Provider's phone"
   },

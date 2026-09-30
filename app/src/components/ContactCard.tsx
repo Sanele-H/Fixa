@@ -3,7 +3,7 @@
 
 import { useTranslation } from "react-i18next";
 import { isJobUnlocked, type JobPublic, type JobUnlocked } from "../api/types";
-import { Card, Icon } from "../ui";
+import { Card, Icon, Button } from "../ui";
 
 /** Widths of the grey bars standing in for the hidden details. */
 const REDACTED_LINE_WIDTHS = ["72%", "48%", "56%"];
@@ -11,6 +11,11 @@ const REDACTED_LINE_WIDTHS = ["72%", "48%", "56%"];
 /** Strips spaces so "082 000 0001" works in a tel: link. */
 function buildPhoneHref(phone: string) {
   return `tel:${phone.replace(/\s/g, "")}`;
+}
+
+/** Opens Google Maps directions to the job's address. */
+function buildMapsUrl(address: string) {
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
 }
 
 /** Black card: details exist but stay hidden until the provider confirms. */
@@ -46,6 +51,12 @@ function UnlockedContactCard({ job }: { job: JobUnlocked }) {
           <dt className="eyebrow">{t("contact.address")}</dt>
           <dd>{job.address}</dd>
         </div>
+        {job.directions && (
+          <div>
+            <dt className="eyebrow">{t("contact.directions")}</dt>
+            <dd>{job.directions}</dd>
+          </div>
+        )}
         <div>
           <dt className="eyebrow">{t("contact.customerPhone")}</dt>
           <dd>
@@ -59,6 +70,11 @@ function UnlockedContactCard({ job }: { job: JobUnlocked }) {
           </dd>
         </div>
       </dl>
+      <a href={buildMapsUrl(job.address)} target="_blank" rel="noopener noreferrer">
+        <Button variant="secondary" isBlock icon="mapPin">
+          {t("contact.getDirections")}
+        </Button>
+      </a>
     </Card>
   );
 }

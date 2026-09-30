@@ -74,6 +74,7 @@ export type JobPublic = {
 /** Only the job's customer and its confirmed provider ever receive this. */
 export type JobUnlocked = JobPublic & {
   address: string;
+  directions: string | null;
   customer_phone: string;
   provider_phone: string;
   provider_photo_url: string | null;

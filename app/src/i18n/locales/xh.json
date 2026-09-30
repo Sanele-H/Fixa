@@ -123,7 +123,9 @@
     "photoAdding": "Ifaka umfanekiso wakho…",
     "photoAlt": "Umfanekiso wakho wengxaki",
     "removePhoto": "Susa umfanekiso",
-    "licensedOnly": "Abakhi abanamaphepha-mvume kuphela (umthetho uyafundeka kuyo imisebenzi ethile)"
+    "licensedOnly": "Abakhi abanamaphepha-mvume kuphela (umthetho uyafundeka kuyo imisebenzi ethile)",
+    "directionsLabel": "Izikhokelo zomsebenzi (ngokuzithandela)",
+    "directionsHint": "Ikhowudi yesango, indawo ephawulekayo, ucango olumele lusetyenziswe…"
   },
   "providers": {
     "title": "Ngubani onganceda",
@@ -185,6 +187,8 @@
     "lockedBody": "Iinambolo zefowuni nedilesi zivuleka xa umkhi eqinisekisa umsebenzi.",
     "unlockedTitle": "Iinkcukacha zakho zokunxibelelana",
     "address": "Idilesi",
+    "directions": "Izikhokelo",
+    "getDirections": "Fumana izikhokelo",
     "customerPhone": "Ifowuni yomthengi",
     "providerPhone": "Ifowuni yomkhi"
   },

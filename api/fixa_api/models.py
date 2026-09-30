@@ -86,6 +86,7 @@ class Job(SQLModel, table=True):
     lng: float
     problem: str
     problem_lang: str
+    directions: str | None = None  # free-text hints for the provider; only sent in JobUnlocked
     photo_url: str | None = None
     created_at: dt.datetime = Field(sa_type=UtcDateTime)
     finished_on: dt.date | None = None

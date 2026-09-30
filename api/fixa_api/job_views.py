@@ -102,6 +102,7 @@ def job_view(session: Session, job: Job, viewer: Customer | Provider) -> dict[st
         customer = session.get(Customer, job.customer_id)
         provider = session.get(Provider, job.provider_id)
         view["address"] = job.address
+        view["directions"] = job.directions
         view["customer_phone"] = customer.phone
         view["provider_phone"] = provider.phone
         view["provider_photo_url"] = None  # provider photos arrive with the photos endpoint

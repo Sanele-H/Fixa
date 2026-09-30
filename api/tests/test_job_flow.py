@@ -11,7 +11,7 @@ PLUMBER_2 = "071 000 0002"  # prov_002
 PLUMBER_3 = "071 000 0003"  # prov_003
 ELECTRICIAN = "071 000 0006"  # prov_006
 
-CONTACT_FIELDS = {"address", "customer_phone", "provider_phone", "provider_photo_url"}
+CONTACT_FIELDS = {"address", "directions", "customer_phone", "provider_phone", "provider_photo_url"}
 QUOTE_TIME = "2026-10-01T10:00:00+02:00"
 
 
@@ -423,3 +423,54 @@ def test_listed_jobs_keep_the_details_locked_until_confirmed(seeded_client, plum
 
 def test_listing_jobs_needs_a_signed_in_user(seeded_client):
     assert seeded_client.get("/api/jobs").status_code == 401
+
+
+# --- Directions ---
+
+
+def test_job_stores_and_returns_directions_when_unlocked(
+    seeded_client, lindiwe, plumber
+):
+    """Directions travel with the job and show in JobUnlocked, never in JobPublic."""
+    response = new_job(
+        seeded_client,
+        lindiwe,
+        directions="Blue gate, ring the bell",
+    )
+    job_id = response.json()["id"]
+    assert "directions" not in response.json()  # JobPublic has no directions
+
+    # Quote, accept, confirm to unlock
+    quote_id = send_quote(seeded_client, plumber, job_id).json()["id"]
+    seeded_client.post(f"/api/quotes/{quote_id}/accept", headers=lindiwe)
+    unlocked = seeded_client.post(
+        f"/api/jobs/{job_id}/confirm", headers=plumber
+    ).json()
+    assert unlocked["directions"] == "Blue gate, ring the bell"
+
+
+def test_directions_are_stripped_of_phone_numbers(seeded_client, lindiwe, plumber):
+    """A phone number in directions is hidden before storing, same as the problem text."""
+    job_id = new_job(
+        seeded_client,
+        lindiwe,
+        directions="Gate code 1234, call 082 555 0199 if no answer",
+    ).json()["id"]
+    quote_id = send_quote(seeded_client, plumber, job_id).json()["id"]
+    seeded_client.post(f"/api/quotes/{quote_id}/accept", headers=lindiwe)
+    unlocked = seeded_client.post(
+        f"/api/jobs/{job_id}/confirm", headers=plumber
+    ).json()
+    assert "082 555 0199" not in (unlocked["directions"] or "")
+    assert "Gate code 1234" in unlocked["directions"]
+
+
+def test_job_without_directions_returns_null(seeded_client, lindiwe, plumber):
+    """A job posted without directions has directions: null in JobUnlocked."""
+    job_id = new_job(seeded_client, lindiwe).json()["id"]
+    quote_id = send_quote(seeded_client, plumber, job_id).json()["id"]
+    seeded_client.post(f"/api/quotes/{quote_id}/accept", headers=lindiwe)
+    unlocked = seeded_client.post(
+        f"/api/jobs/{job_id}/confirm", headers=plumber
+    ).json()
+    assert unlocked["directions"] is None

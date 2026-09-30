@@ -159,6 +159,7 @@ export default function NewJobScreen() {
   const [description, setDescription] = useState(getStoredNewJobDraft);
   const [details, setDetails] = useState<JobDetails | null>(null);
   const [needsLicence, setNeedsLicence] = useState(false);
+  const [directions, setDirections] = useState("");
   const understandJob = useUnderstandJob();
   const createJob = useCreateJob();
   const jobPhoto = useJobPhoto();
@@ -191,6 +192,7 @@ export default function NewJobScreen() {
       suburb: me.suburb,
       photo_id: jobPhoto.photo?.photo_id,
       needs_licence: needsLicence || undefined,
+      directions: directions.trim() || undefined,
     };
     createJob.mutate(newJob, {
       onSuccess: (job) => {
@@ -230,6 +232,12 @@ export default function NewJobScreen() {
             <input type="checkbox" checked={needsLicence} onChange={(event) => setNeedsLicence(event.target.checked)} />
             {t("newJob.licensedOnly")}
           </label>
+          <TextArea
+            label={t("newJob.directionsLabel")}
+            placeholder={t("newJob.directionsHint")}
+            value={directions}
+            onChange={(event) => setDirections(event.target.value)}
+          />
           <PhotoPicker {...jobPhoto} />
         </>
       )}

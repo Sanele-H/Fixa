@@ -48,6 +48,17 @@ QUOTE_MESSAGES = [
     "I can fix it this week.",
     "The price includes parts.",
 ]
+DIRECTIONS_CHANCE = 0.3  # about one in three jobs has directions for the provider
+DIRECTIONS_OPTIONS = [
+    "Blue gate, ring the bell",
+    "Complex entrance on Main Road, flat 4B",
+    "Gate code 1234",
+    "Use the back door, next to the spaza",
+    "Corner house with a red wall",
+    "Call when you arrive, the gate is locked",
+    "Third house from the corner, white palisade",
+    "Security gate, intercom on the right",
+]
 
 
 def add_random_past_jobs(
@@ -173,6 +184,7 @@ def create_job(
         "lng": customer["lng"],
         "problem": task.problem,
         "problem_lang": PROBLEM_LANGUAGE,
+        "directions": pick(rng, DIRECTIONS_OPTIONS) if rng.random() < DIRECTIONS_CHANCE else None,
         "photo_url": None,
         "created_at": format_timestamp(created_on, pick_working_hour(rng)),
         "finished_on": None,

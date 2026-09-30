@@ -258,6 +258,7 @@ def create_demo_job() -> dict:
         "lng": longitude,
         "problem": "My geyser is leaking through the ceiling",
         "problem_lang": "en",
+        "directions": "Blue gate, ring the bell",
         "photo_url": None,
         "created_at": "2026-09-29T08:00:00+02:00",
         "finished_on": None,
