@@ -389,6 +389,7 @@
     "trusted": "Share with someone I trust",
     "title": "Fixa job with {{name}}",
     "text": "Fixa job details: {{name}} is coming to {{suburb}} on {{time}}.",
-    "copied": "Link copied to clipboard"
+    "textNoTime": "Fixa job details: {{name}} is coming to {{suburb}}.",
+    "copied": "Details copied. Paste them in a message."
   }
 }

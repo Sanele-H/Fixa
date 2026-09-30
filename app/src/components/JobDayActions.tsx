@@ -8,50 +8,63 @@ import { useCheckIn, useCheckOut, useFinishJob } from "../api/lifecycle";
 import { useJobQuotes } from "../api/jobs";
 import { useProviderProfile } from "../api/providers";
 import type { JobPublic, JobUnlocked } from "../api/types";
-import { formatDate, formatDateTime } from "../format";
-import { Banner, Button, Card } from "../ui";
+import { getCameraPath } from "../app/paths";
+import { formatDateTime } from "../format";
+import { shareText, type ShareOutcome } from "../share";
+import { Banner, Button, ButtonLink, Card } from "../ui";
 import { ErrorBanner } from "./ErrorBanner";
 import { VouchForm } from "./VouchForm";
 
 type Job = JobPublic | JobUnlocked;
 
-/** Button allowing the customer to share details of a confirmed job with someone they trust. */
-function ShareTrustedButton({ job, providerName, quoteWhen }: { job: Job; providerName: string; quoteWhen?: string }) {
+type ShareTrustedButtonProps = {
+  job: Job;
+  providerName: string;
+  /** When the provider said they'd come (the accepted quote's time), if we know it. */
+  arrivalTime?: string;
+};
+
+/**
+ * Lets the customer send who is coming, to which suburb and when, to someone they trust.
+ * It sends text only, no link: the job page needs the customer's login, and the provider's
+ * public record page only exists once the provider chooses to share it. With no arrival time
+ * the message leaves the time out rather than guess one.
+ */
+function ShareTrustedButton({ job, providerName, arrivalTime }: ShareTrustedButtonProps) {
   const { t, i18n } = useTranslation();
-  const [copied, setCopied] = useState(false);
+  const [shareOutcome, setShareOutcome] = useState<ShareOutcome | null>(null);
 
-  const formattedTime = quoteWhen ? formatDateTime(quoteWhen, i18n.language) : formatDate(job.created_at, i18n.language);
-
-  const handleShare = async () => {
-    const text = t("share.text", {
-      name: providerName,
-      suburb: job.suburb,
-      time: formattedTime,
-    });
-    const title = t("share.title", { name: providerName });
-    const url = window.location.href;
-
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share({ title, text, url });
-      } catch {
-        // User cancelled share
-      }
-    } else if (typeof navigator !== "undefined" && navigator.clipboard) {
-      try {
-        await navigator.clipboard.writeText(`${text}\n${url}`);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 3000);
-      } catch {
-        // Clipboard error
-      }
+  /** Builds the message and hands it to the share sheet, or copies it. */
+  async function shareJobDetails() {
+    const details = { name: providerName, suburb: job.suburb };
+    const text = arrivalTime
+      ? t("share.text", { ...details, time: formatDateTime(arrivalTime, i18n.language) })
+      : t("share.textNoTime", details);
+    try {
+      setShareOutcome(await shareText(text, t("share.title", { name: providerName })));
+    } catch {
+      // No share sheet and the clipboard is blocked: there's nothing more the button can do.
+      setShareOutcome(null);
     }
-  };
+  }
 
   return (
-    <Button variant="secondary" isBlock icon="share" onClick={handleShare}>
-      {copied ? t("share.copied") : t("share.trusted")}
-    </Button>
+    <>
+      <Button variant="secondary" isBlock icon="share" onClick={shareJobDetails}>
+        {t("share.trusted")}
+      </Button>
+      {shareOutcome === "copied" && <Banner tone="info" title={t("share.copied")} />}
+    </>
+  );
+}
+
+/** Opens the camera for a before or after photo, stamped with this job's suburb. */
+function TakePhotoLink({ job }: { job: Job }) {
+  const { t } = useTranslation();
+  return (
+    <ButtonLink to={getCameraPath(job.id, job.suburb)} variant="secondary" isBlock icon="camera">
+      {t("camera.title")}
+    </ButtonLink>
   );
 }
 
@@ -70,6 +83,7 @@ export function ProviderDayActions({ job }: { job: Job }) {
         <Button isBlock onClick={() => checkIn.mutate(job.id)} disabled={checkIn.isPending}>
           {t("lifecycle.checkIn")}
         </Button>
+        <TakePhotoLink job={job} />
       </Card>
     );
   }
@@ -86,6 +100,7 @@ export function ProviderDayActions({ job }: { job: Job }) {
             {t("lifecycle.checkOut")}
           </Button>
         )}
+        <TakePhotoLink job={job} />
       </Card>
     );
   }
@@ -131,7 +146,7 @@ export function CustomerDayActions({ job }: { job: Job }) {
             </Button>
           )}
         </Card>
-        <ShareTrustedButton job={job} providerName={providerName} quoteWhen={acceptedQuote?.when} />
+        <ShareTrustedButton job={job} providerName={providerName} arrivalTime={acceptedQuote?.when} />
       </div>
     );
   }
@@ -139,7 +154,7 @@ export function CustomerDayActions({ job }: { job: Job }) {
     return (
       <>
         {job.state === "done" && <Banner tone="info" title={t("lifecycle.followUpSoon")} />}
-        <ShareTrustedButton job={job} providerName={providerName} quoteWhen={acceptedQuote?.when} />
+        <ShareTrustedButton job={job} providerName={providerName} arrivalTime={acceptedQuote?.when} />
         <VouchForm providerId={pickedProviderId} providerName={providerName} />
       </>
     );

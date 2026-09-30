@@ -390,6 +390,7 @@
     "trusted": "Yabelana nomntu endimthembayo",
     "title": "Umsebenzi we-Fixa ka-{{name}}",
     "text": "Iinkcukacha zomsebenzi we-Fixa: U-{{name}} uza e-{{suburb}} ngo-{{time}}.",
-    "copied": "Link ikopishiwe"
+    "textNoTime": "Iinkcukacha zomsebenzi we-Fixa: U-{{name}} uza e-{{suburb}}.",
+    "copied": "Iinkcukacha zikhutshelwe. Zincamathisele kumyalezo."
   }
 }

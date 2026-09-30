@@ -2,14 +2,14 @@
 // the image (never GPS), shrinks it and uploads. There's no endpoint yet to attach a photo
 // to a job as "before" or "after" — stop after the upload works and show the photo_id.
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router";
-import { getErrorMessageKey } from "../../api/errors";
+import { generatePath, useSearchParams } from "react-router";
 import { useUploadPhoto } from "../../api/photos";
 import type { Photo } from "../../api/types";
-import { PATHS } from "../../app/paths";
+import { CAMERA_JOB_PARAM, CAMERA_SUBURB_PARAM, PATHS } from "../../app/paths";
 import { ErrorBanner } from "../../components/ErrorBanner";
+import { formatDateTime } from "../../format";
 import { shrinkPhoto } from "../../shrinkPhoto";
 import { Banner, Button, Card, Screen, ScreenHeader } from "../../ui";
 
@@ -17,6 +17,9 @@ import { Banner, Button, Card, Screen, ScreenHeader } from "../../ui";
 const STAMP_FONT_RATIO = 0.03;
 const STAMP_PADDING_RATIO = 0.015;
 const STAMP_BAR_HEIGHT_RATIO = 0.07;
+const STAMP_BAR_COLOUR = "rgba(0, 0, 0, 0.55)";
+const STAMP_TEXT_COLOUR = "#ffffff";
+const JPEG_QUALITY = 0.9;
 
 /** Opens the rear camera. Audio is off because we only need a still frame. */
 async function openRearCamera(): Promise<MediaStream> {
@@ -29,8 +32,9 @@ async function openRearCamera(): Promise<MediaStream> {
 /**
  * Draws the video frame onto a canvas, then overlays a translucent bar with the capture time
  * and the suburb. No GPS coordinates are written; the server also strips EXIF on its side.
+ * Rejects when the browser can't turn the canvas into a JPEG.
  */
-function captureFrame(video: HTMLVideoElement, suburb: string): Promise<Blob> {
+function captureFrame(video: HTMLVideoElement, captureTimeText: string, suburb: string): Promise<Blob> {
   const canvas = document.createElement("canvas");
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
@@ -42,19 +46,18 @@ function captureFrame(video: HTMLVideoElement, suburb: string): Promise<Blob> {
   // Stamp bar at the bottom
   const barHeight = Math.round(canvas.height * STAMP_BAR_HEIGHT_RATIO);
   const barY = canvas.height - barHeight;
-  ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+  ctx.fillStyle = STAMP_BAR_COLOUR;
   ctx.fillRect(0, barY, canvas.width, barHeight);
 
   // Stamp text
   const fontSize = Math.round(canvas.width * STAMP_FONT_RATIO);
   const padding = Math.round(canvas.width * STAMP_PADDING_RATIO);
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = STAMP_TEXT_COLOUR;
   ctx.font = `${fontSize}px sans-serif`;
   ctx.textBaseline = "middle";
 
   const textY = barY + barHeight / 2;
-  const timestamp = new Date().toLocaleString();
-  ctx.fillText(timestamp, padding, textY);
+  ctx.fillText(captureTimeText, padding, textY);
 
   const suburbText = suburb.trim();
   if (suburbText) {
@@ -66,7 +69,7 @@ function captureFrame(video: HTMLVideoElement, suburb: string): Promise<Blob> {
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error("Canvas couldn't produce an image"))),
       "image/jpeg",
-      0.9,
+      JPEG_QUALITY,
     );
   });
 }
@@ -76,90 +79,101 @@ function stopStream(stream: MediaStream | null) {
   stream?.getTracks().forEach((track) => track.stop());
 }
 
+/**
+ * A temporary URL for showing a photo that's only in memory, freed when the photo changes or
+ * the screen closes. Null while there's no photo.
+ */
+function useObjectUrl(blob: Blob | null) {
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!blob) {
+      setObjectUrl(null);
+      return;
+    }
+    const newObjectUrl = URL.createObjectURL(blob);
+    setObjectUrl(newObjectUrl);
+    return () => URL.revokeObjectURL(newObjectUrl);
+  }, [blob]);
+
+  return objectUrl;
+}
+
 type CameraState = "starting" | "ready" | "error";
 
 /** The live camera preview, capture, and upload flow. */
 function CameraView({ suburb, backTo }: { suburb: string; backTo: string }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
   const [cameraState, setCameraState] = useState<CameraState>("starting");
   const [capturedBlob, setCapturedBlob] = useState<Blob | null>(null);
   const [uploadedPhoto, setUploadedPhoto] = useState<Photo | null>(null);
+  const [hasCaptureFailed, setHasCaptureFailed] = useState(false);
   const uploadPhoto = useUploadPhoto();
+  const capturedPhotoUrl = useObjectUrl(capturedBlob);
+  const isPreviewing = capturedBlob === null;
 
-  // Open the camera when the screen mounts, and close it when leaving
+  // The camera is open exactly while the live preview is on screen: on arrival and after each
+  // retake. The <video> exists by the time this runs, because the preview rendered first.
   useEffect(() => {
-    let cancelled = false;
+    if (!isPreviewing) {
+      return;
+    }
+    let isCancelled = false;
+    let stream: MediaStream | null = null;
 
     async function startCamera() {
       try {
-        const stream = await openRearCamera();
-        if (cancelled) {
+        stream = await openRearCamera();
+        if (isCancelled) {
           stopStream(stream);
           return;
         }
-        streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           await videoRef.current.play();
         }
-        setCameraState("ready");
+        if (!isCancelled) setCameraState("ready");
       } catch {
-        if (!cancelled) setCameraState("error");
+        if (!isCancelled) setCameraState("error");
       }
     }
 
     startCamera();
     return () => {
-      cancelled = true;
-      stopStream(streamRef.current);
-      streamRef.current = null;
+      isCancelled = true;
+      stopStream(stream);
     };
-  }, []);
+  }, [isPreviewing]);
 
-  /** Freezes the current frame with the stamp, then hands it to the uploader. */
-  const handleCapture = useCallback(async () => {
-    if (!videoRef.current) return;
-    stopStream(streamRef.current);
-    streamRef.current = null;
+  /**
+   * Stamps the current frame and starts the upload. The frame is drawn while the camera is
+   * still running; leaving the preview then closes the camera. If the frame can't be made,
+   * the preview stays open so the person can try again.
+   */
+  async function capturePhoto() {
+    const video = videoRef.current;
+    if (!video || video.videoWidth === 0) return;
+    setHasCaptureFailed(false);
 
     try {
-      const blob = await captureFrame(videoRef.current, suburb);
-      const shrunk = await shrinkPhoto(blob).catch(() => blob);
-      setCapturedBlob(shrunk);
-      uploadPhoto.mutate(shrunk, { onSuccess: setUploadedPhoto });
+      const captureTimeText = formatDateTime(new Date().toISOString(), i18n.language);
+      const stampedPhoto = await captureFrame(video, captureTimeText, suburb);
+      const shrunkPhoto = await shrinkPhoto(stampedPhoto).catch(() => stampedPhoto);
+      setCapturedBlob(shrunkPhoto);
+      uploadPhoto.mutate(shrunkPhoto, { onSuccess: setUploadedPhoto });
     } catch {
-      // If capture or shrink fails, restart the camera so the person can try again
-      try {
-        const stream = await openRearCamera();
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
-        }
-      } catch {
-        setCameraState("error");
-      }
+      setHasCaptureFailed(true);
     }
-  }, [suburb, uploadPhoto]);
+  }
 
-  /** Discards the captured frame and restarts the camera. */
-  async function handleRetake() {
-    setCapturedBlob(null);
-    setUploadedPhoto(null);
+  /** Discards the captured photo and goes back to the live preview, which reopens the camera. */
+  function retakePhoto() {
     uploadPhoto.reset();
-    try {
-      const stream = await openRearCamera();
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-      setCameraState("ready");
-    } catch {
-      setCameraState("error");
-    }
+    setUploadedPhoto(null);
+    setHasCaptureFailed(false);
+    setCameraState("starting");
+    setCapturedBlob(null);
   }
 
   // Camera couldn't start: show the reason and a way back
@@ -184,7 +198,7 @@ function CameraView({ suburb, backTo }: { suburb: string; backTo: string }) {
           <p className="small">{t("camera.photoId", { id: uploadedPhoto.photo_id })}</p>
         </Card>
         <img className="job-photo" src={uploadedPhoto.url} alt={t("camera.uploaded")} />
-        <Button variant="secondary" isBlock onClick={handleRetake}>
+        <Button variant="secondary" isBlock onClick={retakePhoto}>
           {t("camera.retake")}
         </Button>
       </Screen>
@@ -192,18 +206,14 @@ function CameraView({ suburb, backTo }: { suburb: string; backTo: string }) {
   }
 
   // Captured but still uploading
-  if (capturedBlob) {
+  if (!isPreviewing) {
     return (
       <Screen>
         <ScreenHeader backTo={backTo} title={t("camera.title")} />
-        <img
-          className="job-photo"
-          src={URL.createObjectURL(capturedBlob)}
-          alt={t("camera.uploaded")}
-        />
+        {capturedPhotoUrl && <img className="job-photo" src={capturedPhotoUrl} alt={t("camera.uploaded")} />}
         {uploadPhoto.isPending && <p className="small muted">{t("camera.uploading")}</p>}
         {uploadPhoto.isError && <ErrorBanner error={uploadPhoto.error} />}
-        <Button variant="secondary" isBlock onClick={handleRetake} disabled={uploadPhoto.isPending}>
+        <Button variant="secondary" isBlock onClick={retakePhoto} disabled={uploadPhoto.isPending}>
           {t("camera.retake")}
         </Button>
       </Screen>
@@ -220,7 +230,8 @@ function CameraView({ suburb, backTo }: { suburb: string; backTo: string }) {
           <p className="camera-preview__loading">{t("app.loading")}</p>
         )}
       </div>
-      <Button isBlock icon="camera" onClick={handleCapture} disabled={cameraState !== "ready"}>
+      {hasCaptureFailed && <Banner tone="warning" title={t("errors.generic")} />}
+      <Button isBlock icon="camera" onClick={capturePhoto} disabled={cameraState !== "ready"}>
         {t("camera.capture")}
       </Button>
     </Screen>
@@ -228,12 +239,11 @@ function CameraView({ suburb, backTo }: { suburb: string; backTo: string }) {
 }
 
 export default function CameraScreen() {
-  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
-  const suburb = searchParams.get("suburb") ?? "";
-  const jobId = searchParams.get("jobId");
+  const suburb = searchParams.get(CAMERA_SUBURB_PARAM) ?? "";
+  const jobId = searchParams.get(CAMERA_JOB_PARAM);
   // Return to the job screen if opened from one, otherwise to the feed
-  const backTo = jobId ? `/jobs/${encodeURIComponent(jobId)}` : PATHS.feed;
+  const backTo = jobId ? generatePath(PATHS.job, { jobId }) : PATHS.feed;
 
   return <CameraView suburb={suburb} backTo={backTo} />;
 }

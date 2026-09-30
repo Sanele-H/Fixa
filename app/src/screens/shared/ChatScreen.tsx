@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { generatePath, useParams, useSearchParams } from "react-router";
-import { getErrorCode } from "../../api/errors";
+import { getErrorCode, isRetryableError, REFUSAL_ERROR_CODES } from "../../api/errors";
 import { useMessages, useSendMessage } from "../../api/chat";
 import { ErrorBanner } from "../../components/ErrorBanner";
 import { useProviderProfile } from "../../api/providers";
@@ -22,10 +22,12 @@ const TRANSLATE_CHOICE_STORAGE_PREFIX = "fixa.translateChat.";
 const TRANSLATE_CHOICE_ON = "on";
 const DRAFT_CHAT_STORAGE_PREFIX = "fixa.draft.chat.";
 
+/** Where a thread's unsent text is kept: one per job, and per provider for a customer. */
 function getChatDraftKey(jobId: string, providerId?: string) {
   return DRAFT_CHAT_STORAGE_PREFIX + jobId + (providerId ? "." + providerId : "");
 }
 
+/** The thread's unsent text from last time, or "" (also when storage is blocked). */
 function getStoredChatDraft(jobId: string, providerId?: string): string {
   try {
     return localStorage.getItem(getChatDraftKey(jobId, providerId)) ?? "";
@@ -34,6 +36,7 @@ function getStoredChatDraft(jobId: string, providerId?: string): string {
   }
 }
 
+/** Keeps the thread's unsent text; blank text removes the draft. Fails quietly if storage is blocked. */
 function updateStoredChatDraft(jobId: string, providerId: string | undefined, text: string) {
   try {
     if (text.trim()) {
@@ -41,14 +44,6 @@ function updateStoredChatDraft(jobId: string, providerId: string | undefined, te
     } else {
       localStorage.removeItem(getChatDraftKey(jobId, providerId));
     }
-  } catch {
-    // Ignore storage failure
-  }
-}
-
-function clearStoredChatDraft(jobId: string, providerId?: string) {
-  try {
-    localStorage.removeItem(getChatDraftKey(jobId, providerId));
   } catch {
     // Ignore storage failure
   }
@@ -98,19 +93,49 @@ function findTranslatePromptId(messages: Message[], myId: string, appLanguage: L
   return otherLanguageMessages.at(-1)?.id;
 }
 
+/** A message I sent that the server hasn't got yet: on its way, or waiting to be retried. */
 type PendingMessage = {
-  tempId: string;
+  pendingId: string;
   text: string;
+  /** The provider this thread is with, when a customer writes. */
   providerId?: string;
   status: "sending" | "failed";
-  error?: unknown;
 };
+
+let pendingMessageCount = 0;
+
+/** A key for a pending message, unique on this page. */
+function createPendingId() {
+  pendingMessageCount += 1;
+  return `pending-${pendingMessageCount}`;
+}
+
+/** A message of mine the server hasn't got yet: faded while sending, with a retry button once it failed. */
+function PendingBubble({ pendingMessage, onRetry }: { pendingMessage: PendingMessage; onRetry: (pendingMessage: PendingMessage) => void }) {
+  const { t } = useTranslation();
+  const isSending = pendingMessage.status === "sending";
+  return (
+    <article className={isSending ? "bubble bubble--mine bubble--pending" : "bubble bubble--mine"}>
+      <p>{pendingMessage.text}</p>
+      <footer className="bubble__meta">
+        {isSending ? (
+          <span>{t("app.loading")}</span>
+        ) : (
+          <button type="button" className="chip chip--warning bubble__retry" onClick={() => onRetry(pendingMessage)}>
+            {t("chat.notSentYet")} · {t("chat.tapToRetry")}
+          </button>
+        )}
+      </footer>
+    </article>
+  );
+}
 
 type MessageListProps = {
   jobId: string;
   providerId: string | undefined;
+  /** Only this thread's pending messages. */
   pendingMessages: PendingMessage[];
-  onRetryPending: (msg: PendingMessage) => void;
+  onRetryPending: (pendingMessage: PendingMessage) => void;
 };
 
 /** The thread, oldest first, scrolled to the newest message, with the translate prompt. */
@@ -149,35 +174,8 @@ function MessageList({ jobId, providerId, pendingMessages, onRetryPending }: Mes
           onTranslate={message.id === translatePromptId ? startTranslating : undefined}
         />
       ))}
-      {pendingMessages.map((pendingMsg) => (
-        <article
-          key={pendingMsg.tempId}
-          className="bubble bubble--mine"
-          style={{
-            opacity: pendingMsg.status === "sending" ? 0.7 : 1,
-            cursor: pendingMsg.status === "failed" ? "pointer" : "default",
-          }}
-          onClick={pendingMsg.status === "failed" ? () => onRetryPending(pendingMsg) : undefined}
-        >
-          <p>{pendingMsg.text}</p>
-          <footer className="bubble__meta" style={{ justifyContent: "space-between", alignItems: "center" }}>
-            {pendingMsg.status === "sending" ? (
-              <span className="muted">{t("app.loading")}</span>
-            ) : (
-              <span
-                style={{
-                  background: "var(--color-warning-bg, #fff3cd)",
-                  color: "var(--color-warning-text, #856404)",
-                  padding: "2px 6px",
-                  borderRadius: "4px",
-                  fontSize: "var(--text-xs)",
-                }}
-              >
-                {t("chat.notSentYet")} • {t("chat.tapToRetry")}
-              </span>
-            )}
-          </footer>
-        </article>
+      {pendingMessages.map((pendingMessage) => (
+        <PendingBubble key={pendingMessage.pendingId} pendingMessage={pendingMessage} onRetry={onRetryPending} />
       ))}
       <div ref={endRef} />
     </>
@@ -185,34 +183,23 @@ function MessageList({ jobId, providerId, pendingMessages, onRetryPending }: Mes
 }
 
 type ComposerProps = {
-  jobId: string;
-  providerId: string | undefined;
-  onSendText: (text: string) => void;
+  text: string;
+  onChangeText: (text: string) => void;
+  onSend: () => void;
   isSending: boolean;
 };
 
-/** The box at the bottom. Clears once the message is sent; a refused message shows why. */
-function Composer({ jobId, providerId, onSendText, isSending }: ComposerProps) {
+/** The box at the bottom. The screen owns its text, so a failed message can be put back in it. */
+function Composer({ text, onChangeText, onSend, isSending }: ComposerProps) {
   const { t } = useTranslation();
-  const [text, setText] = useState(() => getStoredChatDraft(jobId, providerId));
 
-  useEffect(() => {
-    setText(getStoredChatDraft(jobId, providerId));
-  }, [jobId, providerId]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setText(val);
-    updateStoredChatDraft(jobId, providerId, val);
-  };
-
-  const send = (event: FormEvent<HTMLFormElement>) => {
+  /** Sends what's typed, unless the box is empty or a message is still on its way. */
+  function send(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!text.trim() || isSending) return;
-    onSendText(text.trim());
-    setText("");
-    clearStoredChatDraft(jobId, providerId);
-  };
+    if (text.trim() && !isSending) {
+      onSend();
+    }
+  }
 
   return (
     <form className="composer" onSubmit={send}>
@@ -225,7 +212,7 @@ function Composer({ jobId, providerId, onSendText, isSending }: ComposerProps) {
         placeholder={t("chat.placeholder")}
         autoComplete="off"
         value={text}
-        onChange={handleChange}
+        onChange={(event) => onChangeText(event.target.value)}
       />
       <IconButton
         type="submit"
@@ -260,79 +247,121 @@ export default function ChatScreen() {
   const providerId = me.role === "customer" ? (searchParams.get(CHAT_WITH_PARAM) ?? undefined) : undefined;
   const provider = useProviderProfile(providerId);
 
+  const [draftText, setDraftText] = useState(() => getStoredChatDraft(jobId, providerId));
   const [pendingMessages, setPendingMessages] = useState<PendingMessage[]>([]);
-  const [refusalError, setRefusalError] = useState<unknown | null>(null);
+  const [sendError, setSendError] = useState<unknown>(null);
   const sendMessage = useSendMessage(jobId);
 
-  const attemptSend = async (msg: PendingMessage) => {
-    setPendingMessages((prev) =>
-      prev.map((m) => (m.tempId === msg.tempId ? { ...m, status: "sending", error: undefined } : m))
+  // Each thread keeps its own draft: load it when the customer switches to another provider.
+  useEffect(() => {
+    setDraftText(getStoredChatDraft(jobId, providerId));
+  }, [jobId, providerId]);
+
+  /** Changes the text in the box and keeps it as this thread's draft. */
+  function updateDraft(text: string) {
+    setDraftText(text);
+    updateStoredChatDraft(jobId, providerId, text);
+  }
+
+  /**
+   * Puts an unsent message's text back in the box, so nothing typed is lost. Leaves the box
+   * alone when the person has already started typing something new.
+   */
+  function restoreDraft(pendingMessage: PendingMessage) {
+    setDraftText((currentText) => (currentText.trim() ? currentText : pendingMessage.text));
+    if (!getStoredChatDraft(jobId, pendingMessage.providerId).trim()) {
+      updateStoredChatDraft(jobId, pendingMessage.providerId, pendingMessage.text);
+    }
+  }
+
+  /** Marks a pending message as on its way, or as waiting for a retry. */
+  function updatePendingStatus(pendingId: string, status: PendingMessage["status"]) {
+    setPendingMessages((current) =>
+      current.map((pendingMessage) => (pendingMessage.pendingId === pendingId ? { ...pendingMessage, status } : pendingMessage)),
     );
+  }
+
+  /** Takes a message off the pending list: the server has it, or it can't be sent. */
+  function deletePendingMessage(pendingId: string) {
+    setPendingMessages((current) => current.filter((pendingMessage) => pendingMessage.pendingId !== pendingId));
+  }
+
+  /**
+   * Sends a pending message; it leaves the list once the server has it (the thread then shows
+   * the real one). When trying again could help (no connection, or a server error) it stays
+   * as "Not sent yet" to retry. Otherwise it's dropped and the reason shown, and its text goes
+   * back in the box, except when the server refused the content itself (a prohibited request
+   * or a restricted account), which must not be sent again.
+   */
+  async function attemptSend(pendingMessage: PendingMessage) {
+    updatePendingStatus(pendingMessage.pendingId, "sending");
     try {
-      await sendMessage.mutateAsync({ text: msg.text, provider_id: msg.providerId });
-      setPendingMessages((prev) => prev.filter((m) => m.tempId !== msg.tempId));
-    } catch (err) {
-      if (getErrorCode(err) === "prohibited_request") {
-        setPendingMessages((prev) => prev.filter((m) => m.tempId !== msg.tempId));
-        clearStoredChatDraft(jobId, providerId);
-        setRefusalError(err);
-      } else {
-        setPendingMessages((prev) =>
-          prev.map((m) => (m.tempId === msg.tempId ? { ...m, status: "failed", error: err } : m))
-        );
+      await sendMessage.mutateAsync({ text: pendingMessage.text, provider_id: pendingMessage.providerId });
+      deletePendingMessage(pendingMessage.pendingId);
+    } catch (error) {
+      if (isRetryableError(error)) {
+        updatePendingStatus(pendingMessage.pendingId, "failed");
+        return;
+      }
+      deletePendingMessage(pendingMessage.pendingId);
+      setSendError(error);
+      if (!REFUSAL_ERROR_CODES.includes(getErrorCode(error) ?? "")) {
+        restoreDraft(pendingMessage);
       }
     }
-  };
+  }
 
+  // When the phone gets its connection back, retry every message that couldn't be sent. No
+  // dependency list: re-subscribing each render is cheap, and the handler always sees the
+  // latest pending list.
   useEffect(() => {
-    function handleOnline() {
-      setPendingMessages((prev) => {
-        const failed = prev.filter((m) => m.status === "failed");
-        failed.forEach((m) => attemptSend(m));
-        return prev;
-      });
+    function retryFailedMessages() {
+      pendingMessages
+        .filter((pendingMessage) => pendingMessage.status === "failed")
+        .forEach((pendingMessage) => attemptSend(pendingMessage));
     }
-    window.addEventListener("online", handleOnline);
-    return () => window.removeEventListener("online", handleOnline);
-  }, [jobId, providerId]);
+    window.addEventListener("online", retryFailedMessages);
+    return () => window.removeEventListener("online", retryFailedMessages);
+  });
 
   if (me.role === "customer" && !providerId) {
     return <PickThread jobId={jobId} />;
   }
   const otherPersonName = me.role === "customer" ? (provider.data?.display_name ?? t("role.provider")) : t("role.customer");
+  const threadPendingMessages = pendingMessages.filter((pendingMessage) => pendingMessage.providerId === providerId);
 
-  const handleSendText = (text: string) => {
-    setRefusalError(null);
-    clearStoredChatDraft(jobId, providerId);
-    const tempId = "pending-" + Date.now() + "-" + Math.random().toString(36).substring(2, 6);
-    const newMsg: PendingMessage = { tempId, text, providerId, status: "sending" };
-    setPendingMessages((prev) => [...prev, newMsg]);
-    attemptSend(newMsg);
-  };
+  /** Empties the box and sends what was in it, showing it as pending until the server has it. */
+  function sendDraft() {
+    const pendingMessage: PendingMessage = {
+      pendingId: createPendingId(),
+      text: draftText.trim(),
+      providerId,
+      status: "sending",
+    };
+    setSendError(null);
+    updateDraft("");
+    setPendingMessages((current) => [...current, pendingMessage]);
+    attemptSend(pendingMessage);
+  }
 
   return (
     <main className="chat">
       <div className="screen">
         <ScreenHeader backTo={generatePath(PATHS.job, { jobId })} eyebrow={t("chat.eyebrow")} title={otherPersonName} />
         <Banner tone="info" title={t("chat.privacyNote")} />
-        {refusalError != null && <ErrorBanner error={refusalError} />}
+        {sendError != null && <ErrorBanner error={sendError} />}
       </div>
 
       <section className="chat__messages" aria-live="polite" aria-label={t("chat.messages")}>
         <MessageList
           jobId={jobId}
           providerId={providerId}
-          pendingMessages={pendingMessages}
+          pendingMessages={threadPendingMessages}
           onRetryPending={attemptSend}
         />
       </section>
 
-      <Composer
-        jobId={jobId}
-        providerId={providerId}
-        onSendText={handleSendText}
-        isSending={sendMessage.isPending}
-      />
+      <Composer text={draftText} onChangeText={updateDraft} onSend={sendDraft} isSending={sendMessage.isPending} />
     </main>
   );
 }

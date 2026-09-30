@@ -842,6 +842,19 @@ button.card:active {
   border-bottom-right-radius: var(--space-1);
 }
 
+/* A message of mine that the server hasn't got yet (sending, or waiting for a retry). */
+.bubble--pending {
+  opacity: 0.7;
+}
+
+/* "Not sent yet · Tap to retry" on a pending message: a chip that is also a button. */
+.bubble__retry {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--text-xs);
+}
+
 .bubble__meta {
   display: flex;
   gap: var(--space-3);
