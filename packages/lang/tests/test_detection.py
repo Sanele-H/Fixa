@@ -1,6 +1,7 @@
 """detect_language(): the language a message is really in, whatever the sender's setting says."""
 
 import json
+from collections import OrderedDict
 from pathlib import Path
 
 import pytest
@@ -28,6 +29,12 @@ class ScriptedDetector:
         if self.error:
             raise self.error
         return self.detection
+
+
+@pytest.fixture(autouse=True)
+def empty_detection_cache(monkeypatch):
+    """Each test starts with nothing detected yet."""
+    monkeypatch.setattr("lang.detection._detection_cache", OrderedDict())
 
 
 @pytest.fixture
@@ -109,6 +116,23 @@ def test_a_detector_failure_keeps_the_sender_setting(use_detector):
     use_detector(ScriptedDetector(error=RuntimeError("network down")))
 
     assert detect_language(UNMARKED_ZULU, "xh") == "xh"
+
+
+def test_a_text_is_detected_once_per_sender_setting(use_detector):
+    detector = use_detector(ScriptedDetector(BackendDetection(code="zu", score=0.9)))
+
+    detect_language(UNMARKED_ZULU, "en")
+    detect_language(UNMARKED_ZULU, "en")
+
+    assert len(detector.sent_texts) == 1
+
+
+def test_a_failed_detection_is_tried_again_next_time(use_detector):
+    use_detector(ScriptedDetector(error=RuntimeError("network down")))
+    assert detect_language(UNMARKED_ZULU, "en") == "en"
+
+    use_detector(ScriptedDetector(BackendDetection(code="zu", score=0.9)))
+    assert detect_language(UNMARKED_ZULU, "en") == "zu"
 
 
 def test_values_and_hidden_contacts_never_reach_the_detector(use_detector):

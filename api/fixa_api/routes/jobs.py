@@ -26,6 +26,7 @@ from fixa_api.ranking_inputs import build_candidates, today
 from fixa_api.sms import SmsSender, get_sms_sender, send_safely
 from fixa_api.sms_texts import details_unlocked_messages
 from fixa_api.trades import known_trades
+from lang import detect_language
 from lang import understand_job as read_job_description
 from ranking import JobRequest, rank_providers
 
@@ -128,6 +129,7 @@ def create_job(body: NewJob, customer: CustomerUser, session: DbSession):
     """Post a job. The address and location come from the customer's account and the suburb
     from their home, so whatever suburb the phone sends can't misplace the job."""
     photo_url = attach_photo(session, customer, body.photo_id)
+    problem = safe_text_for(body.description, body.lang)
     job = Job(
         id=new_id("job"),
         customer_id=customer.id,
@@ -141,8 +143,8 @@ def create_job(body: NewJob, customer: CustomerUser, session: DbSession):
         address=customer.address,
         lat=customer.lat,
         lng=customer.lng,
-        problem=safe_text_for(body.description, body.lang),
-        problem_lang=body.lang,
+        problem=problem,
+        problem_lang=detect_language(problem, body.lang),
         photo_url=photo_url,
         created_at=now(),
     )
