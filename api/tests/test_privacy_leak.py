@@ -306,6 +306,11 @@ def test_every_route_is_covered_by_this_test_or_marked_as_not_about_jobs():
         "/api/jobs/{job_id}/confirm",
         "/api/jobs/{job_id}/decline",
         "/api/jobs/{job_id}/cancel",
+        "/api/jobs/{job_id}/check-in",
+        "/api/jobs/{job_id}/check-out",
+        "/api/jobs/{job_id}/done",
+        "/api/jobs/{job_id}/still-working",
+        "/api/follow-ups",
         # carry no job data or contact details
         "/api/health",
         "/api/auth/otp",

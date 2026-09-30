@@ -204,3 +204,16 @@ class Photo(SQLModel, table=True):
     owner_id: str = Field(index=True)
     size_bytes: int
     created_at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+class JobEvent(SQLModel, table=True):
+    """Something that happened on a job: a check-in, a check-out, marking it done, a no-show or
+    the two-week "still working?" answer. A log only, so the job's own row stays as it is."""
+
+    __tablename__ = "job_event"
+
+    id: str = Field(primary_key=True)
+    job_id: str = Field(foreign_key="job.id", index=True)
+    kind: str
+    actor_id: str
+    at: dt.datetime = Field(sa_type=UtcDateTime)
