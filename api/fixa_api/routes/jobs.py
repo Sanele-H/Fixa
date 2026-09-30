@@ -11,6 +11,7 @@ from sqlmodel import Session, or_, select
 
 from fixa_api import job_states as states
 from fixa_api.auth import current_user, require_role
+from fixa_api.blocking import ensure_not_restricted, refuse_if_prohibited
 from fixa_api.db import get_session
 from fixa_api.job_views import (
     can_see_job,
@@ -120,16 +121,20 @@ def job_quotes(session: Session, job_id: str) -> list[Quote]:
 
 
 @router.post("/jobs/understand")
-def understand_job(body: UnderstandRequest, customer: CustomerUser):
+def understand_job(body: UnderstandRequest, customer: CustomerUser, session: DbSession):
     """Suggest a trade, urgency and size from the customer's own words, in any of our languages.
     The customer confirms or changes it before posting."""
-    return read_job_description(body.text, body.lang).model_dump()
+    refuse_if_prohibited(session, customer, body.text, "understand")
+    # A flagged text was refused above, so `prohibited` is always empty here: leave it out to keep
+    # the contract's shape (trade, urgency, size, confidence).
+    return read_job_description(body.text, body.lang).model_dump(exclude={"prohibited"})
 
 
 @router.post("/jobs", status_code=201)
 def create_job(body: NewJob, customer: CustomerUser, session: DbSession):
     """Post a job. The address and location come from the customer's account and the suburb
     from their home, so whatever suburb the phone sends can't misplace the job."""
+    refuse_if_prohibited(session, customer, body.description, "job_post")
     photo_url = attach_photo(session, customer, body.photo_id)
     problem = safe_text_for(body.description, body.lang)
     job = Job(
@@ -205,6 +210,9 @@ def read_feed(provider: ProviderUser, session: DbSession):
 @router.post("/jobs/{job_id}/quotes", status_code=201)
 def create_quote(job_id: str, body: NewQuote, provider: ProviderUser, session: DbSession):
     job = find_job(session, job_id, provider)
+    ensure_not_restricted(session, provider)  # a quote without a note is still publishing
+    if body.message:
+        refuse_if_prohibited(session, provider, body.message, "quote")
     if job.state not in states.OPEN_FOR_QUOTES:
         raise HTTPException(status_code=409, detail="This job is no longer asking for quotes")
     already_open = [

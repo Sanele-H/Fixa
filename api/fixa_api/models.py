@@ -217,3 +217,28 @@ class JobEvent(SQLModel, table=True):
     kind: str
     actor_id: str
     at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+class BlockLog(SQLModel, table=True):
+    """A request the illegal-request check refused, kept for the team to review. The text is
+    what the person wrote (cut to 500 characters). It is never published or delivered."""
+
+    __tablename__ = "block_log"
+
+    id: str = Field(primary_key=True)
+    user_id: str = Field(index=True)
+    kind: str  # job_post, understand, quote, message or off_app_job
+    category: str
+    text: str
+    at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+class AccountRestriction(SQLModel, table=True):
+    """An account that can no longer post, quote or message until the team reviews it. Delete
+    the row to lift it."""
+
+    __tablename__ = "account_restriction"
+
+    user_id: str = Field(primary_key=True)
+    since: dt.datetime = Field(sa_type=UtcDateTime)
+    reason: str

@@ -12,6 +12,7 @@ from sqlmodel import Session
 
 from fixa_api import off_app
 from fixa_api.auth import require_role
+from fixa_api.blocking import refuse_if_prohibited
 from fixa_api.db import get_session
 from fixa_api.models import Provider
 from fixa_api.sms import SmsSender, get_sms_sender
@@ -36,6 +37,7 @@ class NewOffAppJob(BaseModel):
 def log_off_app_job(body: NewOffAppJob, provider: ProviderUser, session: DbSession, sender: Sender):
     """Log a past job. The customer is texted to confirm it, and it only counts once they do.
     The customer's number is never sent back."""
+    refuse_if_prohibited(session, provider, body.trade_task, "off_app_job")
     try:
         job = off_app.log_off_app_job(
             session,

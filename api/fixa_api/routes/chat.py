@@ -8,6 +8,7 @@ from sqlmodel import Session
 
 from fixa_api import messages
 from fixa_api.auth import current_user
+from fixa_api.blocking import refuse_if_prohibited
 from fixa_api.db import get_session
 from fixa_api.models import Customer, Job, Provider
 
@@ -43,6 +44,7 @@ def read_messages(job_id: str, user: User, session: DbSession, after: str | None
 @router.post("/jobs/{job_id}/messages", status_code=201)
 def send_message(job_id: str, body: NewMessage, user: User, session: DbSession):
     job = find_chat_job(session, job_id, user)
+    refuse_if_prohibited(session, user, body.text, "message")
     try:
         message = messages.send_message(session, job, user, body.text, body.provider_id)
     except messages.ChatError as problem:
