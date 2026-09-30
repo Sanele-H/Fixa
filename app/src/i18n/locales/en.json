@@ -176,7 +176,8 @@
     "cancelConfirm": "Cancel this job? This can't be undone.",
     "cancelYes": "Yes, cancel it",
     "cancelNo": "Keep it",
-    "licensedOnly": "Licensed providers only"
+    "licensedOnly": "Licensed providers only",
+    "moreWork": "I did more work for this customer"
   },
   "contact": {
     "lockedTitle": "Contact details hidden",
@@ -197,7 +198,9 @@
     "emptyBody": "Say hello, or ask about the job.",
     "pickThreadTitle": "Pick who to chat with",
     "pickThreadBody": "Each person who quoted has their own chat. Open one from their quote on your job page.",
-    "openJob": "Go to my job"
+    "openJob": "Go to my job",
+    "notSentYet": "Not sent yet",
+    "tapToRetry": "Tap to retry"
   },
   "profile": {
     "share": "Share profile",
@@ -307,7 +310,9 @@
     "noArplTrade": "ARPL covers trades with a merSETA toolkit, and yours aren't on the list yet. Your record still counts.",
     "pdfDownloaded": "Your PDF is downloaded. Anyone can check it with the verify code.",
     "linkCopied": "Link copied. Paste it into WhatsApp or an SMS.",
-    "noJobs": "There are no confirmed jobs on your record yet. A job counts once its customer confirms it."
+    "noJobs": "There are no confirmed jobs on your record yet. A job counts once its customer confirms it.",
+    "nudgeTitle": "Log work you did outside Fixa",
+    "nudgeBody": "Keep your record up to date. Work you do outside Fixa counts towards your ARPL experience."
   },
   "notFound": {
     "title": "Page not found",
@@ -361,5 +366,30 @@
     "thanks": "Thank you for vouching for {{name}}.",
     "alreadyDone": "You already vouched for this provider.",
     "listTitle": "What customers say"
+  },
+  "install": {
+    "title": "Install Fixa",
+    "body": "Add Fixa to your home screen for quick access and offline use.",
+    "button": "Install Fixa",
+    "dismiss": "Dismiss"
+  },
+  "camera": {
+    "title": "Take a photo",
+    "subtitle": "The time and suburb are stamped on the photo. No GPS is saved.",
+    "capture": "Take photo",
+    "retake": "Retake",
+    "uploading": "Uploading your photo…",
+    "uploaded": "Photo uploaded",
+    "photoId": "Photo ID: {{id}}",
+    "noCameraTitle": "Camera not available",
+    "noCameraBody": "Your browser or phone doesn't allow camera access from this page.",
+    "backToJob": "Back to job"
+  },
+  "share": {
+    "trusted": "Share with someone I trust",
+    "title": "Fixa job with {{name}}",
+    "text": "Fixa job details: {{name}} is coming to {{suburb}} on {{time}}.",
+    "textNoTime": "Fixa job details: {{name}} is coming to {{suburb}}.",
+    "copied": "Details copied. Paste them in a message."
   }
 }

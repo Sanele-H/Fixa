@@ -842,6 +842,19 @@ button.card:active {
   border-bottom-right-radius: var(--space-1);
 }
 
+/* A message of mine that the server hasn't got yet (sending, or waiting for a retry). */
+.bubble--pending {
+  opacity: 0.7;
+}
+
+/* "Not sent yet · Tap to retry" on a pending message: a chip that is also a button. */
+.bubble__retry {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--text-xs);
+}
+
 .bubble__meta {
   display: flex;
   gap: var(--space-3);
@@ -928,6 +941,32 @@ button.card:active {
 .card--inverse .slot {
   border-color: var(--color-inverse-line);
   color: var(--color-on-inverse-muted);
+}
+
+/* ---------- Camera preview: full-bleed video with a dark background ---------- */
+
+.camera-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-lg);
+  background: #000;
+  overflow: hidden;
+}
+
+.camera-preview__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-preview__loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--color-on-inverse);
+  font-size: var(--text-sm);
 }
 
 .card--inverse .slot__label {

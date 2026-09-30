@@ -1,3 +1,396 @@
 {
-  "_about": "isiZulu strings. Only add a string once a native speaker has checked it. Anything missing shows in English (see src/i18n/index.ts)."
+  "_about": "isiZulu strings. Machine-drafted; needs native-speaker check before deployment.",
+  "app": {
+    "tagline": "Renta umuntu oseduze ngolimi lwakho.",
+    "loading": "Iyalayisha…"
+  },
+  "nav": {
+    "label": "Abalulekile",
+    "back": "Emuva",
+    "home": "Ekhaya",
+    "newJob": "Isevisi entsha",
+    "feed": "Amasevisi",
+    "record": "Irekhodi",
+    "me": "Mina"
+  },
+  "language": {
+    "title": "Khetha ulimi lwakho",
+    "continue": "Qhubeka"
+  },
+  "login": {
+    "title": "Ngena",
+    "subtitle": "Sizothumela ikhodi efonini yakho.",
+    "phoneLabel": "Inombolo yocingo",
+    "sendCode": "Thumela ikhodi",
+    "codeLabel": "Ikhodi evela ku-SMS",
+    "demoHint": "Ikhodi yesibonelo: 123456",
+    "codeSent": "Ikhodi ithunyelwe.",
+    "wrongCode": "That phone number or code is wrong.",
+    "logIn": "Ngena"
+  },
+  "errors": {
+    "offline": "Ayikwazi ukuxhumana ne-Fixa. Hlola uxhumano lwakho bese uzama futhi.",
+    "signedOut": "Sicela ungene futhi.",
+    "notAllowed": "Aka-akhawunti ayivunyelwe ukwenza lokho.",
+    "notFound": "Linto ayikho lapha manje.",
+    "changed": "Kukhona okushintshile. Vuselela bese uzama futhi.",
+    "invalid": "Hlola okufakile bese uzama futhi.",
+    "tooMany": "Kuzanywe kakhulu namhlanje. Zama futhi kusasa.",
+    "generic": "Kukhona okungehlanga kahle. Zama futhi.",
+    "tryAgain": "Zama futhi",
+    "refusedTitle": "Ngeke sikwazi ukwenza lokhu",
+    "restrictedTitle": "Aka-akhawunti yakho iomiswe okwesikhashana"
+  },
+  "role": {
+    "customer": "Ikhasimende",
+    "provider": "Umakhi/Umsebenzi"
+  },
+  "trade": {
+    "plumbing": "Amapayipi",
+    "electrical": "Ugesi"
+  },
+  "urgency": {
+    "low": "Akusheshile",
+    "normal": "Maduze",
+    "urgent": "Phuthuma"
+  },
+  "size": {
+    "small": "Umsebenzi omncane",
+    "medium": "Umsebenzi ophakathi",
+    "large": "Umsebenzi omkhulu"
+  },
+  "jobState": {
+    "posted": "Ithunyelwe",
+    "quoting": "Ithola amanani",
+    "quote_accepted": "Inani lamukelwe",
+    "confirmed": "Iqinisekisiwe",
+    "in_progress": "Iyayenzeka",
+    "done": "Iqediwe",
+    "followed_up": "Ihloliwe",
+    "cancelled": "Ikhanseliwe"
+  },
+  "idBadge": {
+    "none": "ID ayihlolwanga",
+    "id_number": "Inombolo ye-ID ihlolwe",
+    "home_affairs": "Istafe i-Home Affairs"
+  },
+  "translation": {
+    "seeOriginal": "Bona okwasekuqaleni",
+    "seeTranslation": "Bona okuhunyushwe",
+    "unsure": "Lokhu kungase kungahunyushwanga kahle",
+    "unsureShort": "Hlola ukuhumusha",
+    "messageIn": "Lo mlayezo ngewesi-{{language}}.",
+    "translateTo": "Humushela esi-{{language}}"
+  },
+  "evidence": {
+    "jobs_one": "umsebenzi",
+    "jobs_other": "imisebenzi",
+    "repeat_customers_one": "ikhasimende elibuyayo",
+    "repeat_customers_other": "amakhasimende abuyayo",
+    "photos_one": "isithombe",
+    "photos_other": "izithombe",
+    "off_app_confirmed_one": "umsebenzi wangaphandle",
+    "off_app_confirmed_other": "imisebenzi yangaphandle"
+  },
+  "trust": {
+    "title": "Izinga lokuthenjwa",
+    "explainer": "Aka-akhawunti yakhelwe emisebenzini eqinisekisiwe kuphela. Izinga liyancipha njengoba irekhodi likhula.",
+    "rangeDescription": "Izinga lokuthenjwa ukusuka ku-{{low}} kuya ku-{{high}} koku-100: {{label}}"
+  },
+  "home": {
+    "greeting": "Sawubona, {{name}}",
+    "notifications": "Izaziso",
+    "describeJob": "Chaza umsebenzi",
+    "describeJobHint": "Sho inkinga ngamasevisi akho. Sizothola umuntu oseduze.",
+    "nearbyHint": "Bona ukuthi ubani owenza umsebenzi e-{{suburb}} ngaphambi kokuposa umsebenzi.",
+    "yourJobs": "Imisebenzi yakho",
+    "noJobsTitle": "Ayikho imisebenzi manje",
+    "noJobsBody": "Chaza okudinga ukulungiswa, abantu abaseduze bangathumela amanani."
+  },
+  "newJob": {
+    "title": "Umsebenzi omusha",
+    "subtitle": "Ikheli ne-foni kwakho kufihliwe uze ukhethe umuntu.",
+    "describeLabel": "Iyini inkinga?",
+    "describeExample": "Igiza lami liyavuza lisuka esilingini",
+    "suggested": "Sicabanga ukuthi lokhu ku-",
+    "urgency": "Kusheshisa kangakanani?",
+    "size": "Kukhulu kangakanani?",
+    "addPhoto": "Faka isithombe",
+    "photoHint": "Ngokuthanda. Kusiza ukuhlinzeka inani.",
+    "post": "Thumela umsebenzi",
+    "next": "Okulandelayo",
+    "trade": "Uhlobo lomsebenzi",
+    "photoAdding": "Ifaka isithombe sakho…",
+    "photoAlt": "Isithombe sakho senkinga",
+    "removePhoto": "Susa isithombe",
+    "licensedOnly": "Abakhi abanamalayisense kuphela (umthetho uyafuna kuyo imisebenzi ethile)"
+  },
+  "providers": {
+    "title": "Ubani ongasiza",
+    "subtitle": "Kuhlelwe ngomsebenzi wangempela, hhayi izinkanyezi. Abantu abasha nabo bathola ithuba elilinganayo.",
+    "newcomer": "Omusha",
+    "waitingTitle": "Amanani eza ekhasini lomsebenzi wakho",
+    "waitingBody": "Abantu abenza lo msebenzi oseduze bangabona umsebenzi wakho bafake amanani. Ukhetha kubo lapho.",
+    "openJob": "Yiya kumsebenzi wami",
+    "emptyTitle": "Akukho oseduze owenza lo msebenzi okwamanje",
+    "emptyBody": "Umsebenzi wakho uhlala uvulekile, nanoma umuntu omusha owenza lo msebenzi angathumela inani."
+  },
+  "nearby": {
+    "title": "Ubani oseduze nawe",
+    "subtitle": "Abantu abenza lo msebenzi e-{{suburb}}. Ukuze uthole amanani, chaza umsebenzi wakho sizocela abafanelekile.",
+    "trade": "Umsebenzi",
+    "language": "Ukhuluma",
+    "anyLanguage": "Noma yiluphi",
+    "radius": "Ngaphakathi kwa-",
+    "count_one": "umuntu o-{{count}} ngaphakathi kwa-{{radius}}",
+    "count_other": "abantu abangu-{{count}} ngaphakathi kwa-{{radius}}",
+    "emptyTitle": "Akukho muntu lapha okwamanje",
+    "emptyBody": "Zama ibanga elibanzi, noma yiluphi ulimi.",
+    "widen": "Bheka ngaphakathi kwa-{{radius}}",
+    "describeHint": "Sizobonisa umsebenzi wakho kubantu abaseduze abangawuthatha, wena uzokhetha emananini abo."
+  },
+  "job": {
+    "title": "Umsebenzi wakho",
+    "openChat": "Vula ingxoxo",
+    "progress": "Inqubekelaphambili",
+    "quotes": "Amanani",
+    "seeProviders": "Bona abangasiza",
+    "accept": "Amukela inani",
+    "photoAlt": "Isithombe senkinga",
+    "message": "Umlayezo",
+    "waitingForProvider": "Kulindwe {{name}} ukuthi aqinisekise. Inombolo nekheli kuyavuleka uma eqinisekisa.",
+    "quoteState": {
+      "open": "Iruvuliwe",
+      "accepted": "Amukelwe",
+      "declined": "Ayikhethwanga",
+      "withdrawn": "Irosusiwe"
+    },
+    "noQuotesTitle": "Awekho amanani okwamanje",
+    "noQuotesBody": "Abantu abaseduze bangabona umsebenzi wakho. Amanani abo azoboniswa lapha lapho efika.",
+    "acceptedTitle": "Ikhasimende lamukele inani lakho",
+    "acceptedBody": "Qinisekisa ukuze ubone ikheli nezinombolo zocingo, noma ungaqhubeki uma ungekhe ukwazi wenza umsebenzi.",
+    "confirm": "Qinisekisa umsebenzi",
+    "decline": "Angeke ngikwazi ukukwenza",
+    "yourQuote": "Inani lakho",
+    "sendQuote": "Thumela inani",
+    "cancel": "Khansela lo msebenzi",
+    "cancelConfirm": "Khansela lo msebenzi? Lokhu ngeke kungahlaziywa.",
+    "cancelYes": "Yebo, ukhansele",
+    "cancelNo": "Ugcine",
+    "licensedOnly": "Abakhi abanamalayisense kuphela",
+    "moreWork": "Ngenze omunye umsebenzi kuleli khasimende"
+  },
+  "contact": {
+    "lockedTitle": "Imininingwane yocingo ifihliwe",
+    "lockedBody": "Izinombolo zocingo nekheli kuvuleka uma umsebenzi eqinisekisa umsebenzi.",
+    "unlockedTitle": "Imininingwane yokuxhumana",
+    "address": "Ikheli",
+    "customerPhone": "Inombolo yekhasimende",
+    "providerPhone": "Inombolo yomsebenzi"
+  },
+  "chat": {
+    "eyebrow": "Ingxoxo",
+    "messages": "Imilayezo",
+    "privacyNote": "Izinombolo namakheli kufihliwe kuze kuqinisekiswe umsebenzi.",
+    "contactsHidden": "Oxhumana naye ufihliwe",
+    "placeholder": "Bhala umlayezo",
+    "send": "Thumela",
+    "emptyTitle": "Ayikho imilayezo okwamanje",
+    "emptyBody": "Sawubona, noma ubuze ngomsebenzi.",
+    "pickThreadTitle": "Khetha omkhulumisa naye",
+    "pickThreadBody": "Umuntu ngamunye onikeze inani unengxoxo yakhe. Vula eyodwa kusuka enanini labo ekhasini lomsebenzi wakho.",
+    "openJob": "Yiya kumsebenzi wami",
+    "notSentYet": "Akuthunyelwanga kumanje",
+    "tapToRetry": "Thinta ukuze uzame futhi"
+  },
+  "profile": {
+    "share": "Yabelana ngephrofayili",
+    "speaks": "Ukhuluma {{languages}}"
+  },
+  "me": {
+    "title": "Mina",
+    "language": "Ulimi",
+    "identity": "Ubulungu/Idokhumende",
+    "work": "Umsebenzi",
+    "logOut": "Phuma"
+  },
+  "feed": {
+    "title": "Imisebenzi eseduze nawe",
+    "subtitle": "Ubona isuburb nenkinga. Imininingwane ivuleka emva kokuba uqinisekisiwe.",
+    "filterLabel": "Bonisa",
+    "filter": {
+      "all": "Yonke",
+      "urgent": "Esheshayo"
+    },
+    "yourJobs": "Imisebenzi yakho",
+    "acceptedNote": "Ikhasimende lamukele inani lakho. Vula umsebenzi ukuqinisekisa.",
+    "newJobs": "Imisebenzi emisha",
+    "emptyTitle": "Ayikho imisebenzi emisha manje",
+    "emptyBody": "Imisebenzi yohlobo lwakho ibonakala lapha lapho amakhasimende efaka."
+  },
+  "quote": {
+    "title": "Thumela inani",
+    "amountLabel": "Inani lakho",
+    "typicalRange": "Amanani amukelwa kakhulu oseduze",
+    "rangeBasis_one": "Kusuka enanini eli-{{count}} elamukelwe",
+    "rangeBasis_other": "Kusuka emananini ama-{{count}} amukelwe",
+    "underpricingTitle": "Mhlawumbe ubeka inani eliphansi kakhulu",
+    "underpricingBody": "Amanani amukelwa kakhulu oseduze a-{{range}}.",
+    "whenLabel": "Ungaza nini?",
+    "messageLabel": "Umlayezo (ngokuthanda)",
+    "send": "Thumela inani"
+  },
+  "verifyId": {
+    "title": "Hlola i-ID yakho",
+    "subtitle": "I-ID ehloliwe isiza amakhasimende ukukuthemba.",
+    "step": "Isinyathelo {{step}} kusiya ku-{{total}}",
+    "consentTitle": "Imvume yakho",
+    "consentBody": "Sihlola inombolo yakho ye-ID kwi-Home Affairs nge-Smile ID. Sigcina imiphumela kuphela, hhayi imininingwane yakho ye-ID.",
+    "consentAgree": "Ngiyavuma kuhlola lokhu",
+    "numberLabel": "Inombolo ye-ID yase-SA",
+    "numberHint": "Izinombolo ezyi-13",
+    "check": "Hlola inombolo",
+    "resultTitle": "Imiphumela",
+    "resultBody": "Ibheji lakho libonakala kuphrofayili yakho.",
+    "currentBadge": "Ibheji lakho manje",
+    "numberOk": "Le nombolo ibukeka ilungile. Usuku lokuzalwa: {{date}}.",
+    "reason": {
+      "digits": "Sebenzisa izinombolo kuphela.",
+      "length": "Inombolo ye-ID yase-SA inezinombolo eziyi-13.",
+      "date": "Izinombolo zokuqala ezi-6 kufanele kube usuku lokuzalwa (YYMMDD).",
+      "checksum": "Kukhona iphutha kule nombolo. Hlola kwi-ID yakho."
+    },
+    "namesLabel": "Amagama akho asuka ku-ID",
+    "namesHint": "Isibonelo: Sipho Dlamini",
+    "homeAffairs": "Hlola kwi-Home Affairs",
+    "result": {
+      "verified": "I-Home Affairs iqinisekise ukuthi ungubani.",
+      "nameMismatch": "I-Home Affairs inayo le nombolo, kodwa amagama awafani. Hlola uplelling bese uzama futhi.",
+      "notFound": "I-Home Affairs ayitholanga le nombolo. Ibheji lakho ngenombolo ye-ID liyahlala."
+    }
+  },
+  "offApp": {
+    "title": "Bhala umsebenzi owedlule",
+    "subtitle": "Umsebenzi owenze ngaphandle kwe-app nawo uyabalwa.",
+    "customerPhone": "Inombolo yocingo yekhasimende",
+    "tradeTask": "Yini owenzile?",
+    "tradeTaskExample": "Ngashintsha i-valve ye-giza",
+    "date": "Usuku",
+    "suburb": "Isuburb",
+    "amount": "Inani (amarandi)",
+    "amountHint": "Ngokuthanda",
+    "smsNoteTitle": "Sizothumelela ikhasimende i-SMS",
+    "smsNoteBody": "Uyabalwa uma bephendula ngokuthi YES. Asilokothe sibonise inombolo yabo kunoma ubani.",
+    "submit": "Thumela ukuze uqinisekiswe",
+    "sentTitle": "Kulindwe ikhasimende",
+    "sentBody": "Sizothumele i-SMS. Umsebenzi uyabalwa emva kokuphendula YEBO.",
+    "logAnother": "Bhala omunye umsebenzi",
+    "error": {
+      "self_confirmation": "Ngeke ukwazi ukuqinisekisa umsebenzi wakho. Faka inombolo yekhasimende lakho.",
+      "invalid_phone": "Faka inombolo yocingo yekhasimende njengo-082 123 4567.",
+      "invalid_date": "Usuku kufanele lube esikhathini esedlule, ngaphakathi kweminyaka eyi-10 eyadlula.",
+      "duplicate": "Uvele wawubhala lo msebenzi waleli khasimende kulolu suku.",
+      "monthly_cap": "Ufinyelele emakhasimendeni amakhulu alokhu kule nyanga.",
+      "customer_busy": "Leli khasimende lithole izicelo eziningi namhlanje. Zama futhi kusasa.",
+      "sms_failed": "Asikwazanga ukuthumelela ikhasimende i-SMS. Zama futhi emva kwesikhashana."
+    }
+  },
+  "record": {
+    "title": "Irekhodi lami",
+    "subtitle": "Ubufakazi bomsebenzi wakho, ukwabelana noma ukusebenzisa kwi-ARPL.",
+    "share": "Yabelana ngesixhumanisi serekhodi",
+    "arplProgress": "Kuya kwi-ARPL",
+    "experience": "Iminyaka engu-{{years}} nezinyanga ezi-{{months}} zolwazi",
+    "yearsUnit": "iminyaka",
+    "monthsUnit": "izinyanga",
+    "arplTarget": "kuyo iminyaka engu-{{years}} zolwazi i-ARPL eyicelayo",
+    "exportArpl": "Khiphela i-ARPL",
+    "exportStatement": "Isitatimende somsebenzi",
+    "verifyCode": "Ikhodi yokuqinisekisa",
+    "verifyCodeHint": "Noma ubani angahlola ukuthi irekhodi elangempela",
+    "noArplTrade": "I-ARPL ikhava amabhizinisi nge-toolkit ye-merSETA, neyakhona ayikho ohlwini okwamanje. Irekhodi yakho isabalwa.",
+    "pdfDownloaded": "I-PDF yakho ilandiwe. Noma ubani angayihlola ngekhodi yokuqinisekisa.",
+    "linkCopied": "Isixhumanisi sikopishiwe. Namathisela ku-WhatsApp noma kwi-SMS.",
+    "noJobs": "Awekho imisebenzi eqinisekisiwe kurekhodi yakho okwamanje. Umsebenzi uyabalwa uma ikhasimende liwuqinisekisa.",
+    "nudgeTitle": "Bhala umsebenzi owenze ngaphandle kwe-Fixa",
+    "nudgeBody": "Gcina irekhodi lakho liyintsha. Umsebenzi owenza ngaphandle kwe-Fixa uyabalwa kulwazi lwakho lwe-ARPL."
+  },
+  "notFound": {
+    "title": "Ikhasi alitholakali",
+    "body": "Isixhumanisi singase sibe sidala noma sibhalwe kabi.",
+    "home": "Yiya ekuqaleni"
+  },
+  "lifecycle": {
+    "arrivedTitle": "Ingabe ufikile?",
+    "arrivedBody": "Ngena ukuze ikhasimende lazi ukuthi usemsebenzini.",
+    "checkIn": "Ngifikile",
+    "finishedTitle": "Uwuqedile umsebenzi?",
+    "finishedBody": "Tshela ikhasimende ukuthi uqedile. Bayawuqinisekisa.",
+    "checkOut": "Ngiwuqedile umsebenzi",
+    "waitingForCustomer": "Kulindwe ikhasimende ukuqinisekisa ukuthi umsebenzi uqediwe.",
+    "isItDoneTitle": "Ingabe umsebenzi uqediwe?",
+    "isItDoneBody": "Uma uqinisekisa, umsebenzi ka-{{name}} ubalwa kurekhodi yakhe.",
+    "itIsDone": "Yebo, uqediwe",
+    "noShow": "Abavelanga",
+    "noShowConfirm": "Ingabe u-{{name}} akavelanga? Lokhu kuyaya kurekhodi yakhe kuphela kuqede umsebenzi.",
+    "noShowYes": "Yebo, abazanga",
+    "noShowNo": "Buyela emuva",
+    "followUpSoon": "Emasontweni amabili sizobabuza ukuthi okulungisiwe kusebenza kanjani."
+  },
+  "followUp": {
+    "title": "Ingabe okulungisiwe kusasebenza?",
+    "yes": "Yebo, kusebenza kahle",
+    "no": "Cha, kuye kwaphuka futhi"
+  },
+  "report": {
+    "open": "Bika",
+    "title": "Bika lokhu",
+    "reasonLabel": "Yini engahlangani?",
+    "reason": {
+      "illegal_work": "Umsebenzi ongaphandle komthetho",
+      "scam": "Ikhonkolo / Ukukhwabanisa",
+      "abuse": "Ukuhlukumeza",
+      "fake_profile": "Iphrofayili engemanga",
+      "other": "Okunye"
+    },
+    "noteLabel": "Tshela thina kabanzi (ngokuthanda)",
+    "send": "Thumela mbiko",
+    "cancel": "Khansela",
+    "thanks": "Siyabonga. Ithimba lethu lizobheka lokhu.",
+    "alreadyReported": "Usuvele wawubika lokhu."
+  },
+  "vouch": {
+    "title": "Sho amagama ambalwa ngo-{{name}}",
+    "hint": "Igama lakho aliboniswa. Izinombolo nezinxulumano zifihliwe.",
+    "label": "Kwakunjani?",
+    "send": "Thumela",
+    "thanks": "Siyabonga ngokufakaza ngo-{{name}}.",
+    "alreadyDone": "Usuvele wawufakaza ngalo msebenzi.",
+    "listTitle": "Okushiwo amakhasimende"
+  },
+  "install": {
+    "title": "Faka i-Fixa",
+    "body": "Faka i-Fixa esikrinini sakho sasekhaya ukuthola amasevisi kalula.",
+    "button": "Faka i-Fixa",
+    "dismiss": "Susa"
+  },
+  "camera": {
+    "title": "Thatha isithombe",
+    "subtitle": "Isikhathi ne-suburb kufakwa esithombeni. Ayikho i-GPS egcinwayo.",
+    "capture": "Thatha isithombe",
+    "retake": "Phinda uthathe",
+    "uploading": "Ilayisha isithombe sakho…",
+    "uploaded": "Isithombe silayishiwe",
+    "photoId": "I-ID yesithombe: {{id}}",
+    "noCameraTitle": "Ikhamera ayitholakali",
+    "noCameraBody": "I-brawuza noma ifoni yakho ayivumeli ukusebenzisa ikhamera kuleli khasi.",
+    "backToJob": "Buyela kumsebenzi"
+  },
+  "share": {
+    "trusted": "Yabelana nomuntu engimthembayo",
+    "title": "Umsebenzi we-Fixa no-{{name}}",
+    "text": "Imininingwane yomsebenzi we-Fixa: U-{{name}} uza e-{{suburb}} ngo-{{time}}.",
+    "textNoTime": "Imininingwane yomsebenzi we-Fixa: U-{{name}} uza e-{{suburb}}.",
+    "copied": "Imininingwane ikopishiwe. Yinamathisele emlayezweni."
+  }
 }

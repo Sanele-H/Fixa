@@ -16,7 +16,7 @@ import {
   useJobQuotes,
 } from "../../api/jobs";
 import { useProviderProfile } from "../../api/providers";
-import type { JobPublic, JobState, JobUnlocked, Quote } from "../../api/types";
+import { isJobUnlocked, type JobPublic, type JobState, type JobUnlocked, type Quote } from "../../api/types";
 import { CHAT_WITH_PARAM, getHomePath, PATHS } from "../../app/paths";
 import { getTradeLabel, TradeChip } from "../../components/Badges";
 import { ContactCard } from "../../components/ContactCard";
@@ -170,10 +170,22 @@ function ProviderQuote({ job }: { job: Job }) {
   const hasOpenQuote = quotes.data.some((quote) => quote.state === "open");
   const isAcceptedProvider = job.state === "quote_accepted" && quotes.data.some((quote) => quote.state === "accepted");
   const isPickedProvider = quotes.data.some((quote) => quote.state === "accepted") && !OPEN_FOR_QUOTES.includes(job.state);
+  const isDoneJob = job.state === "done" || job.state === "followed_up";
+
   return (
     <>
       {isAcceptedProvider && <AcceptedQuoteActions job={job} />}
       {isPickedProvider && <ProviderDayActions job={job} />}
+      {isDoneJob && isJobUnlocked(job) && (
+        <ButtonLink
+          to={`${PATHS.offAppJob}?phone=${encodeURIComponent(job.customer_phone)}&suburb=${encodeURIComponent(job.suburb)}&task=${encodeURIComponent(job.problem.slice(0, 60))}`}
+          variant="lime"
+          isBlock
+          icon="plus"
+        >
+          {t("job.moreWork")}
+        </ButtonLink>
+      )}
       {quotes.data.map((quote) => (
         <QuoteCard key={quote.id} quote={quote} providerName={t("job.yourQuote")} />
       ))}

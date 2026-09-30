@@ -8,6 +8,7 @@ import { generatePath } from "react-router";
 import { useFeed, useMyJobs } from "../../api/jobs";
 import type { JobPublic, JobState } from "../../api/types";
 import { PATHS } from "../../app/paths";
+import { InstallPromptCard } from "../../components/InstallPrompt";
 import { JobCard } from "../../components/JobCard";
 import { EmptyNote, LoadError, LoadingNote } from "../../components/LoadState";
 import { Banner, IconButton, Screen, ScreenHeader, Segmented } from "../../ui";
@@ -78,6 +79,8 @@ export default function FeedScreen() {
         subtitle={t("feed.subtitle")}
         actions={<IconButton icon="bell" label={t("home.notifications")} />}
       />
+
+      <InstallPromptCard />
 
       {myJobs.isError ? (
         <LoadError error={myJobs.error} onRetry={() => myJobs.refetch()} />

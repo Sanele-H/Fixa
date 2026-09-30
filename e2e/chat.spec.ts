@@ -2,7 +2,7 @@
 // remembered, and a phone number never gets through before the job is confirmed.
 
 import { expect, test } from "@playwright/test";
-import { ACCOUNTS, callApi, openPhone } from "./helpers";
+import { ACCOUNTS, callApi, getAppText, openPhone } from "./helpers";
 
 const ZULU_TEXT = "Ngingafika ngoLwesibili ekuseni, ngiphethe amathuluzi.";
 const PHONE_NUMBER = "082 123 4567";
@@ -22,8 +22,8 @@ test("the translate prompt works both ways and contact details stay hidden", asy
 
   await test.step("Sipho writes in isiZulu and sees it as he wrote it", async () => {
     await sipho.goto(`/jobs/${job.id}/chat`);
-    await sipho.getByLabel("Write a message").fill(ZULU_TEXT);
-    await sipho.getByRole("button", { name: "Send" }).click();
+    await sipho.getByLabel(getAppText("zu", "chat.placeholder")).fill(ZULU_TEXT);
+    await sipho.getByRole("button", { name: getAppText("zu", "chat.send") }).click();
     await expect(sipho.getByText(ZULU_TEXT)).toBeVisible();
   });
 
@@ -43,10 +43,10 @@ test("the translate prompt works both ways and contact details stay hidden", asy
   await test.step("Lindiwe's phone number is hidden, and Sipho can translate her English", async () => {
     await lindiwe.getByLabel("Write a message").fill(`Tuesday morning is great. Call me on ${PHONE_NUMBER}`);
     await lindiwe.getByRole("button", { name: "Send" }).click();
-    await expect(sipho.getByText("This message is in English.")).toBeVisible({ timeout: 30_000 });
+    await expect(sipho.getByText(getAppText("zu", "translation.messageIn", { language: "English" }))).toBeVisible({ timeout: 30_000 });
     await expect(sipho.getByText(PHONE_NUMBER)).toHaveCount(0);
-    await expect(sipho.getByText("Contact hidden", { exact: true })).toBeVisible();
-    await sipho.getByRole("button", { name: "Translate to isiZulu" }).click();
+    await expect(sipho.getByText(getAppText("zu", "chat.contactsHidden"), { exact: true })).toBeVisible();
+    await sipho.getByRole("button", { name: getAppText("zu", "translation.translateTo", { language: "isiZulu" }) }).click();
     await expect(sipho.locator(".bubble--theirs p").first()).not.toContainText("Tuesday morning is great");
   });
 });

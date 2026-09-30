@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
-    "preview": "vite preview --host"
+    "preview": "vite preview --host",
+    "check:locales": "node scripts/check-locales.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.0",
