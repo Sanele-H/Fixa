@@ -10,12 +10,12 @@ import { DescribeJobCard } from "../../components/DescribeJobCard";
 import { EVIDENCE_KEYS, formatSpokenLanguages, ProviderTrust } from "../../components/ProviderCard";
 import { sampleProviderProfile } from "../../dev/samples";
 import { formatDistanceKm } from "../../format";
-import { useSession } from "../../session/SessionContext";
+import { useCurrentUser } from "../../session/SessionContext";
 import { Avatar, Card, Chip, IconButton, Screen, ScreenHeader, Slot, Stat } from "../../ui";
 
 export default function ProviderProfileScreen() {
   const { t } = useTranslation();
-  const { role } = useSession();
+  const { role } = useCurrentUser();
   const [searchParams] = useSearchParams();
   const isFromNearby = searchParams.get(PROFILE_FROM_PARAM) === PROFILE_FROM_NEARBY;
   const provider = sampleProviderProfile;

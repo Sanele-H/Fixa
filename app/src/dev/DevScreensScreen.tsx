@@ -1,10 +1,11 @@
 // Development only (/dev/screens): every screen in one list, so you can jump around while
 // building. Left out of production builds by the router. Its text is dev-only, so not translated.
+// Screens behind the login open only once someone is logged in, with that account's tabs.
 
 import { generatePath } from "react-router";
 import { PATHS, PROFILE_FROM_NEARBY, PROFILE_FROM_PARAM } from "../app/paths";
 import { useSession } from "../session/SessionContext";
-import { RowCard, Screen, ScreenHeader, Segmented } from "../ui";
+import { RowCard, Screen, ScreenHeader } from "../ui";
 import { sampleJobPublic, sampleProviderProfile } from "./samples";
 
 const jobParams = { jobId: sampleJobPublic.id };
@@ -32,18 +33,14 @@ const SCREEN_LINKS = [
 ];
 
 export default function DevScreensScreen() {
-  const { role, updateRole } = useSession();
+  const { user } = useSession();
+  const loggedInAs = user ? `Logged in as ${user.display_name} (${user.role}).` : "Nobody is logged in.";
   return (
     <Screen>
-      <ScreenHeader eyebrow="Development only" title="All screens" subtitle="Tabs follow the role below." />
-      <Segmented
-        label="Role"
-        options={[
-          { value: "customer", label: "Customer" },
-          { value: "provider", label: "Provider" },
-        ]}
-        value={role}
-        onChange={updateRole}
+      <ScreenHeader
+        eyebrow="Development only"
+        title="All screens"
+        subtitle={`${loggedInAs} Customers are 082 000 0001–0080, providers 071 000 0001–0060; log out from Me to switch.`}
       />
       <div className="stack">
         {SCREEN_LINKS.map((link) => (

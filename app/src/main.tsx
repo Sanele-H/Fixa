@@ -1,10 +1,13 @@
 // Entry point for the PWA (P1). Loads the styles and the chosen language, then renders the router.
-// Still to add (P1): TanStack Query's QueryClientProvider and MSW in development.
+// Data comes from the API through TanStack Query (src/api/); the session sits inside it
+// because it loads the user with a query.
 // The service worker is registered by vite-plugin-pwa (see vite.config.ts), not from here.
 
+import { QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router";
+import { queryClient } from "./api/queryClient";
 import { router } from "./app/router";
 import { initI18n } from "./i18n";
 import { SessionProvider } from "./session/SessionContext";
@@ -16,9 +19,11 @@ import "./ui/ui.css";
 function renderApp() {
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
-      <SessionProvider>
-        <RouterProvider router={router} />
-      </SessionProvider>
+      <QueryClientProvider client={queryClient}>
+        <SessionProvider>
+          <RouterProvider router={router} />
+        </SessionProvider>
+      </QueryClientProvider>
     </StrictMode>,
   );
 }

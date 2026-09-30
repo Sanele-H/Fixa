@@ -1,9 +1,10 @@
 // The route table. Every screen is lazy-loaded, so the first visit only downloads the screen
-// it opens (part of the 300 KB first-load budget).
+// it opens (part of the 300 KB first-load budget). Everything except the start screens needs
+// a login (RequireSession).
 
 import type { ComponentType } from "react";
 import { createBrowserRouter, type RouteObject } from "react-router";
-import { AppFrame, ScreenLoading, StartRedirect, TabLayout } from "./layouts";
+import { AppFrame, RequireSession, ScreenLoading, StartRedirect, TabLayout } from "./layouts";
 import { PATHS } from "./paths";
 
 type ScreenModule = { default: ComponentType };
@@ -21,10 +22,14 @@ const tabRoutes: RouteObject[] = [
   { path: PATHS.me, lazy: loadScreen(() => import("../screens/shared/MeScreen")) },
 ];
 
-/** Focused screens: a back arrow instead of the tab bar. */
-const flowRoutes: RouteObject[] = [
+/** The screens before login: the language picker and the login itself. */
+const startRoutes: RouteObject[] = [
   { path: PATHS.welcome, lazy: loadScreen(() => import("../screens/start/WelcomeScreen")) },
   { path: PATHS.login, lazy: loadScreen(() => import("../screens/start/LoginScreen")) },
+];
+
+/** Focused screens: a back arrow instead of the tab bar. */
+const flowRoutes: RouteObject[] = [
   { path: PATHS.newJob, lazy: loadScreen(() => import("../screens/customer/NewJobScreen")) },
   { path: PATHS.nearby, lazy: loadScreen(() => import("../screens/customer/NearbyProvidersScreen")) },
   { path: PATHS.jobProviders, lazy: loadScreen(() => import("../screens/customer/RankedProvidersScreen")) },
@@ -47,8 +52,11 @@ export const router = createBrowserRouter([
     hydrateFallbackElement: <ScreenLoading />,
     children: [
       { path: PATHS.start, element: <StartRedirect /> },
-      { element: <TabLayout />, children: tabRoutes },
-      ...flowRoutes,
+      ...startRoutes,
+      {
+        element: <RequireSession />,
+        children: [{ element: <TabLayout />, children: tabRoutes }, ...flowRoutes],
+      },
       ...devRoutes,
       { path: "*", lazy: loadScreen(() => import("../screens/NotFoundScreen")) },
     ],

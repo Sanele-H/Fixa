@@ -10,9 +10,10 @@ import { PATHS } from "../../app/paths";
 import { getTradeLabel } from "../../components/Badges";
 import { DescribeJobCard } from "../../components/DescribeJobCard";
 import { NearbyProviderCard } from "../../components/ProviderCard";
-import { sampleMe, sampleNearbyProviders } from "../../dev/samples";
+import { sampleNearbyProviders } from "../../dev/samples";
 import { formatRadiusKm } from "../../format";
 import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from "../../i18n";
+import { useCurrentUser } from "../../session/SessionContext";
 import { Button, Card, Screen, ScreenHeader, Segmented, Slot } from "../../ui";
 
 /** The radius choices, in km. The server allows up to 30 km. */
@@ -142,7 +143,7 @@ function NearbyEmpty({ radiusKm, onRadiusChange }: NearbyEmptyProps) {
 
 export default function NearbyProvidersScreen() {
   const { t } = useTranslation();
-  const me = sampleMe;
+  const me = useCurrentUser();
   const [trade, setTrade] = useState<TradeId>(TRADES[0]);
   const [language, setLanguage] = useState<LanguageFilter>(ANY_LANGUAGE);
   const [radiusKm, updateRadiusKm] = useRadiusKm();

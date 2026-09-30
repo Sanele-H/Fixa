@@ -11,7 +11,7 @@ import { JobStateRuler } from "../../components/JobStateRuler";
 import { QuoteCard } from "../../components/QuoteCard";
 import { sampleJobPublic, sampleJobUnlocked, sampleQuotes, sampleRankedProviders } from "../../dev/samples";
 import { formatDistanceKm } from "../../format";
-import { useSession } from "../../session/SessionContext";
+import { useCurrentUser } from "../../session/SessionContext";
 import { Banner, Button, Card, Chip, IconLink, Screen, ScreenHeader, Slot } from "../../ui";
 
 /** Sample switch until the data layer exists: /jobs/job_001?preview=confirmed shows the unlocked job. */
@@ -25,7 +25,7 @@ function getSampleProviderName(providerId: string) {
 
 export default function JobScreen() {
   const { t } = useTranslation();
-  const { role } = useSession();
+  const { role } = useCurrentUser();
   const { jobId = sampleJobPublic.id } = useParams();
   const [searchParams] = useSearchParams();
   const [isShowingOriginal, setIsShowingOriginal] = useState(false);

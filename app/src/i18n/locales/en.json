@@ -23,7 +23,20 @@
     "sendCode": "Send code",
     "codeLabel": "Code from the SMS",
     "demoHint": "Demo code: 123456",
+    "codeSent": "Code sent.",
+    "wrongCode": "That phone number or code is wrong.",
     "logIn": "Log in"
+  },
+  "errors": {
+    "offline": "Can't reach Fixa. Check your connection and try again.",
+    "signedOut": "Please log in again.",
+    "notAllowed": "This account can't do that.",
+    "notFound": "This isn't here any more.",
+    "changed": "Something changed in the meantime. Refresh and try again.",
+    "invalid": "Check what you entered and try again.",
+    "tooMany": "Too many tries today. Try again tomorrow.",
+    "generic": "Something went wrong. Try again.",
+    "tryAgain": "Try again"
   },
   "role": {
     "customer": "Customer",
@@ -151,8 +164,6 @@
     "language": "Language",
     "identity": "Identity",
     "work": "Work",
-    "demoRole": "Demo role",
-    "demoRoleHint": "For the demo only: switch between the customer and provider apps.",
     "logOut": "Log out"
   },
   "feed": {

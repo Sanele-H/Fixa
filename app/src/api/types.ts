@@ -46,6 +46,12 @@ export type User = {
   id_badge: IdBadge;
 };
 
+/** POST /api/auth/verify: the token for the Authorization header, and who logged in. */
+export type AuthResult = {
+  token: string;
+  user: User;
+};
+
 /** What everyone sees before `confirmed`: the suburb and the problem, never the address or phones. */
 export type JobPublic = {
   id: string;
@@ -157,6 +163,22 @@ export type IdNumberCheck = {
   valid: boolean;
   reason: string | null;
   date_of_birth: string | null;
+};
+
+/** POST /api/identity/verify (id_result.json). `tier` is the badge this check earned. */
+export type IdResult = {
+  tier: Exclude<IdBadge, "none">;
+  verified: boolean;
+  name_match: boolean;
+  provider: string;
+  reference: string;
+  checked_at: string;
+};
+
+/** POST /api/photos (photo.json). Send `photo_id` with the job; `url` is a signed link for <img>. */
+export type Photo = {
+  photo_id: string;
+  url: string;
 };
 
 export type OffAppJob = {
