@@ -176,7 +176,8 @@
     "cancelConfirm": "Cancel this job? This can't be undone.",
     "cancelYes": "Yes, cancel it",
     "cancelNo": "Keep it",
-    "licensedOnly": "Licensed providers only"
+    "licensedOnly": "Licensed providers only",
+    "moreWork": "I did more work for this customer"
   },
   "contact": {
     "lockedTitle": "Contact details hidden",
@@ -309,7 +310,9 @@
     "noArplTrade": "ARPL covers trades with a merSETA toolkit, and yours aren't on the list yet. Your record still counts.",
     "pdfDownloaded": "Your PDF is downloaded. Anyone can check it with the verify code.",
     "linkCopied": "Link copied. Paste it into WhatsApp or an SMS.",
-    "noJobs": "There are no confirmed jobs on your record yet. A job counts once its customer confirms it."
+    "noJobs": "There are no confirmed jobs on your record yet. A job counts once its customer confirms it.",
+    "nudgeTitle": "Log work you did outside Fixa",
+    "nudgeBody": "Keep your record up to date. Work you do outside Fixa counts towards your ARPL experience."
   },
   "notFound": {
     "title": "Page not found",

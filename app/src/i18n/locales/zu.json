@@ -177,7 +177,8 @@
     "cancelConfirm": "Khansela lo msebenzi? Lokhu ngeke kungahlaziywa.",
     "cancelYes": "Yebo, ukhansele",
     "cancelNo": "Ugcine",
-    "licensedOnly": "Abakhi abanamalayisense kuphela"
+    "licensedOnly": "Abakhi abanamalayisense kuphela",
+    "moreWork": "Ngenze omunye umsebenzi kuleli khasimende"
   },
   "contact": {
     "lockedTitle": "Imininingwane yocingo ifihliwe",
@@ -310,7 +311,9 @@
     "noArplTrade": "I-ARPL ikhava amabhizinisi nge-toolkit ye-merSETA, neyakhona ayikho ohlwini okwamanje. Irekhodi yakho isabalwa.",
     "pdfDownloaded": "I-PDF yakho ilandiwe. Noma ubani angayihlola ngekhodi yokuqinisekisa.",
     "linkCopied": "Isixhumanisi sikopishiwe. Namathisela ku-WhatsApp noma kwi-SMS.",
-    "noJobs": "Awekho imisebenzi eqinisekisiwe kurekhodi yakho okwamanje. Umsebenzi uyabalwa uma ikhasimende liwuqinisekisa."
+    "noJobs": "Awekho imisebenzi eqinisekisiwe kurekhodi yakho okwamanje. Umsebenzi uyabalwa uma ikhasimende liwuqinisekisa.",
+    "nudgeTitle": "Bhala umsebenzi owenze ngaphandle kwe-Fixa",
+    "nudgeBody": "Gcina irekhodi lakho liyintsha. Umsebenzi owenza ngaphandle kwe-Fixa uyabalwa kulwazi lwakho lwe-ARPL."
   },
   "notFound": {
     "title": "Ikhasi alitholakali",
