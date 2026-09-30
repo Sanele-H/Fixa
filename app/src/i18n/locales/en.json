@@ -98,7 +98,9 @@
     "describeJob": "Describe a job",
     "describeJobHint": "Say what's wrong in your own words. We'll find someone nearby.",
     "nearbyHint": "See who does the work around {{suburb}} before you post a job.",
-    "yourJobs": "Your jobs"
+    "yourJobs": "Your jobs",
+    "noJobsTitle": "No jobs yet",
+    "noJobsBody": "Describe what needs fixing, and people nearby can send you quotes."
   },
   "newJob": {
     "title": "New job",
