@@ -30,6 +30,12 @@ def push_turned_off(monkeypatch):
     monkeypatch.delenv("VAPID_PRIVATE_KEY", raising=False)
 
 
+@pytest.fixture(autouse=True)
+def fake_geocoder(monkeypatch):
+    """Name places from the seed suburbs, never by asking Nominatim over the network."""
+    monkeypatch.setenv("GEOCODER", "fake")
+
+
 @pytest.fixture
 def session():
     """Yield a session on a new, empty in-memory database. Each test gets its own."""

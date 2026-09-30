@@ -34,6 +34,13 @@
 - Before `confirmed`, every response uses `JobPublic`, which shows the suburb and the problem only.
 - `JobUnlocked` adds the address, both phone numbers and the provider's photo. Only the job's customer and its confirmed provider ever receive it.
 
+**Where a job is (`location` on `POST /api/jobs`):**
+
+- By default a job is at the customer's home. The customer can drop a pin instead (a parent's house, a rental).
+- The server names the pin itself (OpenStreetMap Nominatim: one request a second at most, cached, with a real User-Agent). The `suburb` the phone sends is ignored.
+- The job keeps its own point, suburb and street address. The ranked list, the feed's distances and the price range all use the job's point and suburb, not the customer's home.
+- Privacy is unchanged: before `confirmed`, providers see the suburb and a rounded distance only. Exact coordinates are never sent to anyone, and the street address arrives only in `JobUnlocked`.
+
 **Browsing nearby providers (`GET /api/providers`):**
 
 - It's for looking, not picking. There's no way to contact or book from the list: hiring still goes through a job and its ranked list.
@@ -52,7 +59,9 @@
 | PATCH | `/api/me` | user | `{lang}` | `me.json` |
 | POST | `/api/jobs/understand` | customer | `{text, lang}` | `job_intent.json` |
 | POST | `/api/photos` | user | multipart `photo` (shrunk on the phone) | `photo.json` |
-| POST | `/api/jobs` | customer | `{description, lang, trade, urgency, size, suburb, photo_id?, directions?}` | 201 `job_public.json` |
+| POST | `/api/jobs` | customer | `{description, lang, trade, urgency, size, suburb, photo_id?, directions?, location?}` | 201 `job_public.json`. `location` is `{lat, lng}` for a pin away from home; left out, the job is at the customer's home. 422 `place_not_found` outside South Africa, 503 `place_lookup_failed` if the lookup is down |
+| GET | `/api/me/area` | customer | | `{suburb, lat, lng}`: the customer's home suburb and its point rounded to 2 decimals (~1 km), to open the job map on |
+| GET | `/api/places/reverse` | customer | `?lat=&lng=` | `{suburb, label}`: what a dropped pin is called. Same errors as `location` above |
 | GET | `/api/jobs` | user | | `my_jobs.json`: a customer's own jobs, or the jobs a provider quoted on or was picked for, newest first (20 at most). Each is `JobPublic`, or `JobUnlocked` from `confirmed` on |
 | GET | `/api/jobs/{job_id}` | job's customer, shortlisted providers | | `job_public.json`, or `job_unlocked.json` from `confirmed` on |
 | GET | `/api/jobs/{job_id}/providers` | job's customer | | `ranked_providers.json` |

@@ -136,7 +136,20 @@
     "licensedOnly": "Only licensed providers (the law requires it for some work)",
     "suggestedUnsure": "We're not sure what trade this is — please check.",
     "directionsLabel": "Directions for the provider (optional)",
-    "directionsHint": "Gate code, landmark, which door to use…"
+    "directionsHint": "Gate code, landmark, which door to use…",
+    "whereLabel": "Where is the job?",
+    "whereHome": "At my home ({{suburb}})",
+    "whereElsewhere": "Somewhere else",
+    "mapHint": "Tap the map or drag the pin to where the work is, for example a parent's house or a place you rent out.",
+    "mapLabel": "Map: choose where the job is",
+    "useMyLocation": "Use where I am now",
+    "locationDenied": "We couldn't find your phone's location. Tap the map instead.",
+    "pinFirst": "Tap the map to drop a pin.",
+    "placeFinding": "Finding the place…",
+    "placeFound": "Pin in {{suburb}}",
+    "placePrivacy": "Providers see only the suburb and how far it is until you pick someone.",
+    "placeOutside": "Pick a place in South Africa.",
+    "placeFailed": "We couldn't look up this place. Try again in a moment."
   },
   "providers": {
     "title": "Who can help",

@@ -137,7 +137,20 @@
     "licensedOnly": "Abakhi abanamalayisense kuphela (umthetho uyafuna kuyo imisebenzi ethile)",
     "suggestedUnsure": "Asiqiniseki ukuthi lo msebenzi ungowohlobo luni — sicela uhlole.",
     "directionsLabel": "Iziqondiso zomsebenzi (ngokuthanda)",
-    "directionsHint": "Ikhodi yesango, indawo ephawulekayo, umnyango okufanele usetshenziswe…"
+    "directionsHint": "Ikhodi yesango, indawo ephawulekayo, umnyango okufanele usetshenziswe…",
+    "whereLabel": "Umsebenzi ukuphi?",
+    "whereHome": "Ekhaya ({{suburb}})",
+    "whereElsewhere": "Kwenye indawo",
+    "mapHint": "Thepha ibalazwe noma uhudule iphini liye lapho kukhona umsebenzi, isibonelo endlini yomzali noma endaweni oyiqashisayo.",
+    "mapLabel": "Ibalazwe: khetha lapho kukhona umsebenzi",
+    "useMyLocation": "Sebenzisa lapho ngikhona manje",
+    "locationDenied": "Asikwazanga ukuthola indawo yefoni yakho. Thepha ibalazwe esikhundleni salokho.",
+    "pinFirst": "Thepha ibalazwe ukuze ubeke iphini.",
+    "placeFinding": "Sithola indawo…",
+    "placeFound": "Iphini lise-{{suburb}}",
+    "placePrivacy": "Abahlinzeki babona kuphela isabhabhu nokuthi likude kangakanani uze ukhethe umuntu.",
+    "placeOutside": "Khetha indawo eseNingizimu Afrika.",
+    "placeFailed": "Asikwazanga ukuthola le ndawo. Zama futhi emva kwesikhashana."
   },
   "providers": {
     "title": "Ubani ongasiza",
