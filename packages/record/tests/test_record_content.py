@@ -10,7 +10,7 @@ from datetime import date, timedelta
 import pytest
 from PIL import Image
 
-from record import RecordEvidence, RecordJob, RecordPhoto, Vouch
+from record import RecordEvidence, RecordJob, RecordPhoto, Vouch, summarise_arpl_experience
 from record.client_statements import MAX_CLIENT_STATEMENTS, choose_statement_jobs
 from record.experience import (
     count_whole_months,
@@ -185,3 +185,32 @@ def test_statement_is_labelled_and_never_shows_an_invented_amount():
 def test_qr_rows_become_runs_of_dark_modules():
     assert find_dark_runs([True, True, False, True, False, False, True]) == [(0, 2), (3, 1), (6, 1)]
     assert find_dark_runs([False, False]) == []
+
+
+def make_record_for_trades(jobs: list[RecordJob], trades: list[str]) -> RecordEvidence:
+    """A record like make_evidence's, for a provider with the given trades."""
+    return RecordEvidence(provider_id="prov_003", display_name="Nosipho", trades=trades, jobs=jobs)
+
+
+def test_arpl_experience_counts_the_arpl_trade_only():
+    plumbing_jobs = [make_job(FIRST_DAY), make_job(FIRST_DAY + timedelta(days=400))]
+    painting_job = make_job(FIRST_DAY - timedelta(days=900), trade="painting")
+    evidence = make_record_for_trades([*plumbing_jobs, painting_job], ["plumbing", "painting"])
+
+    experience = summarise_arpl_experience(evidence)
+
+    assert experience.arpl_trade == "plumbing"
+    assert experience.summary == summarise_experience(plumbing_jobs)
+
+
+def test_arpl_experience_without_an_arpl_trade_counts_every_job():
+    jobs = [
+        make_job(FIRST_DAY, trade="painting"),
+        make_job(FIRST_DAY + timedelta(days=90), trade="painting"),
+    ]
+    evidence = make_record_for_trades(jobs, ["painting"])
+
+    experience = summarise_arpl_experience(evidence)
+
+    assert experience.arpl_trade is None
+    assert experience.summary == summarise_experience(jobs)

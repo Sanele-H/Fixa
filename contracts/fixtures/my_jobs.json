@@ -1,0 +1,17 @@
+[
+  {
+    "id": "job_001",
+    "state": "quoting",
+    "trade": "plumbing",
+    "size": "small",
+    "urgency": "urgent",
+    "suburb": "Braamfontein",
+    "problem": "My geyser is leaking through the ceiling",
+    "problem_original": "My geyser is leaking through the ceiling",
+    "problem_lang": "en",
+    "translation_flagged": false,
+    "photo_url": "/api/photos/photo_001",
+    "distance_km": 2.4,
+    "created_at": "2026-09-29T08:00:00+02:00"
+  }
+]

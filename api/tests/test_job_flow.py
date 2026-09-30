@@ -385,3 +385,41 @@ def test_cancelling_after_confirming_locks_the_details_again(
         job = seeded_client.get(f"/api/jobs/{job_id}", headers=headers).json()
         assert job["state"] == "cancelled"
         assert not CONTACT_FIELDS & set(job)
+
+
+# --- a person's own jobs (GET /api/jobs) ----------------------------------------------------
+
+
+def test_a_customer_lists_their_own_jobs_newest_first(seeded_client, lindiwe):
+    first = new_job(seeded_client, lindiwe).json()["id"]
+    second = new_job(seeded_client, lindiwe, description="The kitchen tap drips").json()["id"]
+
+    jobs = seeded_client.get("/api/jobs", headers=lindiwe).json()
+
+    assert [job["id"] for job in jobs[:2]] == [second, first]
+    assert all(set(job) >= {"id", "state", "problem", "suburb"} for job in jobs)
+
+
+def test_a_provider_lists_the_jobs_they_quoted_on(seeded_client, log_in, quoted):
+    job_id, _ = quoted
+
+    quoting_plumber_jobs = seeded_client.get("/api/jobs", headers=log_in(PLUMBER_1)).json()
+    other_plumber_jobs = seeded_client.get("/api/jobs", headers=log_in(PLUMBER_2)).json()
+
+    assert job_id in [job["id"] for job in quoting_plumber_jobs]
+    assert job_id not in [job["id"] for job in other_plumber_jobs]
+
+
+def test_listed_jobs_keep_the_details_locked_until_confirmed(seeded_client, plumber, accepted):
+    job_id, _ = accepted
+
+    listed = next(
+        job for job in seeded_client.get("/api/jobs", headers=plumber).json() if job["id"] == job_id
+    )
+
+    assert listed["state"] == "quote_accepted"
+    assert not CONTACT_FIELDS & set(listed)
+
+
+def test_listing_jobs_needs_a_signed_in_user(seeded_client):
+    assert seeded_client.get("/api/jobs").status_code == 401

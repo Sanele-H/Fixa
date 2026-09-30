@@ -53,6 +53,7 @@
 | POST | `/api/jobs/understand` | customer | `{text, lang}` | `job_intent.json` |
 | POST | `/api/photos` | user | multipart `photo` (shrunk on the phone) | `photo.json` |
 | POST | `/api/jobs` | customer | `{description, lang, trade, urgency, size, suburb, photo_id?}` | 201 `job_public.json` |
+| GET | `/api/jobs` | user | | `my_jobs.json`: a customer's own jobs, or the jobs a provider quoted on or was picked for, newest first (20 at most). Each is `JobPublic`, or `JobUnlocked` from `confirmed` on |
 | GET | `/api/jobs/{job_id}` | job's customer, shortlisted providers | | `job_public.json`, or `job_unlocked.json` from `confirmed` on |
 | GET | `/api/jobs/{job_id}/providers` | job's customer | | `ranked_providers.json` |
 | GET | `/api/providers` | customer | `?trade=&lang=&radius_km=` | `nearby_providers.json` (for `?trade=plumbing`) |
@@ -66,12 +67,13 @@
 | POST | `/api/jobs/{job_id}/decline` | accepted provider | | `job_public.json` (state `quoting`) |
 | POST | `/api/jobs/{job_id}/cancel` | job's customer | | `job_public.json` (state `cancelled`) |
 | GET | `/api/jobs/{job_id}/messages` | job parties | `?after=<message_id>` (polled every 3 s) | `messages.json` |
-| POST | `/api/jobs/{job_id}/messages` | job parties | `{text}` | 201 `message.json` |
+| POST | `/api/jobs/{job_id}/messages` | job parties | `{text, provider_id?}`: a customer with several quoting providers says who it's for | 201 `message.json` |
 | POST | `/api/identity/check-number` | provider | `{id_number}` (offline check) | `id_number_check.json` |
 | POST | `/api/identity/verify` | provider | `{id_number, names, consent: true}` | `id_result.json` |
 | POST | `/api/off-app-jobs` | provider | `{customer_phone, trade_task, date, suburb, amount_rands?}` | 201 `off_app_job.json` |
 | POST | `/api/sms/inbound` | Africa's Talking webhook | form fields from Africa's Talking | 200 |
 | POST | `/api/record/export` | provider | `{mode}` | `record_export.json` |
+| GET | `/api/record/summary` | provider | | `record_summary.json`: the ARPL trade (null if none), months of confirmed experience in it as the ARPL record counts them, calendar months with work, and confirmed jobs |
 | GET | `/record/{provider_id}` | anyone with the link | | Plain-HTML work record page, no JavaScript |
 | GET | `/verify/{code}` | anyone with the link | | Plain-HTML verify page, no JavaScript |
 
@@ -85,5 +87,5 @@ These are the shapes of the objects in the fixtures, and each fixture is the sou
 - **RankedProvider**: `provider_id, display_name, trades, distance_km, is_newcomer, id_badge, evidence {jobs, repeat_customers, photos, off_app_confirmed}, trust {score, low, high, label}`
 - **NearbyProvider**: `provider_id, display_name, suburb, trades, langs, distance_km, is_newcomer, id_badge, evidence {jobs, repeat_customers, photos, off_app_confirmed}` (no `trust`)
 - **Quote**: `id, job_id, provider_id, amount_rands, when, message, state, created_at`
-- **Message**: `id, job_id, sender_id, text, original, original_lang, flagged, flag_reason, contacts_hidden, scam_warnings, sent_at`
+- **Message**: `id, job_id, sender_id, recipient_id, text, original, original_lang, flagged, flag_reason, contacts_hidden, scam_warnings, sent_at`. A customer has one thread per quoting provider; `sender_id` and `recipient_id` say which.
 - **PriceRange**: `trade, size, suburb, low_rands, high_rands, n_quotes`

@@ -9,7 +9,7 @@
 // Screens don't call these directly: they use the hooks in the other files of this folder.
 
 import { deleteStoredToken, getStoredToken } from "../session/token";
-import { ApiError, NO_ANSWER_STATUS, readErrorDetail } from "./errors";
+import { ApiError, NO_ANSWER_STATUS, readErrorReason } from "./errors";
 
 const UNAUTHORISED_STATUS = 401;
 const NO_CONTENT_STATUS = 204;
@@ -71,7 +71,8 @@ async function sendRequest(url: string, init: RequestInit, contentType?: string)
   if (response.status === UNAUTHORISED_STATUS) {
     deleteRejectedToken(sentToken);
   }
-  throw new ApiError(response.status, await readErrorDetail(response));
+  const { detail, code } = await readErrorReason(response);
+  throw new ApiError(response.status, detail, code);
 }
 
 /** Reads a JSON body. A 204 has no body, so it reads as null. */

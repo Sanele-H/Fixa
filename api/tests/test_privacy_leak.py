@@ -12,12 +12,14 @@ Before `confirmed` nobody may see any of them. From `confirmed` on, only the job
 its confirmed provider may see the two phone numbers and the job's address, and still nothing else.
 """
 
+import json
 import re
 
 import pytest
 from sqlmodel import select
 
 from fixa_api.auth import find_user_by_phone, normalise_phone
+from fixa_api.job_states import UNLOCKED_STATES
 from fixa_api.main import app
 from fixa_api.models import Customer, Job, Provider
 
@@ -72,11 +74,17 @@ class Sensitive:
         self.addresses |= {job.address for job in jobs}
         self.coordinates = {repr(value) for person in people for value in (person.lat, person.lng)}
         self.coordinates |= {repr(value) for job in jobs for value in (job.lat, job.lng)}
+        # Whole addresses only: "6 Example Street" must not match inside "46 Example Street".
+        self.address_patterns = {
+            address: re.compile(rf"(?<!\w){re.escape(address)}(?!\w)") for address in self.addresses
+        }
 
     def found_in(self, text: str) -> set[str]:
         """The private values that appear in text, phones as digits."""
         found = {normalise_phone(match) for match in PHONE_PATTERN.findall(text)}
-        found |= {address for address in self.addresses if address in text}
+        found |= {
+            address for address, pattern in self.address_patterns.items() if pattern.search(text)
+        }
         found |= {coordinate for coordinate in self.coordinates if coordinate in text}
         return found
 
@@ -238,12 +246,60 @@ def test_the_seeded_jobs_leak_nothing_either(world):
                 assert_no_leak(response, sensitive, set(), f"GET {path} as {user}")
 
 
+def own_job_allowed_values(session, job: Job, user_id: str) -> set[str]:
+    """What a person may see of one of their own jobs: its phones and address, only once it's
+    unlocked and only if they are its customer or its provider."""
+    if job.state not in UNLOCKED_STATES or user_id not in (job.customer_id, job.provider_id):
+        return set()
+    customer = session.get(Customer, job.customer_id)
+    provider = session.get(Provider, job.provider_id)
+    return {normalise_phone(customer.phone), normalise_phone(provider.phone), job.address}
+
+
+def sweep_own_jobs(world, state: str) -> None:
+    """GET /api/jobs lists each person's own jobs, seeded ones included, so every job in it is
+    checked on its own, rather than against the one job the walk follows."""
+    client, headers, sensitive, session = world
+    for user, user_headers in headers.items():
+        response = client.get("/api/jobs", headers=user_headers)
+        assert response.status_code < 500, f"GET /api/jobs as {user} crashed: {response.text}"
+        if USERS[user] is None:
+            assert response.status_code == 401
+            continue
+        user_id = find_user_id(session, USERS[user])
+        for listed in response.json():
+            allowed = own_job_allowed_values(session, session.get(Job, listed["id"]), user_id)
+            leaked = sensitive.found_in(json.dumps(listed)) - allowed
+            assert not leaked, (
+                f"GET /api/jobs as {user} when {state}: {listed['id']} leaked {sorted(leaked)}"
+            )
+
+
+def test_a_persons_own_jobs_show_details_only_on_their_unlocked_jobs(world):
+    client, headers, _, _ = world
+    job_id, _ = new_job(world)
+    first_quote = quote_as(world, "accepted_provider", job_id, 450)
+    quote_as(world, "losing_provider", job_id, 500)
+    sweep_own_jobs(world, "quoting")
+
+    act(world, "customer", "POST", f"/api/quotes/{first_quote}/accept", "quote_accepted")
+    sweep_own_jobs(world, "quote_accepted")
+
+    act(world, "accepted_provider", "POST", f"/api/jobs/{job_id}/confirm", "confirmed", True)
+    sweep_own_jobs(world, "confirmed")
+    listed = client.get("/api/jobs", headers=headers["accepted_provider"]).json()
+    assert "address" in next(job for job in listed if job["id"] == job_id)
+
+    act(world, "customer", "POST", f"/api/jobs/{job_id}/cancel", "cancelled")
+    sweep_own_jobs(world, "cancelled")
+
+
 def test_every_route_is_covered_by_this_test_or_marked_as_not_about_jobs():
     """A new route fails this test until someone decides how it is leak-checked. Add job or
     contact-carrying routes to read_routes above, or to the list below with a reason."""
     covered = {path.split("?")[0] for _, path in read_routes("{job_id}", "{quote_id}")}
     covered |= {
-        # change routes, checked by act() during the walks
+        # change routes, checked by act() during the walks; GET /api/jobs by sweep_own_jobs()
         "/api/jobs",
         "/api/jobs/{job_id}/quotes",
         "/api/quotes/{quote_id}/accept",
@@ -266,6 +322,7 @@ def test_every_route_is_covered_by_this_test_or_marked_as_not_about_jobs():
         "/api/off-app-jobs",
         "/api/sms/inbound",
         "/api/record/export",
+        "/api/record/summary",
         "/api/record/exports/{filename}",
         "/record/{provider_id}",
         "/verify/{code}",

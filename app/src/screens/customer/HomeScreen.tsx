@@ -1,11 +1,31 @@
 import { useTranslation } from "react-i18next";
 import { generatePath } from "react-router";
+import { useMyJobs } from "../../api/jobs";
 import { PATHS } from "../../app/paths";
 import { DescribeJobCard } from "../../components/DescribeJobCard";
 import { JobCard } from "../../components/JobCard";
-import { sampleJobPublic } from "../../dev/samples";
+import { EmptyNote, LoadError, LoadingNote } from "../../components/LoadState";
 import { useCurrentUser } from "../../session/SessionContext";
-import { Avatar, CardLink, Icon, IconButton, Screen, ScreenHeader, Slot } from "../../ui";
+import { Avatar, CardLink, Icon, IconButton, Screen, ScreenHeader } from "../../ui";
+
+/** The customer's jobs, newest first, with loading, error and empty states. */
+function MyJobs() {
+  const { t } = useTranslation();
+  const myJobs = useMyJobs();
+
+  if (myJobs.isPending) {
+    return <LoadingNote />;
+  }
+  if (myJobs.isError) {
+    return <LoadError error={myJobs.error} onRetry={() => myJobs.refetch()} />;
+  }
+  if (myJobs.data.length === 0) {
+    return <EmptyNote title={t("home.noJobsTitle")}>{t("home.noJobsBody")}</EmptyNote>;
+  }
+  return myJobs.data.map((job) => (
+    <JobCard key={job.id} job={job} to={generatePath(PATHS.job, { jobId: job.id })} trailing="state" />
+  ));
+}
 
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -34,8 +54,7 @@ export default function HomeScreen() {
 
       <section className="stack">
         <h2 className="section-title">{t("home.yourJobs")}</h2>
-        <JobCard job={sampleJobPublic} to={generatePath(PATHS.job, { jobId: sampleJobPublic.id })} trailing="state" />
-        <Slot label="the customer's jobs, newest first, plus an empty state" source="contract gap: no endpoint lists a customer's jobs yet" />
+        <MyJobs />
       </section>
     </Screen>
   );

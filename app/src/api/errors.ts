@@ -11,41 +11,57 @@ const SERVER_ERROR_MIN_STATUS = 500;
 export class ApiError extends Error {
   /** The HTTP status, or NO_ANSWER_STATUS when there was no answer at all. */
   readonly status: number;
+  /** The server's error code when it sends one, like "no_jobs" or "invalid_phone", else null. */
+  readonly code: string | null;
 
-  constructor(status: number, detail: string) {
+  constructor(status: number, detail: string, code: string | null = null) {
     super(detail);
     this.name = "ApiError";
     this.status = status;
+    this.code = code;
   }
 }
 
 /**
  * FastAPI's error body: one sentence, a list of problems when the input was invalid (422), or
- * an object some routes send (POST /api/identity/verify: {error, reason}).
+ * an object with a code some routes send ({"error": "no_jobs", "message": "…"}).
  */
 type ErrorBody = {
-  detail?: string | { msg?: string }[] | Record<string, unknown>;
+  detail?: string | { msg?: string }[] | { error?: unknown; message?: unknown };
+};
+
+/** The server's reason for a failed request, and its error code if it gave one. */
+export type ErrorReason = {
+  detail: string;
+  code: string | null;
 };
 
 /**
- * Reads the server's reason from a failed response: the `detail` sentence, the first problem
- * in a 422 list, or an object detail as JSON. Falls back to the status line when the body isn't
- * FastAPI's JSON (for example Vite's proxy answering while the API restarts).
+ * Reads why a request failed: the `detail` sentence, the first problem in a 422 list, or an
+ * object's message and code. Falls back to the status line when the body isn't FastAPI's JSON
+ * (for example Vite's proxy answering while the API restarts).
  */
-export async function readErrorDetail(response: Response): Promise<string> {
+export async function readErrorReason(response: Response): Promise<ErrorReason> {
   const fallbackDetail = `${response.status} ${response.statusText}`.trim();
   try {
     const { detail } = (await response.json()) as ErrorBody;
     if (typeof detail === "string") {
-      return detail;
+      return { detail, code: null };
     }
     if (Array.isArray(detail)) {
-      return detail[0]?.msg ?? fallbackDetail;
+      return { detail: detail[0]?.msg ?? fallbackDetail, code: null };
     }
-    return detail ? JSON.stringify(detail) : fallbackDetail;
+    const code = typeof detail?.error === "string" ? detail.error : null;
+    const message = typeof detail?.message === "string" ? detail.message : JSON.stringify(detail ?? fallbackDetail);
+    return { detail: message, code };
   } catch {
-    return fallbackDetail;
+    return { detail: fallbackDetail, code: null };
   }
+}
+
+/** The server's error code for a failed request, if it sent one. */
+export function getErrorCode(error: unknown): string | null {
+  return error instanceof ApiError ? error.code : null;
 }
 
 /**

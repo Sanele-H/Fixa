@@ -47,8 +47,11 @@ export default defineConfig({
   envDir: "..",
   server: {
     port: 5173,
-    // The browser only talks to Vite; /api is forwarded to FastAPI, so there are no CORS problems.
-    proxy: { "/api": API_URL },
+    // The browser only talks to Vite. /api, and the plain-HTML work record and verify pages
+    // (opened from share links and the PDF's QR code), are forwarded to FastAPI, so there are no
+    // CORS problems and the links work over the tunnel. Keys starting with ^ are regular
+    // expressions; the trailing slash keeps the app's own /verify-id.
+    proxy: { "^/api/": API_URL, "^/record/": API_URL, "^/verify/": API_URL },
     // Phones need HTTPS for the camera, location and service worker: `npm run tunnel` from the repo root.
     allowedHosts: [".trycloudflare.com"],
   },

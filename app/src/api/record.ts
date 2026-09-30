@@ -1,8 +1,12 @@
 // A provider's work record: logging work done outside the app, and exporting the record as a PDF.
 
-import { useMutation } from "@tanstack/react-query";
-import { getBlob, postJson } from "./client";
-import type { OffAppJob, RecordExport, RecordMode } from "./types";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { getBlob, getJson, postJson } from "./client";
+import type { OffAppJob, RecordExport, RecordMode, RecordSummary } from "./types";
+
+export const recordKeys = {
+  summary: ["record", "summary"] as const,
+};
 
 /**
  * POST /api/off-app-jobs. `date` is "YYYY-MM-DD". The customer gets an SMS, and the job
@@ -20,6 +24,14 @@ export type NewOffAppJob = {
 export function useLogOffAppJob() {
   return useMutation({
     mutationFn: (newOffAppJob: NewOffAppJob) => postJson<OffAppJob>("/api/off-app-jobs", newOffAppJob),
+  });
+}
+
+/** GET /api/record/summary: the ARPL trade and months of experience for "My record" (provider only). */
+export function useRecordSummary() {
+  return useQuery({
+    queryKey: recordKeys.summary,
+    queryFn: () => getJson<RecordSummary>("/api/record/summary"),
   });
 }
 

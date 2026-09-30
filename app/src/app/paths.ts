@@ -32,10 +32,18 @@ export const PATHS = {
 
 /**
  * A profile opened from the nearby list carries ?from=nearby, so its back arrow returns there
- * and it offers "Describe a job". Opened from a job's ranked list, the customer already has one.
+ * and it offers "Describe a job". Opened from a job's ranked list it carries ?job=<job id>, so
+ * its back arrow returns to that list; the customer already has a job.
  */
 export const PROFILE_FROM_PARAM = "from";
 export const PROFILE_FROM_NEARBY = "nearby";
+export const PROFILE_JOB_PARAM = "job";
+
+/**
+ * A customer has one chat thread per quoting provider, so their chat links carry
+ * ?with=<provider id>. A provider has only one thread per job and needs no parameter.
+ */
+export const CHAT_WITH_PARAM = "with";
 
 /** The first tab each role lands on after login. */
 export function getHomePath(role: Role) {

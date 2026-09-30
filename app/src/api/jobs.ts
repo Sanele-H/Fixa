@@ -10,12 +10,13 @@ import type { JobIntent, JobPublic, JobSize, JobUnlocked, Language, PriceRange, 
 
 /** How often an open job and its quotes refresh, so the other phone's accept or confirm shows up. */
 const JOB_REFRESH_INTERVAL_MS = 5_000;
-/** How often the provider feed refreshes while it's open. */
+/** How often the provider feed, and a person's own jobs, refresh while they're open. */
 const FEED_REFRESH_INTERVAL_MS = 15_000;
 
 export const jobKeys = {
   job: (jobId: string) => ["jobs", jobId] as const,
   quotes: (jobId: string) => ["jobs", jobId, "quotes"] as const,
+  myJobs: ["my-jobs"] as const,
   feed: ["feed"] as const,
   priceRange: (trade?: TradeId, size?: JobSize, suburb?: string) => ["price-range", trade, size, suburb] as const,
 };
@@ -47,11 +48,17 @@ export type NewQuote = {
   message?: string;
 };
 
-/** Puts the job the server just answered with into the cache, and refreshes everything under it and the feed. */
+/** Refreshes the lists a job shows up in: the feed and people's own jobs. */
+function invalidateJobLists(queryClient: QueryClient) {
+  queryClient.invalidateQueries({ queryKey: jobKeys.feed });
+  queryClient.invalidateQueries({ queryKey: jobKeys.myJobs });
+}
+
+/** Puts the job the server just answered with into the cache, and refreshes everything under it and the lists. */
 function updateCachedJob(queryClient: QueryClient, job: JobPublic | JobUnlocked) {
   queryClient.setQueryData(jobKeys.job(job.id), job);
   queryClient.invalidateQueries({ queryKey: jobKeys.job(job.id) });
-  queryClient.invalidateQueries({ queryKey: jobKeys.feed });
+  invalidateJobLists(queryClient);
 }
 
 /** POST /api/jobs/understand: guesses the trade, urgency and size from a description (customer only). */
@@ -66,7 +73,22 @@ export function useCreateJob() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (newJob: NewJob) => postJson<JobPublic>("/api/jobs", newJob),
-    onSuccess: (job) => queryClient.setQueryData(jobKeys.job(job.id), job),
+    onSuccess: (job) => {
+      queryClient.setQueryData(jobKeys.job(job.id), job);
+      invalidateJobLists(queryClient);
+    },
+  });
+}
+
+/**
+ * GET /api/jobs: a customer's own jobs, or the jobs a provider quoted on or was picked for,
+ * newest first. Refreshes while it's open, so a provider sees an accepted quote arrive.
+ */
+export function useMyJobs() {
+  return useQuery({
+    queryKey: jobKeys.myJobs,
+    queryFn: () => getJson<(JobPublic | JobUnlocked)[]>("/api/jobs"),
+    refetchInterval: FEED_REFRESH_INTERVAL_MS,
   });
 }
 
@@ -119,7 +141,7 @@ export function useCreateQuote(jobId: string) {
     mutationFn: (newQuote: NewQuote) => postJson<Quote>(`/api/jobs/${jobId}/quotes`, newQuote),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: jobKeys.job(jobId) });
-      queryClient.invalidateQueries({ queryKey: jobKeys.feed });
+      invalidateJobLists(queryClient);
     },
   });
 }

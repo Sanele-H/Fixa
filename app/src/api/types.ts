@@ -133,6 +133,8 @@ export type Message = {
   id: string;
   job_id: string;
   sender_id: string;
+  /** Who it's for. A customer has one thread per quoting provider, and this says which. */
+  recipient_id: string;
   text: string;
   original: string;
   original_lang: Language;
@@ -188,6 +190,16 @@ export type OffAppJob = {
   date: string;
   suburb: string;
   amount_rands: number | null;
+};
+
+/** GET /api/record/summary (record_summary.json): what the "My record" screen shows. */
+export type RecordSummary = {
+  /** The trade the ARPL record is for, or null when none of the provider's trades has a toolkit. */
+  arpl_trade: TradeId | null;
+  /** Whole months from the first confirmed job in that trade to the last, as the ARPL PDF counts them. */
+  experience_months: number;
+  months_with_work: number;
+  confirmed_jobs: number;
 };
 
 export type RecordExport = {

@@ -75,7 +75,9 @@
     "seeOriginal": "See original",
     "seeTranslation": "See translation",
     "unsure": "This may not have translated well",
-    "unsureShort": "Check translation"
+    "unsureShort": "Check translation",
+    "messageIn": "This message is in {{language}}.",
+    "translateTo": "Translate to {{language}}"
   },
   "evidence": {
     "jobs_one": "job",
@@ -98,7 +100,9 @@
     "describeJob": "Describe a job",
     "describeJobHint": "Say what's wrong in your own words. We'll find someone nearby.",
     "nearbyHint": "See who does the work around {{suburb}} before you post a job.",
-    "yourJobs": "Your jobs"
+    "yourJobs": "Your jobs",
+    "noJobsTitle": "No jobs yet",
+    "noJobsBody": "Describe what needs fixing, and people nearby can send you quotes."
   },
   "newJob": {
     "title": "New job",
@@ -110,12 +114,22 @@
     "size": "How big?",
     "addPhoto": "Add a photo",
     "photoHint": "Optional. Helps providers quote.",
-    "post": "Post job"
+    "post": "Post job",
+    "next": "Next",
+    "trade": "Type of work",
+    "photoAdding": "Adding your photo…",
+    "photoAlt": "Your photo of the problem",
+    "removePhoto": "Remove photo"
   },
   "providers": {
     "title": "Who can help",
     "subtitle": "Ranked by real work, not stars. New people get a fair chance too.",
-    "newcomer": "New"
+    "newcomer": "New",
+    "waitingTitle": "Quotes come to your job page",
+    "waitingBody": "People who do this work nearby can see your job and send quotes. You choose from them there.",
+    "openJob": "Go to my job",
+    "emptyTitle": "Nobody nearby does this work yet",
+    "emptyBody": "Your job stays open, and anyone new who does this work can still quote."
   },
   "nearby": {
     "title": "Who works near you",
@@ -137,7 +151,28 @@
     "progress": "Job progress",
     "quotes": "Quotes",
     "seeProviders": "See who can help",
-    "accept": "Accept quote"
+    "accept": "Accept quote",
+    "photoAlt": "Photo of the problem",
+    "message": "Message",
+    "waitingForProvider": "Waiting for {{name}} to confirm. Contact details unlock when they do.",
+    "quoteState": {
+      "open": "Open",
+      "accepted": "Accepted",
+      "declined": "Not chosen",
+      "withdrawn": "Withdrawn"
+    },
+    "noQuotesTitle": "No quotes yet",
+    "noQuotesBody": "People nearby can see your job. Their quotes show here as they arrive.",
+    "acceptedTitle": "The customer accepted your quote",
+    "acceptedBody": "Confirm to see the address and phone numbers, or decline if you can't do the job.",
+    "confirm": "Confirm the job",
+    "decline": "I can't do it",
+    "yourQuote": "Your quote",
+    "sendQuote": "Send a quote",
+    "cancel": "Cancel this job",
+    "cancelConfirm": "Cancel this job? This can't be undone.",
+    "cancelYes": "Yes, cancel it",
+    "cancelNo": "Keep it"
   },
   "contact": {
     "lockedTitle": "Contact details hidden",
@@ -153,7 +188,12 @@
     "privacyNote": "Numbers and addresses stay hidden until the job is confirmed.",
     "contactsHidden": "Contact hidden",
     "placeholder": "Write a message",
-    "send": "Send"
+    "send": "Send",
+    "emptyTitle": "No messages yet",
+    "emptyBody": "Say hello, or ask about the job.",
+    "pickThreadTitle": "Pick who to chat with",
+    "pickThreadBody": "Each person who quoted has their own chat. Open one from their quote on your job page.",
+    "openJob": "Go to my job"
   },
   "profile": {
     "share": "Share profile",
@@ -173,7 +213,12 @@
     "filter": {
       "all": "All",
       "urgent": "Urgent"
-    }
+    },
+    "yourJobs": "Your jobs",
+    "acceptedNote": "A customer accepted your quote. Open the job to confirm it.",
+    "newJobs": "New jobs",
+    "emptyTitle": "No new jobs right now",
+    "emptyBody": "Jobs in your trades show here as customers post them."
   },
   "quote": {
     "title": "Send a quote",
@@ -198,7 +243,23 @@
     "numberHint": "13 digits",
     "check": "Check number",
     "resultTitle": "Result",
-    "resultBody": "Your badge shows on your profile."
+    "resultBody": "Your badge shows on your profile.",
+    "currentBadge": "Your badge now",
+    "numberOk": "This number looks right. Date of birth: {{date}}.",
+    "reason": {
+      "digits": "Use numbers only.",
+      "length": "An SA ID number has 13 digits.",
+      "date": "The first 6 digits should be your date of birth (YYMMDD).",
+      "checksum": "There's a typo in this number. Check it against your ID."
+    },
+    "namesLabel": "Your names, as on your ID",
+    "namesHint": "For example: Sipho Dlamini",
+    "homeAffairs": "Check with Home Affairs",
+    "result": {
+      "verified": "Home Affairs confirmed who you are.",
+      "nameMismatch": "Home Affairs has this number, but the names don't match. Check the spelling and try again.",
+      "notFound": "Home Affairs couldn't find this number. Your ID number badge stays."
+    }
   },
   "offApp": {
     "title": "Log a past job",
@@ -212,7 +273,19 @@
     "amountHint": "Optional",
     "smsNoteTitle": "We'll SMS the customer",
     "smsNoteBody": "It counts once they reply YES. We never show their number to anyone.",
-    "submit": "Send for confirmation"
+    "submit": "Send for confirmation",
+    "sentTitle": "Waiting for the customer",
+    "sentBody": "We sent them an SMS. The job counts on your record once they reply YES.",
+    "logAnother": "Log another job",
+    "error": {
+      "self_confirmation": "You can't confirm your own job. Enter your customer's number.",
+      "invalid_phone": "Enter the customer's cellphone number, like 082 123 4567.",
+      "invalid_date": "The date must be in the past, within the last 10 years.",
+      "duplicate": "You already logged a job for this customer on this date.",
+      "monthly_cap": "You've logged the most past jobs allowed this month.",
+      "customer_busy": "This customer got too many requests today. Try again tomorrow.",
+      "sms_failed": "We couldn't text the customer. Try again in a moment."
+    }
   },
   "record": {
     "title": "My record",
@@ -226,7 +299,11 @@
     "exportArpl": "Export for ARPL",
     "exportStatement": "Work statement",
     "verifyCode": "Verify code",
-    "verifyCodeHint": "Anyone can check your record is genuine"
+    "verifyCodeHint": "Anyone can check your record is genuine",
+    "noArplTrade": "ARPL covers trades with a merSETA toolkit, and yours aren't on the list yet. Your record still counts.",
+    "pdfDownloaded": "Your PDF is downloaded. Anyone can check it with the verify code.",
+    "linkCopied": "Link copied. Paste it into WhatsApp or an SMS.",
+    "noJobs": "There are no confirmed jobs on your record yet. A job counts once its customer confirms it."
   },
   "notFound": {
     "title": "Page not found",
