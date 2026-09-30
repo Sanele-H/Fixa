@@ -23,10 +23,13 @@ REFERENCE_AGREED_RATE = 0.5  # customers who agree to be listed as a reference
 
 
 def add_random_off_app_jobs(
-    tables: SeedTables, rng: np.random.Generator, trades_by_id: dict[str, Trade]
+    tables: SeedTables,
+    rng: np.random.Generator,
+    trades_by_id: dict[str, Trade],
+    providers: list[dict],
 ) -> None:
-    """Adds a few confirmed off-app jobs for some random providers, from before they joined."""
-    for provider in tables.providers:
+    """Adds a few confirmed off-app jobs for some of these providers, from before they joined."""
+    for provider in providers:
         if not provider.get("_story") and rng.random() < LOGGING_PROVIDER_SHARE:
             job_count = int(rng.integers(1, MAX_JOBS_PER_PROVIDER + 1))
             add_logged_history(tables, rng, provider, trades_by_id, job_count)

@@ -108,6 +108,54 @@ const ICON_PATHS = {
   ),
   droplet: <path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z" />,
   bolt: <path d="M13 2 4 14h7l-1 8 9-12h-7z" />,
+  hammer: (
+    <>
+      <path d="m15 12 3-3 3 3-8.5 8.5a2.1 2.1 0 0 1-3-3z" />
+      <path d="m12 9-6 6M9 12l-3 3" />
+    </>
+  ),
+  flame: (
+    <path d="M12 22c4-3 7-6.5 7-10.5C19 7 15 2 12 2S5 7 5 11.5c0 4 3 7.5 7 10.5zM12 17c-1.5 0-3-1.2-3-3 0-2 3-4.5 3-4.5s3 2.5 3 4.5c0 1.8-1.5 3-3 3z" />
+  ),
+  layers: (
+    <>
+      <path d="m12 2 10 6-10 6L2 8z" />
+      <path d="m2 14 10 6 10-6" />
+    </>
+  ),
+  car: (
+    <>
+      <path d="M5 17h14M5 17a2 2 0 0 1-2-2V9l2.5-5h9L17 9v6a2 2 0 0 1-2 2M5 17a2 2 0 1 0 4 0M19 17a2 2 0 1 0-4 0" />
+      <path d="M3 9h14" />
+    </>
+  ),
+  grid: (
+    <>
+      <rect x="3" y="3" width="7" height="7" />
+      <rect x="14" y="3" width="7" height="7" />
+      <rect x="3" y="14" width="7" height="7" />
+      <rect x="14" y="14" width="7" height="7" />
+    </>
+  ),
+  paintRoller: (
+    <>
+      <rect x="3" y="3" width="14" height="6" rx="1" />
+      <path d="M17 6h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-5v6a2 2 0 0 1-4 0v-7" />
+    </>
+  ),
+  washer: (
+    <>
+      <rect x="4" y="2" width="16" height="20" rx="2" />
+      <circle cx="12" cy="14" r="5" />
+      <path d="M8 6h2M14 6h2" />
+    </>
+  ),
+  trees: (
+    <>
+      <path d="M12 3 4 14h16zM12 22v-8" />
+      <path d="M7 22h10" />
+    </>
+  ),
   wrench: (
     <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z" />
   ),

@@ -38,6 +38,8 @@ export type NewJob = {
   photo_id?: string;
   /** Insist on a licensed provider. The server also spots licensed work by itself. */
   needs_licence?: boolean;
+  /** Optional free-text hints for the provider (gate code, landmark). Shown only after confirm. */
+  directions?: string;
 };
 
 /**

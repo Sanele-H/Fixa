@@ -6,6 +6,7 @@ providers (story.py) are kept out of random jobs, so their records match the fix
 """
 
 import math
+import zlib
 from datetime import date, datetime, timedelta
 
 import numpy as np
@@ -47,6 +48,17 @@ QUOTE_MESSAGES = [
     "I can come tomorrow morning.",
     "I can fix it this week.",
     "The price includes parts.",
+]
+DIRECTIONS_CHANCE = 0.3  # about one in three jobs has directions for the provider
+DIRECTIONS_OPTIONS = [
+    "Blue gate, ring the bell",
+    "Complex entrance on Main Road, flat 4B",
+    "Gate code 1234",
+    "Use the back door, next to the spaza",
+    "Corner house with a red wall",
+    "Call when you arrive, the gate is locked",
+    "Third house from the corner, white palisade",
+    "Security gate, intercom on the right",
 ]
 
 
@@ -157,8 +169,9 @@ def create_job(
 
     It starts in state "quoting" with no provider and no outcome; callers fill those in.
     """
+    job_id = create_id("job", tables.jobs)
     return {
-        "id": create_id("job", tables.jobs),
+        "id": job_id,
         "customer_id": customer["id"],
         "provider_id": None,
         "state": "quoting",
@@ -173,12 +186,25 @@ def create_job(
         "lng": customer["lng"],
         "problem": task.problem,
         "problem_lang": PROBLEM_LANGUAGE,
+        "directions": pick_directions(job_id),
         "photo_url": None,
         "created_at": format_timestamp(created_on, pick_working_hour(rng)),
         "finished_on": None,
         "completed": None,
         "still_working": None,
     }
+
+
+def pick_directions(job_id: str) -> str | None:
+    """Picks directions for about one job in three, or None.
+
+    The pick comes from the job id, not the seed's random stream, so adding directions left
+    every other seeded value as it was.
+    """
+    job_rng = np.random.default_rng(zlib.crc32(job_id.encode()))
+    if job_rng.random() >= DIRECTIONS_CHANCE:
+        return None
+    return pick(job_rng, DIRECTIONS_OPTIONS)
 
 
 def add_quote(

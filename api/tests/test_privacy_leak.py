@@ -77,6 +77,7 @@ class Sensitive:
         self.phones = {normalise_phone(person.phone) for person in people}
         self.addresses = {person.address for person in people if hasattr(person, "address")}
         self.addresses |= {job.address for job in jobs}
+        self.directions = {job.directions for job in jobs if job.directions}
         self.coordinates = {repr(value) for person in people for value in (person.lat, person.lng)}
         self.coordinates |= {repr(value) for job in jobs for value in (job.lat, job.lng)}
         # Whole addresses only: "6 Example Street" must not match inside "46 Example Street".
@@ -90,6 +91,7 @@ class Sensitive:
         found |= {
             address for address, pattern in self.address_patterns.items() if pattern.search(text)
         }
+        found |= {direction for direction in self.directions if direction in text}
         found |= {coordinate for coordinate in self.coordinates if coordinate in text}
         return found
 
@@ -109,7 +111,10 @@ def allowed_values(state_is_unlocked: bool, user: str, session, job_id: str) -> 
     job = session.get(Job, job_id)
     customer = session.get(Customer, job.customer_id)
     provider = session.get(Provider, job.provider_id)
-    return {normalise_phone(customer.phone), normalise_phone(provider.phone), job.address}
+    allowed = {normalise_phone(customer.phone), normalise_phone(provider.phone), job.address}
+    if job.directions:
+        allowed.add(job.directions)
+    return allowed
 
 
 def assert_no_leak(response, sensitive, allowed, where: str) -> None:
@@ -149,6 +154,7 @@ def new_job(world) -> tuple[str, str]:
         "urgency": "urgent",
         "size": "small",
         "suburb": "Braamfontein",
+        "directions": "Green door, third floor, buzz the intercom",
     }
     job = act(world, "customer", "POST", "/api/jobs", "posted", **body).json()
     return job["id"], ""
@@ -252,13 +258,16 @@ def test_the_seeded_jobs_leak_nothing_either(world):
 
 
 def own_job_allowed_values(session, job: Job, user_id: str) -> set[str]:
-    """What a person may see of one of their own jobs: its phones and address, only once it's
-    unlocked and only if they are its customer or its provider."""
+    """What a person may see of one of their own jobs: its phones, address and directions,
+    only once it's unlocked and only if they are its customer or its provider."""
     if job.state not in UNLOCKED_STATES or user_id not in (job.customer_id, job.provider_id):
         return set()
     customer = session.get(Customer, job.customer_id)
     provider = session.get(Provider, job.provider_id)
-    return {normalise_phone(customer.phone), normalise_phone(provider.phone), job.address}
+    allowed = {normalise_phone(customer.phone), normalise_phone(provider.phone), job.address}
+    if job.directions:
+        allowed.add(job.directions)
+    return allowed
 
 
 def sweep_own_jobs(world, state: str) -> None:

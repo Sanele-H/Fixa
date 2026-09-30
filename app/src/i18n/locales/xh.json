@@ -46,8 +46,19 @@
     "provider": "Umntu owenzayo/Umakhi"
   },
   "trade": {
+    "electrical": "Umbane",
     "plumbing": "Imibhobho",
-    "electrical": "Umbane"
+    "carpentry": "Umbazi",
+    "welding": "Umeshisi",
+    "bricklaying": "Umakhi wezitena",
+    "mechanic": "Umeshinisi",
+    "roofing": "Umsebenzi wophahla",
+    "tiling": "Umfaki weethayili",
+    "cabinetmaking": "Umenzi weekhabhathi",
+    "painting": "Umupenda",
+    "appliance_repair": "Ukulungisa izixhobo zombane",
+    "groundskeeping": "Umgcini wesizinda",
+    "other": "Okunye"
   },
   "urgency": {
     "low": "Ayingxangxasi",
@@ -123,7 +134,10 @@
     "photoAdding": "Ifaka umfanekiso wakho…",
     "photoAlt": "Umfanekiso wakho wengxaki",
     "removePhoto": "Susa umfanekiso",
-    "licensedOnly": "Abakhi abanamaphepha-mvume kuphela (umthetho uyafundeka kuyo imisebenzi ethile)"
+    "licensedOnly": "Abakhi abanamaphepha-mvume kuphela (umthetho uyafundeka kuyo imisebenzi ethile)",
+    "suggestedUnsure": "Asiqiniseki ukuba lo msebenzi ngowuhlobo luni — nceda uhlole.",
+    "directionsLabel": "Izikhokelo zomsebenzi (ngokuzithandela)",
+    "directionsHint": "Ikhowudi yesango, indawo ephawulekayo, ucango olumele lusetyenziswe…"
   },
   "providers": {
     "title": "Ngubani onganceda",
@@ -185,6 +199,8 @@
     "lockedBody": "Iinambolo zefowuni nedilesi zivuleka xa umkhi eqinisekisa umsebenzi.",
     "unlockedTitle": "Iinkcukacha zakho zokunxibelelana",
     "address": "Idilesi",
+    "directions": "Izikhokelo",
+    "getDirections": "Fumana izikhokelo",
     "customerPhone": "Ifowuni yomthengi",
     "providerPhone": "Ifowuni yomkhi"
   },

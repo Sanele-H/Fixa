@@ -13,6 +13,11 @@ function buildPhoneHref(phone: string) {
   return `tel:${phone.replace(/\s/g, "")}`;
 }
 
+/** Opens Google Maps directions to the job's address. */
+function buildMapsUrl(address: string) {
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
+}
+
 /** Black card: details exist but stay hidden until the provider confirms. */
 function LockedContactCard() {
   const { t } = useTranslation();
@@ -46,6 +51,12 @@ function UnlockedContactCard({ job }: { job: JobUnlocked }) {
           <dt className="eyebrow">{t("contact.address")}</dt>
           <dd>{job.address}</dd>
         </div>
+        {job.directions && (
+          <div>
+            <dt className="eyebrow">{t("contact.directions")}</dt>
+            <dd>{job.directions}</dd>
+          </div>
+        )}
         <div>
           <dt className="eyebrow">{t("contact.customerPhone")}</dt>
           <dd>
@@ -59,6 +70,10 @@ function UnlockedContactCard({ job }: { job: JobUnlocked }) {
           </dd>
         </div>
       </dl>
+      <a className="btn btn--secondary btn--block" href={buildMapsUrl(job.address)} target="_blank" rel="noopener noreferrer">
+        <Icon name="mapPin" sizePx={20} />
+        {t("contact.getDirections")}
+      </a>
     </Card>
   );
 }

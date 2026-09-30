@@ -60,6 +60,7 @@ class NewJob(BaseModel):
     suburb: str
     photo_id: str | None = None
     needs_licence: bool = False  # the customer can insist on a licensed provider
+    directions: str | None = Field(default=None, max_length=500)
 
     @field_validator("trade")
     @classmethod
@@ -138,6 +139,7 @@ def create_job(body: NewJob, customer: CustomerUser, session: DbSession):
     refuse_if_prohibited(session, customer, body.description, "job_post")
     photo_url = attach_photo(session, customer, body.photo_id)
     problem = safe_text_for(body.description, body.lang)
+    safe_directions = safe_text_for(body.directions, body.lang) if body.directions else None
     job = Job(
         id=new_id("job"),
         customer_id=customer.id,
@@ -153,6 +155,7 @@ def create_job(body: NewJob, customer: CustomerUser, session: DbSession):
         lng=customer.lng,
         problem=problem,
         problem_lang=detect_language(problem, body.lang),
+        directions=safe_directions,
         photo_url=photo_url,
         created_at=now(),
     )

@@ -15,7 +15,7 @@
 | Code | Values |
 |---|---|
 | Language | `en` · `zu` · `xh` |
-| Trade | The 11 trade ids in `data/glossary.json` (for example `plumbing`, `electrical`) |
+| Trade | `electrical` · `plumbing` · `carpentry` · `welding` · `bricklaying` · `mechanic` · `roofing` · `tiling` · `cabinetmaking` · `painting` · `appliance_repair` · `groundskeeping` · `other` |
 | Job size | `small` · `medium` · `large` |
 | Urgency | `low` · `normal` · `urgent` |
 | Job state | `posted` → `quoting` → `quote_accepted` → **`confirmed`** → `in_progress` → `done` → `followed_up`, plus `cancelled` |
@@ -52,7 +52,7 @@
 | PATCH | `/api/me` | user | `{lang}` | `me.json` |
 | POST | `/api/jobs/understand` | customer | `{text, lang}` | `job_intent.json` |
 | POST | `/api/photos` | user | multipart `photo` (shrunk on the phone) | `photo.json` |
-| POST | `/api/jobs` | customer | `{description, lang, trade, urgency, size, suburb, photo_id?}` | 201 `job_public.json` |
+| POST | `/api/jobs` | customer | `{description, lang, trade, urgency, size, suburb, photo_id?, directions?}` | 201 `job_public.json` |
 | GET | `/api/jobs` | user | | `my_jobs.json`: a customer's own jobs, or the jobs a provider quoted on or was picked for, newest first (20 at most). Each is `JobPublic`, or `JobUnlocked` from `confirmed` on |
 | GET | `/api/jobs/{job_id}` | job's customer, shortlisted providers | | `job_public.json`, or `job_unlocked.json` from `confirmed` on |
 | GET | `/api/jobs/{job_id}/providers` | job's customer | | `ranked_providers.json` |
@@ -83,7 +83,7 @@ These are the shapes of the objects in the fixtures, and each fixture is the sou
 
 - **User** (`me.json`): `id, role (customer|provider), display_name, lang, suburb, id_badge`
 - **JobPublic**: `id, state, trade, size, urgency, suburb, problem, problem_original, problem_lang, translation_flagged, photo_url, distance_km, created_at`
-- **JobUnlocked**: JobPublic plus `address, customer_phone, provider_phone, provider_photo_url`
+- **JobUnlocked**: JobPublic plus `address, directions, customer_phone, provider_phone, provider_photo_url`
 - **RankedProvider**: `provider_id, display_name, trades, distance_km, is_newcomer, id_badge, evidence {jobs, repeat_customers, photos, off_app_confirmed}, trust {score, low, high, label}`
 - **NearbyProvider**: `provider_id, display_name, suburb, trades, langs, distance_km, is_newcomer, id_badge, evidence {jobs, repeat_customers, photos, off_app_confirmed}` (no `trust`)
 - **Quote**: `id, job_id, provider_id, amount_rands, when, message, state, created_at`
