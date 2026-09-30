@@ -243,7 +243,23 @@
     "numberHint": "13 digits",
     "check": "Check number",
     "resultTitle": "Result",
-    "resultBody": "Your badge shows on your profile."
+    "resultBody": "Your badge shows on your profile.",
+    "currentBadge": "Your badge now",
+    "numberOk": "This number looks right. Date of birth: {{date}}.",
+    "reason": {
+      "digits": "Use numbers only.",
+      "length": "An SA ID number has 13 digits.",
+      "date": "The first 6 digits should be your date of birth (YYMMDD).",
+      "checksum": "There's a typo in this number. Check it against your ID."
+    },
+    "namesLabel": "Your names, as on your ID",
+    "namesHint": "For example: Sipho Dlamini",
+    "homeAffairs": "Check with Home Affairs",
+    "result": {
+      "verified": "Home Affairs confirmed who you are.",
+      "nameMismatch": "Home Affairs has this number, but the names don't match. Check the spelling and try again.",
+      "notFound": "Home Affairs couldn't find this number. Your ID number badge stays."
+    }
   },
   "offApp": {
     "title": "Log a past job",
