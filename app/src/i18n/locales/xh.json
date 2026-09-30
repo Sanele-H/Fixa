@@ -335,7 +335,9 @@
     "noShowConfirm": "Ingaba u-{{name}} akavelanga? Oku kuya kwirekhodi yakhe kuphela kuphelise umsebenzi.",
     "noShowYes": "Ewe, abazanga",
     "noShowNo": "Buyela emva",
-    "followUpSoon": "Kuveki ezimbini siza kubabuza ukuba ukulungiswa kusasebenza na."
+    "followUpSoon": "Kuveki ezimbini siza kubabuza ukuba ukulungiswa kusasebenza na.",
+    "onMyWay": "I'm on my way",
+    "onMyWayDone": "We told the customer you're on the way."
   },
   "followUp": {
     "title": "Ingaba ukulungiswa kusasebenza?",
@@ -411,10 +413,6 @@
     "title": "Safety",
     "intro": "Only you see this. The other person is never told.",
     "panic": "Emergency",
-    "panicConfirm": "Send an alert now?",
-    "panicConfirmBody": "We'll text your trusted contact where you are.",
-    "panicYes": "Yes, send alert",
-    "panicNo": "No, go back",
     "panicSentTo": "Alert sent to {{name}} with your location.",
     "panicSentNoLocation": "Alert sent to {{name}}. Your location wasn't available.",
     "panicNoContact": "Alert recorded. Add a trusted contact so someone is told next time.",
@@ -444,12 +442,19 @@
     "contactIs": "{{name}} · {{phone}}",
     "momentsTitle": "Where it happened",
     "moment": {
+      "on_my_way": "{{name}} was on the way",
       "check_in": "{{name}} checked in",
       "check_out": "{{name}} said the work was finished",
       "done": "{{name}} marked the job done",
       "panic": "You pressed Emergency",
       "timer_start": "{{name}} started a safety timer"
     },
-    "distanceFromJob": "{{distance}} from the job address"
+    "distanceFromJob": "{{distance}} from the job address",
+    "holdToPanic": "Hold for 3 seconds. We text your trusted contact where you are.",
+    "panicHolding": "Keep holding…",
+    "sendWhatsApp": "Send on WhatsApp to {{name}}",
+    "areYouOk": "Are you OK?",
+    "areYouOkBody": "Your safety timer is up. Tap “I'm safe”, or we'll alert your trusted contact at {{time}}.",
+    "timerFromCheckIn": "Started when you checked in. It stops when you tap “I've finished the work”."
   }
 }

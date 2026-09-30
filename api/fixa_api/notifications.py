@@ -53,6 +53,22 @@ TEXTS: dict[str, dict[str, tuple[str, str]]] = {
         "en": ("New message", "{name} sent you a message."),
         "zu": ("Umlayezo omusha", "U-{name} ukuthumelele umlayezo."),
     },
+    "on_my_way": {
+        "en": ("{name} is on the way", "{name} is on the way to your job."),
+        "zu": ("U-{name} usendleleni", "U-{name} usendleleni eza emsebenzini wakho."),
+    },
+    "timer_check": {
+        "en": (
+            "Are you OK?",
+            "Your safety timer is up. Open Fixa and tap \u201cI'm safe\u201d, "
+            "or we'll alert your trusted contact.",
+        ),
+        "zu": (
+            "Uphephile?",
+            "Isikhathi sakho sokuphepha siphelile. Vula i-Fixa ucindezele ethi "
+            "\u201cNgiphephile\u201d, noma sizokwazisa umuntu omethembayo.",
+        ),
+    },
     "checked_in": {
         "en": ("{name} has arrived", "{name} checked in for your job."),
         "zu": ("U-{name} ufikile", "U-{name} usho ukuthi ufikile emsebenzini wakho."),

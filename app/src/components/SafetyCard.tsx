@@ -3,7 +3,7 @@
 // and where each key moment happened.
 // Only the person themselves sees their alerts and timers; the other person is never told.
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import {
   usePanic,
@@ -19,7 +19,7 @@ import {
 } from "../api/safety";
 import type { JobState } from "../api/types";
 import { formatDistanceKm, formatTime } from "../format";
-import { Banner, Button, Card } from "../ui";
+import { Banner, Button, Card, Icon } from "../ui";
 import { ErrorBanner } from "./ErrorBanner";
 
 /** The job's day: from confirmed until it's finished. Safety tools show only then. */
@@ -29,22 +29,8 @@ const MOMENT_STATES: JobState[] = ["confirmed", "in_progress", "done", "followed
 /** A one-minute timer lets a demo show a missed timer; real use starts at half an hour. */
 const TIMER_CHOICES = import.meta.env.DEV ? [1, 30, 60, 120] : [30, 60, 120];
 
-/** Emergency numbers as text that can be read and dialled, with tel: links as a convenience. */
-function EmergencyNumbers({ numbers }: { numbers: PanicResult["emergency_numbers"] }) {
-  const { t } = useTranslation();
-  return (
-    <div className="stack">
-      <p className="section-title">{t("safety.callNow")}</p>
-      <div className="row">
-        {numbers.map(({ label, number }) => (
-          <a key={number} className="btn btn--secondary" href={`tel:${number}`}>
-            {t(`safety.${label}`)}: {number}
-          </a>
-        ))}
-      </div>
-    </div>
-  );
-}
+/** How long Emergency must be held, so a pocket or a stray tap never sends an alert. */
+const HOLD_TO_PANIC_MS = 3_000;
 
 /**
  * Opens WhatsApp with the alert already written, addressed to the trusted contact. The SMS can
@@ -70,44 +56,112 @@ function getPanicResultKey(result: PanicResult) {
   return result.location_shared ? "safety.panicSentTo" : "safety.panicSentNoLocation";
 }
 
-/** The red button, a confirm step (a panic press should never be an accident), and the result. */
+type PanicResultCardProps = { result: PanicResult };
+
+/**
+ * What happens after Emergency: who was told (only "sent" when the SMS really went), then the
+ * two things to do next, big and first: call the police, and send the same alert on WhatsApp to
+ * the trusted contact. They're buttons rather than opening by themselves: a phone can only open one app at a
+ * time, and a call should never start without a tap.
+ */
+function PanicResultCard({ result }: PanicResultCardProps) {
+  const { t } = useTranslation();
+  const { contact, emergency_numbers: numbers, whatsapp_url: whatsappUrl } = result;
+  const isSent = Boolean(contact) && result.sms_sent;
+  const [police, ...others] = numbers;
+
+  return (
+    <Card tone="raised">
+      <Banner tone={isSent ? "info" : "warning"} title={t(getPanicResultKey(result), { name: contact?.name })} />
+      <p className="section-title">{t("safety.callNow")}</p>
+      {police && (
+        <a className="btn btn--danger btn--block" href={`tel:${police.number}`}>
+          <Icon name="phone" />
+          {t(`safety.${police.label}`)}: {police.number}
+        </a>
+      )}
+      {whatsappUrl && contact && (
+        <a className="btn btn--lime btn--block" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+          <Icon name="send" />
+          {t("safety.sendWhatsApp", { name: contact.name })}
+        </a>
+      )}
+      <div className="row">
+        {others.map(({ label, number }) => (
+          <a key={number} className="btn btn--secondary btn--small" href={`tel:${number}`}>
+            {t(`safety.${label}`)}: {number}
+          </a>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+/** Hold for 3 seconds to send an alert; letting go early cancels it. Works with touch, mouse and keys. */
 function PanicButton({ jobId }: { jobId: string }) {
   const { t } = useTranslation();
   const panic = usePanic();
-  const [isConfirming, setIsConfirming] = useState(false);
+  const [isHolding, setIsHolding] = useState(false);
+  const holdTimeout = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    if (holdTimeout.current !== null) {
+      window.clearTimeout(holdTimeout.current);
+    }
+  }, []);
+
+  function startHold() {
+    if (panic.isPending || holdTimeout.current !== null) {
+      return;
+    }
+    setIsHolding(true);
+    holdTimeout.current = window.setTimeout(() => {
+      holdTimeout.current = null;
+      setIsHolding(false);
+      panic.mutate(jobId);
+    }, HOLD_TO_PANIC_MS);
+  }
+
+  function cancelHold() {
+    if (holdTimeout.current !== null) {
+      window.clearTimeout(holdTimeout.current);
+      holdTimeout.current = null;
+    }
+    setIsHolding(false);
+  }
 
   if (panic.isSuccess) {
-    const result = panic.data;
-    const isSent = Boolean(result.contact) && result.sms_sent;
-    return (
-      <Card tone="raised">
-        <Banner tone={isSent ? "info" : "warning"} title={t(getPanicResultKey(result), { name: result.contact?.name })} />
-        {result.whatsapp_url && <WhatsAppAlertLink url={result.whatsapp_url} />}
-        <EmergencyNumbers numbers={result.emergency_numbers} />
-      </Card>
-    );
-  }
-  if (isConfirming) {
-    return (
-      <Card tone="raised">
-        <p className="section-title">{t("safety.panicConfirm")}</p>
-        <p className="small">{t("safety.panicConfirmBody")}</p>
-        {panic.isError && <ErrorBanner error={panic.error} />}
-        <div className="row">
-          <Button variant="danger" onClick={() => panic.mutate(jobId)} disabled={panic.isPending}>
-            {t("safety.panicYes")}
-          </Button>
-          <Button variant="secondary" onClick={() => setIsConfirming(false)}>
-            {t("safety.panicNo")}
-          </Button>
-        </div>
-      </Card>
-    );
+    return <PanicResultCard result={panic.data} />;
   }
   return (
-    <Button variant="danger" isBlock icon="alert" onClick={() => setIsConfirming(true)}>
-      {t("safety.panic")}
-    </Button>
+    <div className="stack">
+      <button
+        type="button"
+        className={isHolding ? "btn btn--danger btn--block hold-button is-holding" : "btn btn--danger btn--block hold-button"}
+        style={{ "--hold-ms": `${HOLD_TO_PANIC_MS}ms` } as CSSProperties}
+        onPointerDown={startHold}
+        onPointerUp={cancelHold}
+        onPointerLeave={cancelHold}
+        onPointerCancel={cancelHold}
+        onKeyDown={(event) => {
+          if ((event.key === "Enter" || event.key === " ") && !event.repeat) {
+            event.preventDefault();
+            startHold();
+          }
+        }}
+        onKeyUp={cancelHold}
+        onContextMenu={(event) => event.preventDefault()}
+        disabled={panic.isPending}
+        aria-describedby="panic-hold-hint"
+      >
+        <Icon name="alert" />
+        <span>{isHolding ? t("safety.panicHolding") : t("safety.panic")}</span>
+      </button>
+      <p id="panic-hold-hint" className="small muted">
+        {t("safety.holdToPanic")}
+      </p>
+      {panic.isError && <ErrorBanner error={panic.error} />}
+    </div>
   );
 }
 
@@ -119,7 +173,7 @@ function getMissedTimerKey(timer: SafetyTimer, hasContact: boolean) {
   return timer.contact_notified ? "safety.timerMissed" : "safety.timerMissedNotSent";
 }
 
-/** "Check on me in an hour", then "I'm safe"; says so if it ran out. */
+/** "Check on me in an hour", "Are you OK?" when it's up, then "I'm safe"; says so if it ran out. */
 function SafetyTimerControls({ jobId, hasContact }: { jobId: string; hasContact: boolean }) {
   const { t, i18n } = useTranslation();
   const timer = useSafetyTimer(jobId);
@@ -127,7 +181,22 @@ function SafetyTimerControls({ jobId, hasContact }: { jobId: string; hasContact:
   const saySafe = useSaySafe(jobId);
   const current = timer.data;
   const actionError = startTimer.error ?? saySafe.error;
+  const imSafeButton = (
+    <Button variant="lime" isBlock icon="check" onClick={() => saySafe.mutate()} disabled={saySafe.isPending}>
+      {t("safety.imSafe")}
+    </Button>
+  );
 
+  if (current?.state === "asking") {
+    return (
+      <div className="stack" role="alert">
+        <p className="section-title">{t("safety.areYouOk")}</p>
+        <p className="small">{t("safety.areYouOkBody", { time: formatTime(current.alert_at, i18n.language) })}</p>
+        {imSafeButton}
+        {actionError && <ErrorBanner error={actionError} />}
+      </div>
+    );
+  }
   return (
     <div className="stack">
       <p className="section-title">{t("safety.timerTitle")}</p>
@@ -136,9 +205,8 @@ function SafetyTimerControls({ jobId, hasContact }: { jobId: string; hasContact:
           <p className="small">
             {t("safety.timerRunning", { time: formatTime(current.due_at, i18n.language) })}
           </p>
-          <Button variant="lime" isBlock icon="check" onClick={() => saySafe.mutate()} disabled={saySafe.isPending}>
-            {t("safety.imSafe")}
-          </Button>
+          {current.reason === "check_in" && <p className="small muted">{t("safety.timerFromCheckIn")}</p>}
+          {imSafeButton}
         </>
       ) : (
         <>

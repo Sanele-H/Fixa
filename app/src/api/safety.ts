@@ -13,19 +13,24 @@ const LOCATION_MAX_AGE_MS = 60_000;
 
 export type TrustedContact = { name: string; phone: string };
 
-export type SafetyTimerState = "running" | "safe" | "missed";
+/** running, then asking ("Are you OK?") when it's up, then safe or missed. */
+export type SafetyTimerState = "running" | "asking" | "safe" | "missed";
 export type SafetyTimer = {
   id: string;
   state: SafetyTimerState;
+  /** check_in when checking in started it, else manual. */
+  reason: "manual" | "check_in";
   started_at: string;
   due_at: string;
+  /** When the trusted contact is told if nobody says they're safe. */
+  alert_at: string;
   /** Missed timers only: whether the SMS to the trusted contact really went. */
   contact_notified?: boolean;
   /** Missed timers only: WhatsApp with the alert ready to send, or null with no contact. */
   whatsapp_url?: string | null;
 };
 
-export type KeyMoment = "check_in" | "check_out" | "done" | "panic" | "timer_start";
+export type KeyMoment = "on_my_way" | "check_in" | "check_out" | "done" | "panic" | "timer_start";
 export type LocationEntry = {
   moment: KeyMoment;
   role: "customer" | "provider";
@@ -153,6 +158,18 @@ export function useSaySafe(jobId: string) {
   return useMutation({
     mutationFn: () => postJson<SafetyTimer>(`/api/jobs/${jobId}/safety-timer/safe`),
     onSuccess: (timer) => queryClient.setQueryData(safetyKeys.timer(jobId), timer),
+  });
+}
+
+/** POST /api/jobs/{job_id}/on-my-way: the provider has left; the customer is told. Call mutate(). */
+export function useOnMyWay(jobId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => {
+      recordKeyMoment(jobId, "on_my_way");
+      return postJson<{ told: boolean }>(`/api/jobs/${jobId}/on-my-way`);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: safetyKeys.locations(jobId) }),
   });
 }
 

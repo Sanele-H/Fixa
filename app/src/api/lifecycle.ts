@@ -4,6 +4,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getJson, postJson } from "./client";
 import { invalidateJobLists, updateCachedJob } from "./jobs";
+import { safetyKeys } from "./safety";
 import type { JobPublic, JobUnlocked } from "./types";
 
 type Job = JobPublic | JobUnlocked;
@@ -19,7 +20,11 @@ export function useCheckIn() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (jobId: string) => postJson<Job>(`/api/jobs/${jobId}/check-in`),
-    onSuccess: (job) => updateCachedJob(queryClient, job),
+    onSuccess: (job) => {
+      updateCachedJob(queryClient, job);
+      // Checking in starts the provider's safety timer
+      queryClient.invalidateQueries({ queryKey: safetyKeys.timer(job.id) });
+    },
   });
 }
 
@@ -28,7 +33,11 @@ export function useCheckOut() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (jobId: string) => postJson<Job>(`/api/jobs/${jobId}/check-out`),
-    onSuccess: (job) => updateCachedJob(queryClient, job),
+    onSuccess: (job) => {
+      updateCachedJob(queryClient, job);
+      // Finishing the work stops it
+      queryClient.invalidateQueries({ queryKey: safetyKeys.timer(job.id) });
+    },
   });
 }
 
