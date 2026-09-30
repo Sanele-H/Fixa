@@ -530,6 +530,11 @@
       "mock": "Inkokhelo yokuhlola",
       "payfast": "PayFast"
     },
-    "receiptRef": "Inombolo {{reference}}"
+    "receiptRef": "Inombolo {{reference}}",
+    "refund": {
+      "refunded": "Kubuyisiwe",
+      "refund_owed": "Imali iyabuyiswa: ithimba le-Fixa lizoyibuyisa",
+      "under_review": "Kuyabuyekezwa: umsebenzi ukhanseliwe emva kokuba sekuqalwe ukusebenza, ngakho ithimba le-Fixa lizonquma"
+    }
   }
 }

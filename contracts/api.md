@@ -136,6 +136,11 @@ Added on 1 Oct (branch `payments`). Only the job's customer and its picked provi
 - `PAYMENT_PROVIDER=mock` (the default): our own test checkout page, with no card and no money moved. It confirms through the same code as a real webhook.
 - `PAYMENT_PROVIDER=payfast`: PayFast's sandbox (or live, with `PAYFAST_SANDBOX=false`). A notice counts only if its signature is right, it's for our merchant, PayFast's own server confirms it (`/eng/query/validate`), and the amount matches to the cent. Notices are idempotent. Starting a new checkout cancels an unfinished one, so a late notice for the old one isn't counted.
 - **Why PayFast:** it's South African and settles in rands. Besides cards, its hosted page offers Instant EFT and QR payments, which matter for customers without a credit card. Its sandbox is free and needs no registered business, and its webhook can be checked back with PayFast.
+- **Refunds, when a job with money paid is cancelled.** The rule follows whose fault it is, so there's no refund button either side could game:
+  - The provider didn't turn up (`POST /done` with `completed: false`): all refunded.
+  - The customer cancelled before the provider checked in (`quote_accepted` or `confirmed`): all refunded. No work had started, and the deposit is at most half.
+  - The customer cancelled after check-in: `under_review`, and the Fixa team decides.
+  - "Refunded" is instant on the test checkout. With PayFast it's recorded as `refund_owed`, and the team pays it back from PayFast's dashboard (PayFast's refund API isn't wired in yet).
 - **Live setup:** set `PUBLIC_API_URL` so PayFast can reach the webhook (a laptop's localhost can't receive it; use the tunnel or Render), and `PUBLIC_APP_URL` for the return page.
 
 | Method | Path | Who | Body | Returns |
@@ -148,6 +153,6 @@ Added on 1 Oct (branch `payments`). Only the job's customer and its picked provi
 | GET, POST | `/api/payments/mock/{payment_id}` | anyone with the link | form `paid=yes\|no` | The test checkout page; the POST redirects (303) to `/jobs/{job_id}?payment=<id>` or `?payment_cancelled=<id>` |
 | POST | `/api/payments/payfast/notify` | PayFast | PayFast's ITN form | 200 `OK`, or 400 for a notice that isn't genuine. 404 unless `PAYMENT_PROVIDER=payfast` |
 
-- **JobPayment**: `plan ({method, total_rands, deposit_rands, agreed_at} or null), paid_rands, due ({kind, amount_rands} or null), can_change, change ({id, method, deposit_rands, proposed_by_me, created_at} or null), receipts [{id, kind, amount_rands, paid_at, gateway (mock|payfast), reference}]`. `kind` is `deposit`, `balance` (the rest after a deposit) or `full`.
+- **JobPayment**: `plan ({method, total_rands, deposit_rands, agreed_at} or null), paid_rands, due ({kind, amount_rands} or null), can_change, change ({id, method, deposit_rands, proposed_by_me, created_at} or null), receipts [{id, kind, amount_rands, paid_at, gateway (mock|payfast), reference, refund_state (refunded|refund_owed|under_review or null), refund_at}]`. `paid_rands` leaves out refunded payments. `kind` is `deposit`, `balance` (the rest after a deposit) or `full`.
 - **Checkout**: `payment_id, checkout_url, method (GET|POST), fields`. For `POST`, submit `fields` to `checkout_url` as a form (PayFast's signed form).
-- Inbox kinds added: `payment_change_asked, payment_change_agreed, payment_change_declined, payment_received` (to the provider), `payment_receipt` (to the customer).
+- Inbox kinds added: `payment_change_asked, payment_change_agreed, payment_change_declined, payment_received` (to the provider), `payment_receipt` (to the customer), and `refund_done, refund_owed, refund_review` (to both).

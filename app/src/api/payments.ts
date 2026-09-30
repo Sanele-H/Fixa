@@ -44,7 +44,15 @@ export type Receipt = {
   paid_at: string;
   gateway: "mock" | "payfast";
   reference: string;
+  /**
+   * Set when the job was cancelled after paying: refunded (given back), refund_owed (the Fixa
+   * team pays it back) or under_review (work had started, so the team decides). Null otherwise.
+   */
+  refund_state: RefundState | null;
+  refund_at: string | null;
 };
+
+export type RefundState = "refunded" | "refund_owed" | "under_review";
 
 /** GET /api/jobs/{job_id}/payment: everything the job page shows about paying. */
 export type JobPayment = {

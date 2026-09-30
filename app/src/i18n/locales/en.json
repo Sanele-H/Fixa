@@ -529,6 +529,11 @@
       "mock": "Test payment",
       "payfast": "PayFast"
     },
-    "receiptRef": "Ref {{reference}}"
+    "receiptRef": "Ref {{reference}}",
+    "refund": {
+      "refunded": "Refunded",
+      "refund_owed": "Refund on its way: the Fixa team will pay it back",
+      "under_review": "Under review: the job was cancelled after work started, so the Fixa team will decide"
+    }
   }
 }

@@ -10,6 +10,18 @@ Three ways to pay (models.PAYMENT_METHODS):
 The quote says which ways the provider accepts; the customer picks one when accepting. After
 that the plan changes only when both agree, and only before the work starts and before any
 money has moved.
+
+Refunds, when a job with money paid is cancelled. The rule follows whose fault it is, so nobody
+needs a refund button that either side could game:
+
+- The provider didn't turn up: everything back, automatically.
+- The customer cancelled before the provider checked in: everything back, automatically. No
+  work had started, and the deposit is at most half, so the provider loses little.
+- The customer cancelled after check-in: held for the team to decide, since the provider may
+  have bought parts or done part of the work.
+
+"Back" means refunded straight away on the test checkout. With PayFast it's recorded as owed,
+and the team pays it back from PayFast's dashboard (the refund API isn't wired in yet).
 """
 
 import datetime as dt
@@ -31,6 +43,7 @@ from fixa_api.models import (
     Provider,
     Quote,
 )
+from fixa_api.notifications import notify
 
 IN_APP_AFTER, IN_APP_SPLIT, CASH = PAYMENT_METHODS
 MAX_DEPOSIT_SHARE = 0.5  # a deposit is at most half the quote
@@ -43,6 +56,11 @@ DEPOSIT_STATES = {states.CONFIRMED, states.IN_PROGRESS}
 BALANCE_STATES = {states.DONE, states.FOLLOWED_UP}
 
 PENDING, PAID, FAILED, CANCELLED = "pending", "paid", "failed", "cancelled"
+REFUNDED, REFUND_OWED, UNDER_REVIEW = "refunded", "refund_owed", "under_review"
+# The job states in which the provider hasn't checked in yet: cancelling then refunds in full.
+BEFORE_WORK_STATES = {states.QUOTE_ACCEPTED, states.CONFIRMED}
+# Payment companies whose refunds happen in Fixa itself. Others are paid back by the team.
+INSTANT_REFUND_GATEWAYS = {"mock"}
 AGREED, DECLINED, WITHDRAWN = "agreed", "declined", "withdrawn"
 
 
@@ -110,7 +128,37 @@ def list_payments(session: Session, job_id: str) -> list[Payment]:
 
 
 def sum_paid_rands(payments: list[Payment]) -> int:
-    return sum(payment.amount_rands for payment in payments if payment.state == PAID)
+    """Money paid and still held: a refunded payment no longer counts."""
+    return sum(
+        payment.amount_rands
+        for payment in payments
+        if payment.state == PAID and payment.refund_state != REFUNDED
+    )
+
+
+def find_refund_state(job_state_before: str, is_no_show: bool, gateway: str) -> str:
+    """What happens to one paid payment when its job is cancelled (see the rules at the top).
+    job_state_before is the job's state just before it was cancelled."""
+    if not is_no_show and job_state_before not in BEFORE_WORK_STATES:
+        return UNDER_REVIEW
+    return REFUNDED if gateway in INSTANT_REFUND_GATEWAYS else REFUND_OWED
+
+
+def update_refunds_on_cancel(
+    session: Session, job_id: str, job_state_before: str, is_no_show: bool
+) -> str | None:
+    """Settles every paid payment on a job that was just cancelled, and returns what happened
+    to them (the refund state), or None when nothing had been paid. Pending checkouts are
+    cancelled too. The caller commits and tells both people."""
+    cancel_pending_payments(session, job_id)
+    outcome = None
+    for payment in list_payments(session, job_id):
+        if payment.state != PAID or payment.refund_state is not None:
+            continue
+        outcome = find_refund_state(job_state_before, is_no_show, payment.gateway)
+        payment.refund_state, payment.refund_at = outcome, now()
+        session.add(payment)
+    return outcome
 
 
 def cancel_pending_payments(session: Session, job_id: str) -> None:
@@ -171,6 +219,8 @@ def receipt_view(payment: Payment) -> dict[str, Any]:
         "paid_at": payment.paid_at.isoformat() if payment.paid_at else None,
         "gateway": payment.gateway,
         "reference": payment.gateway_reference,
+        "refund_state": payment.refund_state,
+        "refund_at": payment.refund_at.isoformat() if payment.refund_at else None,
     }
 
 
@@ -266,3 +316,28 @@ def delete_change(change: PaymentPlanChange, answerer: Customer | Provider) -> s
     change.state = WITHDRAWN if change.proposed_by == answerer.id else DECLINED
     change.decided_at = now()
     return change.state
+
+
+# The inbox item each side gets for each refund outcome.
+REFUND_NOTICE_KINDS = {
+    REFUNDED: "refund_done",
+    REFUND_OWED: "refund_owed",
+    UNDER_REVIEW: "refund_review",
+}
+
+
+def settle_cancelled_job(
+    session: Session, job: Job, job_state_before: str, is_no_show: bool = False
+) -> None:
+    """Refunds (or holds) the money paid on a job that was just cancelled, commits, and tells
+    both people what happens to it. Does nothing when nothing was paid."""
+    paid_before = sum_paid_rands(list_payments(session, job.id))
+    outcome = update_refunds_on_cancel(session, job.id, job_state_before, is_no_show)
+    session.commit()
+    if outcome is None:
+        return
+    people = [session.get(Customer, job.customer_id)]
+    if job.provider_id:
+        people.append(session.get(Provider, job.provider_id))
+    for person in people:
+        notify(session, person, REFUND_NOTICE_KINDS[outcome], job.id, amount=paid_before)

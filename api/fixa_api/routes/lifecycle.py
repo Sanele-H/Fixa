@@ -18,6 +18,7 @@ from fixa_api.db import get_session
 from fixa_api.job_views import is_job_customer, is_job_provider, job_view
 from fixa_api.models import Customer, Job, JobEvent, Provider
 from fixa_api.notifications import notify
+from fixa_api.payment_plans import settle_cancelled_job
 from fixa_api.routes.jobs import move_job
 from fixa_api.safety import start_check_in_timer, stop_timer
 
@@ -118,6 +119,8 @@ def mark_done(job_id: str, body: Finish, customer: CustomerUser, session: DbSess
     job.finished_on = today()
     session.add(job)
     session.commit()
+    if not body.completed:
+        settle_cancelled_job(session, job, states.CONFIRMED, is_no_show=True)  # all back
     if body.completed and job.provider_id:
         provider = session.get(Provider, job.provider_id)
         notify(session, provider, "job_done", job.id, name=customer.display_name)

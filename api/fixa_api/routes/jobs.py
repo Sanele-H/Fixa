@@ -26,11 +26,11 @@ from fixa_api.models import DEFAULT_QUOTE_PAYMENT_METHODS, Customer, Job, Photo,
 from fixa_api.notifications import notify
 from fixa_api.payment_plans import (
     IN_APP_SPLIT,
-    cancel_pending_payments,
     check_deposit,
     create_plan,
     delete_plan,
     read_pending_change,
+    settle_cancelled_job,
 )
 from fixa_api.photos import PHOTO_URL_PREFIX
 from fixa_api.ranking_inputs import build_candidates, today
@@ -386,16 +386,17 @@ def cancel_job(job_id: str, customer: CustomerUser, session: DbSession):
     job = session.get(Job, job_id)
     if job is None or not is_job_customer(job, customer):
         raise HTTPException(status_code=404, detail="Job not found")
+    state_before = job.state
     move_job(job, states.CANCELLED)
     for quote in job_quotes(session, job.id):
         if quote.state == "open":
             quote.state = "withdrawn"
             session.add(quote)
-    cancel_pending_payments(session, job.id)
     change = read_pending_change(session, job.id)
     if change is not None:
         change.state = "withdrawn"
         session.add(change)
     session.add(job)
     session.commit()
+    settle_cancelled_job(session, job, state_before)  # refunds any deposit, or holds it
     return job_view(session, job, customer)

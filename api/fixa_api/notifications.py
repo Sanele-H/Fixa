@@ -169,6 +169,35 @@ TEXTS: dict[str, dict[str, tuple[str, str]]] = {
         "en": ("Payment done", "You paid R{amount}. Your receipt is on the job."),
         "zu": ("Ukukhokha kuphelile", "Ukhokhe u-R{amount}. Irisidi yakho isemsebenzini."),
     },
+    "refund_done": {
+        "en": ("Money refunded", "The job was cancelled, so the R{amount} paid was refunded."),
+        "zu": (
+            "Imali ibuyisiwe",
+            "Umsebenzi ukhanseliwe, ngakho u-R{amount} okhokhiwe ubuyisiwe.",
+        ),
+    },
+    "refund_owed": {
+        "en": (
+            "Refund on its way",
+            "The job was cancelled. The Fixa team will pay back the R{amount} that was paid.",
+        ),
+        "zu": (
+            "Imali iyabuyiswa",
+            "Umsebenzi ukhanseliwe. Ithimba le-Fixa lizobuyisa u-R{amount} owakhokhwa.",
+        ),
+    },
+    "refund_review": {
+        "en": (
+            "Payment under review",
+            "The job was cancelled after work started. The Fixa team will decide what happens "
+            "to the R{amount} paid and let you both know.",
+        ),
+        "zu": (
+            "Inkokhelo iyabuyekezwa",
+            "Umsebenzi ukhanseliwe emva kokuba sekuqalwe ukusebenza. Ithimba le-Fixa lizonquma "
+            "ukuthi kwenzekani ngo-R{amount} okhokhiwe futhi lazise nobabili.",
+        ),
+    },
     "timer_missed_no_contact": {
         "en": (
             "Safety timer ran out",

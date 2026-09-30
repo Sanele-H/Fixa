@@ -154,6 +154,12 @@ function Receipts({ payment }: { payment: JobPayment }) {
               <span className="muted">
                 {t(`payment.gateway.${receipt.gateway}`)} · {t("payment.receiptRef", { reference: receipt.reference })}
               </span>
+              {receipt.refund_state && (
+                <>
+                  <br />
+                  <strong>{t(`payment.refund.${receipt.refund_state}`)}</strong>
+                </>
+              )}
             </span>
             <strong>{formatRands(receipt.amount_rands, i18n.language)}</strong>
           </li>

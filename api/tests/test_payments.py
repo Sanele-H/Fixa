@@ -471,3 +471,67 @@ def test_paying_through_payfast_end_to_end(seeded_client, lindiwe, make_confirme
 
 def test_the_payfast_webhook_is_off_when_payfast_isnt_used(seeded_client):
     assert seeded_client.post("/api/payments/payfast/notify", content="a=b").status_code == 404
+
+
+# --- Refunds when a job with money paid is cancelled
+
+
+def cancel(client, lindiwe, job_id):
+    return client.post(f"/api/jobs/{job_id}/cancel", headers=lindiwe)
+
+
+def refund_states(client, headers, job_id):
+    return [r["refund_state"] for r in read_payment(client, headers, job_id)["receipts"]]
+
+
+def test_a_no_show_refunds_the_deposit(seeded_client, seeded_session, lindiwe, make_confirmed_job):
+    job_id = make_confirmed_job("in_app_split")
+    pay_on_test_checkout(seeded_client, lindiwe, job_id)
+    seeded_client.post(f"/api/jobs/{job_id}/done", json={"completed": False}, headers=lindiwe)
+    assert refund_states(seeded_client, lindiwe, job_id) == ["refunded"]
+    assert read_payment(seeded_client, lindiwe, job_id)["paid_rands"] == 0
+    notes = {(n.user_id, n.kind) for n in seeded_session.exec(select(Notification))}
+    assert {("cust_001", "refund_done"), ("prov_001", "refund_done")} <= notes
+
+
+def test_cancelling_before_check_in_refunds_the_deposit(seeded_client, lindiwe, make_confirmed_job):
+    job_id = make_confirmed_job("in_app_split")
+    pay_on_test_checkout(seeded_client, lindiwe, job_id)
+    cancel(seeded_client, lindiwe, job_id)
+    assert refund_states(seeded_client, lindiwe, job_id) == ["refunded"]
+
+
+def test_cancelling_after_check_in_holds_the_deposit_for_review(
+    seeded_client, seeded_session, lindiwe, plumber, make_confirmed_job
+):
+    job_id = make_confirmed_job("in_app_split")
+    pay_on_test_checkout(seeded_client, lindiwe, job_id)
+    seeded_client.post(f"/api/jobs/{job_id}/check-in", headers=plumber)
+    cancel(seeded_client, lindiwe, job_id)
+    assert refund_states(seeded_client, plumber, job_id) == ["under_review"]
+    assert read_payment(seeded_client, lindiwe, job_id)["paid_rands"] == 200  # still held
+    kinds = {n.kind for n in seeded_session.exec(select(Notification))}
+    assert "refund_review" in kinds
+
+
+def test_a_payfast_refund_is_owed_for_the_team_to_pay_back(
+    seeded_client, seeded_session, lindiwe, make_confirmed_job
+):
+    job_id = make_confirmed_job("in_app_split")
+    app.dependency_overrides[get_payment_provider] = fake_payfast
+    payment_id = seeded_client.post(f"/api/jobs/{job_id}/payments", headers=lindiwe).json()[
+        "payment_id"
+    ]
+    notice = PaymentNotice(payment_id=payment_id, paid=True, amount_cents=20_000, reference="pf")
+    confirm_payment(seeded_session, notice)
+    cancel(seeded_client, lindiwe, job_id)
+    assert refund_states(seeded_client, lindiwe, job_id) == ["refund_owed"]
+
+
+def test_cancelling_with_nothing_paid_sends_no_refund_notice(
+    seeded_client, seeded_session, lindiwe, make_confirmed_job
+):
+    job_id = make_confirmed_job("in_app_split")
+    cancel(seeded_client, lindiwe, job_id)
+    kinds = {n.kind for n in seeded_session.exec(select(Notification))}
+    assert not kinds & {"refund_done", "refund_owed", "refund_review"}

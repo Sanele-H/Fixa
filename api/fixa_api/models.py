@@ -416,6 +416,10 @@ class Payment(SQLModel, table=True):
     tells us the result. A paid payment is the customer's receipt.
 
     state: pending (sent to checkout), paid, failed (the amounts didn't match) or cancelled.
+
+    refund_state, for a paid payment on a job that was cancelled (see payment_plans.py):
+    refunded (given back), refund_owed (the team pays it back from the payment company's
+    dashboard) or under_review (work had started, so the team decides). None: not refunded.
     """
 
     id: str = Field(primary_key=True)
@@ -427,3 +431,5 @@ class Payment(SQLModel, table=True):
     gateway_reference: str | None = None
     created_at: dt.datetime = Field(sa_type=UtcDateTime)
     paid_at: dt.datetime | None = Field(default=None, sa_type=UtcDateTime)
+    refund_state: str | None = None
+    refund_at: dt.datetime | None = Field(default=None, sa_type=UtcDateTime)
