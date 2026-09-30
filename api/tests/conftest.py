@@ -23,6 +23,13 @@ def fake_translation_backend(monkeypatch):
     monkeypatch.setattr("lang.translation._translation_cache", OrderedDict())
 
 
+@pytest.fixture(autouse=True)
+def push_turned_off(monkeypatch):
+    """No real push notifications from the tests, whatever VAPID keys .env has. The push tests
+    turn it back on with fake keys."""
+    monkeypatch.delenv("VAPID_PRIVATE_KEY", raising=False)
+
+
 @pytest.fixture
 def session():
     """Yield a session on a new, empty in-memory database. Each test gets its own."""

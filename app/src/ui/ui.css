@@ -304,6 +304,72 @@ button.card:active {
   color: var(--color-on-lime);
 }
 
+/* The panic button: the only red button in the app, so it can't be mistaken for anything else. */
+.btn--danger {
+  background: var(--color-critical);
+  color: #ffffff;
+}
+
+/* A plain list of short entries, like where each key moment of a job happened. */
+.moment-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One item in the inbox: a full-width button, bold with a dot while unread. */
+.inbox-row {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.inbox-row--unread {
+  background: var(--color-surface-raised);
+  box-shadow: inset 4px 0 0 var(--color-critical);
+}
+
+.inbox-row__title {
+  font-weight: 600;
+}
+
+.inbox-row:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+/* A count on a round icon button, like unread items on the bell. */
+.icon-badge {
+  position: relative;
+  display: inline-grid;
+}
+
+.icon-badge__count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: var(--color-critical);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
 .btn--block {
   width: 100%;
 }

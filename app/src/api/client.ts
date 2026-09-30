@@ -99,6 +99,11 @@ export async function patchJson<T>(path: string, body: unknown): Promise<T> {
   return readJson<T>(await sendRequest(path, { method: "PATCH", body: JSON.stringify(body) }, JSON_CONTENT_TYPE));
 }
 
+/** PUT a JSON body (replace a whole thing, like the trusted contact) and read the JSON answer. */
+export async function putJson<T>(path: string, body: unknown): Promise<T> {
+  return readJson<T>(await sendRequest(path, { method: "PUT", body: JSON.stringify(body) }, JSON_CONTENT_TYPE));
+}
+
 /**
  * POST a multipart form (a photo upload) and read the JSON answer. No Content-Type is set:
  * the browser adds it with the multipart boundary.

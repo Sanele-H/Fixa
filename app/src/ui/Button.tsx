@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { Link } from "react-router";
 import { Icon, type IconName } from "./Icon";
 
-export type ButtonVariant = "primary" | "secondary" | "lime";
+export type ButtonVariant = "primary" | "secondary" | "lime" | "danger";
 
 type ButtonLookProps = {
   variant?: ButtonVariant;

@@ -6,9 +6,10 @@ import { DescribeJobCard } from "../../components/DescribeJobCard";
 import { FollowUps } from "../../components/FollowUps";
 import { InstallPromptCard } from "../../components/InstallPrompt";
 import { JobCard } from "../../components/JobCard";
+import { NotificationBell } from "../../components/NotificationBell";
 import { EmptyNote, LoadError, LoadingNote } from "../../components/LoadState";
 import { useCurrentUser } from "../../session/SessionContext";
-import { Avatar, CardLink, Icon, IconButton, Screen, ScreenHeader } from "../../ui";
+import { Avatar, CardLink, Icon, Screen, ScreenHeader } from "../../ui";
 
 /** The customer's jobs, newest first, with loading, error and empty states. */
 function MyJobs() {
@@ -37,7 +38,7 @@ export default function HomeScreen() {
     <Screen hasNav>
       <ScreenHeader
         leading={<Avatar displayName={me.display_name} />}
-        actions={<IconButton icon="bell" label={t("home.notifications")} />}
+        actions={<NotificationBell />}
         eyebrow={me.suburb}
         title={t("home.greeting", { name: me.display_name })}
       />

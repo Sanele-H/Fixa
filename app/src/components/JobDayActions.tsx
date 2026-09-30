@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useCheckIn, useCheckOut, useFinishJob } from "../api/lifecycle";
+import { recordKeyMoment } from "../api/safety";
 import { useJobQuotes } from "../api/jobs";
 import { useProviderProfile } from "../api/providers";
 import type { JobPublic, JobUnlocked } from "../api/types";
@@ -80,7 +81,7 @@ export function ProviderDayActions({ job }: { job: Job }) {
         <p className="section-title">{t("lifecycle.arrivedTitle")}</p>
         <p className="small">{t("lifecycle.arrivedBody")}</p>
         {checkIn.isError && <ErrorBanner error={checkIn.error} />}
-        <Button isBlock onClick={() => checkIn.mutate(job.id)} disabled={checkIn.isPending}>
+        <Button isBlock onClick={() => { recordKeyMoment(job.id, "check_in"); checkIn.mutate(job.id); }} disabled={checkIn.isPending}>
           {t("lifecycle.checkIn")}
         </Button>
         <TakePhotoLink job={job} />
@@ -96,7 +97,7 @@ export function ProviderDayActions({ job }: { job: Job }) {
         {checkOut.isSuccess ? (
           <Banner tone="info" title={t("lifecycle.waitingForCustomer")} />
         ) : (
-          <Button isBlock onClick={() => checkOut.mutate(job.id)} disabled={checkOut.isPending}>
+          <Button isBlock onClick={() => { recordKeyMoment(job.id, "check_out"); checkOut.mutate(job.id); }} disabled={checkOut.isPending}>
             {t("lifecycle.checkOut")}
           </Button>
         )}
@@ -125,7 +126,7 @@ export function CustomerDayActions({ job }: { job: Job }) {
           <p className="section-title">{t("lifecycle.isItDoneTitle")}</p>
           <p className="small">{t("lifecycle.isItDoneBody", { name: providerName })}</p>
           {finishJob.isError && <ErrorBanner error={finishJob.error} />}
-          <Button isBlock onClick={() => finishJob.mutate({ jobId: job.id, completed: true })} disabled={finishJob.isPending}>
+          <Button isBlock onClick={() => { recordKeyMoment(job.id, "done"); finishJob.mutate({ jobId: job.id, completed: true }); }} disabled={finishJob.isPending}>
             {t("lifecycle.itIsDone")}
           </Button>
           {isConfirmingNoShow ? (

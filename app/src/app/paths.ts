@@ -20,6 +20,7 @@ export const PATHS = {
   jobChat: "/jobs/:jobId/chat",
   provider: "/providers/:providerId",
   me: "/me",
+  inbox: "/inbox",
   // Provider
   feed: "/feed",
   jobQuote: "/jobs/:jobId/quote",

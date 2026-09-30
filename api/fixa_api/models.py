@@ -270,3 +270,90 @@ class CustomerVouch(SQLModel, table=True):
     text: str
     suburb: str
     created_at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+# --- Safety and notifications. New tables only, so an existing fixa.db gets them on the next
+# start (create_all) without a reseed.
+
+
+class TrustedContact(SQLModel, table=True):
+    """Someone a person trusts, told by SMS when they press the panic button or miss a safety
+    timer. One per person."""
+
+    __tablename__ = "trusted_contact"
+
+    user_id: str = Field(primary_key=True)
+    name: str
+    phone: str
+    updated_at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+class SafetyAlert(SQLModel, table=True):
+    """A panic button press, or a safety timer that ran out, during a job."""
+
+    __tablename__ = "safety_alert"
+
+    id: str = Field(primary_key=True)
+    job_id: str = Field(foreign_key="job.id", index=True)
+    user_id: str = Field(index=True)
+    kind: str  # panic or timer_missed
+    lat: float | None = None
+    lng: float | None = None
+    contact_notified: bool = False
+    created_at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+class SafetyTimer(SQLModel, table=True):
+    """"Check on me in an hour": if the person hasn't said they're safe by due_at, their trusted
+    contact gets an SMS."""
+
+    __tablename__ = "safety_timer"
+
+    id: str = Field(primary_key=True)
+    job_id: str = Field(foreign_key="job.id", index=True)
+    user_id: str = Field(index=True)
+    state: str  # running, safe or missed
+    started_at: dt.datetime = Field(sa_type=UtcDateTime)
+    due_at: dt.datetime = Field(sa_type=UtcDateTime)
+    ended_at: dt.datetime | None = Field(default=None, sa_type=UtcDateTime)
+
+
+class LocationPing(SQLModel, table=True):
+    """Where a person's phone was at a key moment of a job (check-in, finished, panic...). Exact
+    coordinates stay on the server; the job page only shows the distance from the job."""
+
+    __tablename__ = "location_ping"
+
+    id: str = Field(primary_key=True)
+    job_id: str = Field(foreign_key="job.id", index=True)
+    user_id: str = Field(index=True)
+    moment: str
+    lat: float
+    lng: float
+    accuracy_m: float | None = None
+    at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+class Notification(SQLModel, table=True):
+    """One item in a person's inbox (the bell): a new quote, a confirmed job, a message..."""
+
+    id: str = Field(primary_key=True)
+    user_id: str = Field(index=True)
+    job_id: str | None = Field(default=None, index=True)
+    kind: str
+    params: dict = Field(sa_column=Column(JSON, nullable=False))
+    created_at: dt.datetime = Field(sa_type=UtcDateTime)
+    read_at: dt.datetime | None = Field(default=None, sa_type=UtcDateTime)
+
+
+class PushSubscription(SQLModel, table=True):
+    """A browser that agreed to push notifications for a person. The endpoint is unique per
+    browser; the keys encrypt what we send."""
+
+    __tablename__ = "push_subscription"
+
+    endpoint: str = Field(primary_key=True)
+    user_id: str = Field(index=True)
+    p256dh: str
+    auth: str
+    created_at: dt.datetime = Field(sa_type=UtcDateTime)

@@ -19,6 +19,7 @@ dependencies = [
   "httpx>=0.27",
   "psycopg[binary]>=3.2",
   "smile-id-core>=3,<4",
+  "pywebpush>=2",
 ]
 
 [project.optional-dependencies]
