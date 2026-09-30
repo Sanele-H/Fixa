@@ -305,6 +305,36 @@ def test_am_pm_becomes_the_local_time_of_day_word(english_time, target_lang, exp
     assert translation.text == f"Ngizofika ngo-{expected_time}."
 
 
+@pytest.mark.parametrize(
+    ("local_time", "source_lang", "target_lang", "expected_time"),
+    [
+        ("9 ekuseni", "zu", "en", "9am"),
+        ("2 ntambama", "zu", "en", "2pm"),
+        ("7 kusihlwa", "zu", "en", "7pm"),
+        ("10:30 ekuseni", "zu", "en", "10:30am"),
+        ("10h30 ekuseni", "zu", "en", "10:30am"),
+        ("8 ebusuku", "zu", "en", "8pm"),
+        ("2 ebusuku", "zu", "en", "2am"),
+        ("12 ebusuku", "zu", "en", "12am"),
+        ("9 ntseni", "xh", "en", "9am"),
+        ("9 ekuseni", "zu", "xh", "9 ntseni"),
+        ("7 ngokuhlwa", "xh", "zu", "7 kusihlwa"),
+    ],
+)
+def test_a_local_time_of_day_is_said_the_readers_way(
+    local_time, source_lang, target_lang, expected_time
+):
+    backend = ScriptedBackend("I'll come on Saturday at [[0]], it costs [[1]].")
+    translation = translate(
+        f"Ngizofika ngoMgqibelo ngo-{local_time}, kuzobiza R450.",
+        target_lang,
+        source_lang,
+        backend=backend,
+    )
+    assert "ekuseni" not in backend.sent_text and "[[0]]" in backend.sent_text
+    assert translation.text == f"I'll come on Saturday at {expected_time}, it costs R450."
+
+
 def test_am_pm_stays_as_written_in_english():
     backend = ScriptedBackend("I'll come at [[0]].")
     assert translate("Ngizofika ngo 9am.", "en", "zu", backend=backend).text == "I'll come at 9am."

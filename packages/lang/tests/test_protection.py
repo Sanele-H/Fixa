@@ -28,7 +28,8 @@ from lang.protection import ProtectedValue, protect, restore
         ("Ngizoba khona ngo10:30 kusasa", ["10:30"]),
         ("Kubiza u-R350, besekuba u-R200 ngehora", ["R350", "R200"]),
         ("Ngihlala e-12 Protea Street", ["12 Protea Street"]),
-        ("ngo-2 ntambama", ["2"]),
+        ("ngo-2 ntambama", ["2 ntambama"]),
+        ("Ngizofika ngo-10:30 ekuseni", ["10:30 ekuseni"]),
         ("emizuzwini engu-20.", ["20"]),
     ],
 )
