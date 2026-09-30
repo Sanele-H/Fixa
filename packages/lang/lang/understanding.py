@@ -14,7 +14,7 @@ from lang.models import JobIntent, JobSize, Lang, Urgency
 from lang.prohibited import find_prohibited
 
 GLOSSARY_PATH = Path(__file__).resolve().parents[3] / "data" / "glossary.json"
-FALLBACK_TRADE = "plumbing"  # Most household repairs in the seed data are plumbing
+FALLBACK_TRADE = "other"  # unmatched descriptions fall back to the catch-all trade
 
 NO_MATCH_CONFIDENCE = 0.2
 ONE_MATCH_CONFIDENCE = 0.6

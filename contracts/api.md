@@ -15,7 +15,7 @@
 | Code | Values |
 |---|---|
 | Language | `en` · `zu` · `xh` |
-| Trade | The 11 trade ids in `data/glossary.json` (for example `plumbing`, `electrical`) |
+| Trade | `electrical` · `plumbing` · `carpentry` · `welding` · `bricklaying` · `mechanic` · `roofing` · `tiling` · `cabinetmaking` · `painting` · `appliance_repair` · `groundskeeping` · `other` |
 | Job size | `small` · `medium` · `large` |
 | Urgency | `low` · `normal` · `urgent` |
 | Job state | `posted` → `quoting` → `quote_accepted` → **`confirmed`** → `in_progress` → `done` → `followed_up`, plus `cancelled` |

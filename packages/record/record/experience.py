@@ -13,7 +13,15 @@ from record.models import RecordEvidence, RecordJob
 # Trades with an ARPL toolkit (merSETA form LPM-FM-009, category G), by glossary trade id,
 # with the trade title the form asks for. The form's full toolkit list is below: add a
 # trade here once P3 puts its id in data/glossary.json.
-ARPL_TRADE_TITLES = {"plumbing": "Plumber", "electrical": "Electrician"}
+ARPL_TRADE_TITLES = {
+    "plumbing": "Plumber",
+    "electrical": "Electrician",
+    "carpentry": "Carpenter",
+    "welding": "Welder",
+    "bricklaying": "Bricklayer",
+    "mechanic": "Automotive Motor Mechanic",
+    "painting": "Painter",
+}
 MERSETA_TOOLKIT_TRADE_TITLES = [
     "Diesel Mechanic", "Automotive Motor Mechanic", "Boilermaker", "Welder", "Pipe-Fitter",
     "Fitter & Turner", "Electrician", "Heavy Equipment Mechanic", "Instrument Mechanic",

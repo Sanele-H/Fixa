@@ -45,8 +45,19 @@
     "provider": "Provider"
   },
   "trade": {
-    "plumbing": "Plumbing",
-    "electrical": "Electrical"
+    "electrical": "Electrician",
+    "plumbing": "Plumber",
+    "carpentry": "Carpenter",
+    "welding": "Welder",
+    "bricklaying": "Bricklayer",
+    "mechanic": "Mechanic",
+    "roofing": "Roofer",
+    "tiling": "Tiler",
+    "cabinetmaking": "Cabinetmaker",
+    "painting": "Painter",
+    "appliance_repair": "Appliance Repairs",
+    "groundskeeping": "Groundskeeper",
+    "other": "Other"
   },
   "urgency": {
     "low": "Not urgent",
@@ -122,7 +133,8 @@
     "photoAdding": "Adding your photo…",
     "photoAlt": "Your photo of the problem",
     "removePhoto": "Remove photo",
-    "licensedOnly": "Only licensed providers (the law requires it for some work)"
+    "licensedOnly": "Only licensed providers (the law requires it for some work)",
+    "suggestedUnsure": "We're not sure what trade this is — please check."
   },
   "providers": {
     "title": "Who can help",

@@ -46,6 +46,9 @@ function clearStoredNewJobDraft(): void {
   }
 }
 
+/** Confidence at or below this value means the suggestion is uncertain; show a hint to check. */
+const LOW_CONFIDENCE_THRESHOLD = 0.4;
+
 /** What the customer confirms after the suggestion: the trade, how soon and how big. */
 type JobDetails = Pick<NewJob, "trade" | "urgency" | "size">;
 
@@ -118,16 +121,19 @@ function PhotoPicker({ photo, isBusy, error, addPhoto, removePhoto }: PhotoPicke
 
 type DetailsCardProps = {
   details: JobDetails;
+  confidence: number;
   onChange: (details: JobDetails) => void;
 };
 
-/** The suggested trade, urgency and size, each one a tap to change. */
-function DetailsCard({ details, onChange }: DetailsCardProps) {
+/** The suggested trade, urgency and size, each one a tap to change. Shows a hint when unsure. */
+function DetailsCard({ details, confidence, onChange }: DetailsCardProps) {
   const { t } = useTranslation();
   const tradeOptions = listTradeOptions(details.trade).map((trade) => ({ value: trade, label: getTradeLabel(t, trade) }));
+  const showUnsureHint = confidence <= LOW_CONFIDENCE_THRESHOLD;
   return (
     <Card tone="inverse">
       <p className="eyebrow">{t("newJob.suggested")}</p>
+      {showUnsureHint && <p className="muted small">{t("newJob.suggestedUnsure")}</p>}
       <Segmented
         label={t("newJob.trade")}
         options={tradeOptions}
@@ -158,6 +164,7 @@ export default function NewJobScreen() {
   const navigate = useNavigate();
   const [description, setDescription] = useState(getStoredNewJobDraft);
   const [details, setDetails] = useState<JobDetails | null>(null);
+  const [confidence, setConfidence] = useState(0);
   const [needsLicence, setNeedsLicence] = useState(false);
   const understandJob = useUnderstandJob();
   const createJob = useCreateJob();
@@ -178,7 +185,10 @@ export default function NewJobScreen() {
     event.preventDefault();
     understandJob.mutate(
       { text: description, lang: language },
-      { onSuccess: ({ trade, urgency, size }: JobIntent) => setDetails({ trade, urgency, size }) },
+      { onSuccess: ({ trade, urgency, size, confidence: jobConfidence }: JobIntent) => {
+          setDetails({ trade, urgency, size });
+          setConfidence(jobConfidence);
+        } },
     );
   }
 
@@ -225,7 +235,7 @@ export default function NewJobScreen() {
 
       {details && (
         <>
-          <DetailsCard details={details} onChange={setDetails} />
+          <DetailsCard details={details} confidence={confidence} onChange={setDetails} />
           <label className="checkbox-row">
             <input type="checkbox" checked={needsLicence} onChange={(event) => setNeedsLicence(event.target.checked)} />
             {t("newJob.licensedOnly")}
