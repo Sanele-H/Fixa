@@ -25,3 +25,7 @@ app/dev-dist/
 .DS_Store
 Thumbs.db
 .idea/
+
+# Playwright end-to-end test output
+e2e/results/
+e2e/report/

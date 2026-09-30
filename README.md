@@ -58,6 +58,8 @@ npm run dev        # API on :8000, app on :5173
 | `npm run test:py` | Python tests only (API and all packages) |
 | `npm run format:py` | Auto-format Python |
 | `npm run dev:api` / `npm run dev:app` | Run one side only |
+| `npm run test:e2e` | End-to-end tests in a real browser (Edge on Windows, Chrome elsewhere): needs `npm run dev` and a seeded database. Set `E2E_BASE_URL` to test the live app. See `e2e/playwright.config.ts`. |
+| `npm run test:e2e:smoke` | Only the end-to-end checks that change nothing, safe on the live app |
 
 ## Testing on your phone
 
