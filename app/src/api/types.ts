@@ -133,6 +133,8 @@ export type Message = {
   id: string;
   job_id: string;
   sender_id: string;
+  /** Who it's for. A customer has one thread per quoting provider, and this says which. */
+  recipient_id: string;
   text: string;
   original: string;
   original_lang: Language;

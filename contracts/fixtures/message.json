@@ -2,6 +2,7 @@
   "id": "msg_001",
   "job_id": "job_001",
   "sender_id": "prov_002",
+  "recipient_id": "cust_001",
   "text": "I can come on Tuesday, R450.",
   "original": "Ngingafika ngoLwesibili, R450.",
   "original_lang": "zu",
