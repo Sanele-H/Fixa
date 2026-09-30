@@ -6,7 +6,18 @@
 
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { getJson, postJson } from "./client";
-import type { JobIntent, JobPublic, JobSize, JobUnlocked, Language, PriceRange, Quote, TradeId, Urgency } from "./types";
+import type {
+  JobIntent,
+  JobPublic,
+  JobSize,
+  JobUnlocked,
+  Language,
+  PaymentMethod,
+  PriceRange,
+  Quote,
+  TradeId,
+  Urgency,
+} from "./types";
 
 /** How often an open job and its quotes refresh, so the other phone's accept or confirm shows up. */
 const JOB_REFRESH_INTERVAL_MS = 5_000;
@@ -50,6 +61,16 @@ export type NewQuote = {
   amount_rands: number;
   when: string;
   message?: string;
+  /** The ways the provider accepts payment; the server defaults to in the app after, or cash. */
+  payment_methods?: PaymentMethod[];
+  /** Needed with in_app_split: at most half the amount. */
+  deposit_rands?: number;
+};
+
+/** What the customer accepts: the quote, and how they'll pay (one of the quote's payment_methods). */
+export type QuoteAcceptance = {
+  quoteId: string;
+  paymentMethod: PaymentMethod;
 };
 
 /** Refreshes the lists a job shows up in: the feed and people's own jobs. */
@@ -159,9 +180,17 @@ function useJobStateChange(buildPath: (id: string) => string) {
   });
 }
 
-/** POST /api/quotes/{quote_id}/accept: the customer picks a quote. Call mutate(quoteId). */
+/**
+ * POST /api/quotes/{quote_id}/accept: the customer picks a quote and how they'll pay, which
+ * agrees the job's payment plan. Call mutate({ quoteId, paymentMethod }).
+ */
 export function useAcceptQuote() {
-  return useJobStateChange((quoteId) => `/api/quotes/${quoteId}/accept`);
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ quoteId, paymentMethod }: QuoteAcceptance) =>
+      postJson<JobPublic | JobUnlocked>(`/api/quotes/${quoteId}/accept`, { payment_method: paymentMethod }),
+    onSuccess: (job) => updateCachedJob(queryClient, job),
+  });
 }
 
 /** POST /api/jobs/{job_id}/confirm: the accepted provider confirms, which unlocks contact details. Call mutate(jobId). */

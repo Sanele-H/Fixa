@@ -94,8 +94,16 @@ class Job(SQLModel, table=True):
     still_working: bool | None = None
 
 
+# The ways a customer can pay, and the ones a quote offers when the provider doesn't say:
+# in_app_after (pay in the app once it's done), in_app_split (a deposit once the job is
+# confirmed, the rest once it's done) and cash (off the app; Fixa never touches it).
+PAYMENT_METHODS = ("in_app_after", "in_app_split", "cash")
+DEFAULT_QUOTE_PAYMENT_METHODS = ("in_app_after", "cash")
+
+
 class Quote(SQLModel, table=True):
-    """A provider's quote on a job: open, accepted or declined."""
+    """A provider's quote on a job: open, accepted or declined. payment_methods are the ways the
+    provider accepts payment; deposit_rands is set only when in_app_split is one of them."""
 
     id: str = Field(primary_key=True)
     job_id: str = Field(foreign_key="job.id")
@@ -105,6 +113,11 @@ class Quote(SQLModel, table=True):
     message: str | None = None
     state: str
     created_at: dt.datetime = Field(sa_type=UtcDateTime)
+    payment_methods: list[str] = Field(
+        default_factory=lambda: list(DEFAULT_QUOTE_PAYMENT_METHODS),
+        sa_column=Column(JSON, nullable=False),
+    )
+    deposit_rands: int | None = None
 
 
 class OffAppJob(SQLModel, table=True):
@@ -360,3 +373,57 @@ class PushSubscription(SQLModel, table=True):
     p256dh: str
     auth: str
     created_at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+# --- Payments. The plan and payment tables are new; Quote's payment columns are added to an
+# existing database by migrations.py.
+
+
+class PaymentPlan(SQLModel, table=True):
+    """How the customer and provider agreed the job will be paid: set when the customer accepts
+    a quote, changed only when both agree, before the work starts. deposit_rands is 0 unless the
+    method is in_app_split, and never more than half of total_rands."""
+
+    __tablename__ = "payment_plan"
+
+    job_id: str = Field(primary_key=True, foreign_key="job.id")
+    quote_id: str = Field(foreign_key="quote.id")
+    method: str
+    total_rands: int
+    deposit_rands: int = 0
+    agreed_at: dt.datetime = Field(sa_type=UtcDateTime)
+
+
+class PaymentPlanChange(SQLModel, table=True):
+    """One side asking to change the payment plan. It only takes effect when the other side
+    agrees. state: pending, agreed, declined, or withdrawn (the asker took it back)."""
+
+    __tablename__ = "payment_plan_change"
+
+    id: str = Field(primary_key=True)
+    job_id: str = Field(foreign_key="job.id", index=True)
+    proposed_by: str
+    method: str
+    deposit_rands: int = 0
+    state: str
+    created_at: dt.datetime = Field(sa_type=UtcDateTime)
+    decided_at: dt.datetime | None = Field(default=None, sa_type=UtcDateTime)
+
+
+class Payment(SQLModel, table=True):
+    """One in-app payment: a deposit, a balance, or the full amount. The card details never
+    reach Fixa: the customer types them on the payment company's own page (gateway), which
+    tells us the result. A paid payment is the customer's receipt.
+
+    state: pending (sent to checkout), paid, failed (the amounts didn't match) or cancelled.
+    """
+
+    id: str = Field(primary_key=True)
+    job_id: str = Field(foreign_key="job.id", index=True)
+    kind: str  # deposit, balance or full
+    amount_rands: int
+    state: str
+    gateway: str  # mock or payfast
+    gateway_reference: str | None = None
+    created_at: dt.datetime = Field(sa_type=UtcDateTime)
+    paid_at: dt.datetime | None = Field(default=None, sa_type=UtcDateTime)

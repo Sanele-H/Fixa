@@ -55,6 +55,7 @@ def read_routes(job_id: str, quote_id: str) -> list[tuple[str, str]]:
         ("GET", f"/api/jobs/{job_id}/quotes"),
         ("GET", f"/api/jobs/{job_id}/providers"),
         ("GET", f"/api/jobs/{job_id}/messages"),
+        ("GET", f"/api/jobs/{job_id}/payment"),
         ("GET", "/api/feed"),
         ("GET", "/api/me"),
         ("GET", "/api/providers/prov_001"),
@@ -359,6 +360,15 @@ def test_every_route_is_covered_by_this_test_or_marked_as_not_about_jobs():
         "/api/push/key",
         "/api/push/subscriptions",
         "/api/push/subscriptions/remove",
+        # payments. GET .../payment is in read_routes. The change routes answer with the same
+        # view; checkout answers with a payment company's URL and form; the mock checkout page
+        # and PayFast's webhook show an amount and a trade only (tested in test_payments.py).
+        "/api/jobs/{job_id}/payment/changes",
+        "/api/jobs/{job_id}/payment/changes/{change_id}/agree",
+        "/api/jobs/{job_id}/payment/changes/{change_id}/decline",
+        "/api/jobs/{job_id}/payments",
+        "/api/payments/mock/{payment_id}",
+        "/api/payments/payfast/notify",
     }
     covered = {re.sub(r"\{[^}]+\}", "{}", path) for path in covered}
     # The schema lists every route, including those added through routers (app.routes doesn't).

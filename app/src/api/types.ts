@@ -20,6 +20,12 @@ export type JobState =
 export type QuoteState = "open" | "accepted" | "declined" | "withdrawn";
 export type IdBadge = "none" | "id_number" | "home_affairs";
 export type RecordMode = "arpl" | "statement";
+/**
+ * How a job is paid: in the app once it's done, a deposit once confirmed and the rest once done,
+ * or cash off the app (Fixa never touches it).
+ */
+export type PaymentMethod = "in_app_after" | "in_app_split" | "cash";
+export const PAYMENT_METHODS: PaymentMethod[] = ["in_app_after", "in_app_split", "cash"];
 
 /** The trade ids in data/glossary.json, in merSETA/QCTO category order. */
 export const TRADES: TradeId[] = [
@@ -144,6 +150,10 @@ export type Quote = {
   message: string | null;
   state: QuoteState;
   created_at: string;
+  /** The ways the provider accepts payment. The customer picks one when accepting. */
+  payment_methods: PaymentMethod[];
+  /** The deposit, when in_app_split is offered (at most half the amount). */
+  deposit_rands: number | null;
 };
 
 export type Message = {

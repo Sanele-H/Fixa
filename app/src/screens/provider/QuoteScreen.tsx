@@ -1,4 +1,5 @@
-// Provider quotes on a job, guided by the typical price range for this trade, size and suburb.
+// Provider quotes on a job, guided by the typical price range for this trade, size and suburb,
+// and says which ways to pay they accept.
 
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,6 +10,7 @@ import type { JobPublic, PriceRange } from "../../api/types";
 import { PATHS } from "../../app/paths";
 import { TradeChip } from "../../components/Badges";
 import { LoadError, LoadingNote } from "../../components/LoadState";
+import { isOfferedPaymentValid, PaymentMethodsField, type OfferedPayment } from "../../components/PaymentMethods";
 import { formatDistanceKm, formatRands } from "../../format";
 import { Banner, Button, Card, Chip, Figure, Screen, ScreenHeader, TextArea, TextField } from "../../ui";
 
@@ -55,7 +57,12 @@ function QuoteForm({ job }: QuoteFormProps) {
   const [amountText, setAmountText] = useState("");
   const [whenText, setWhenText] = useState("");
   const [message, setMessage] = useState("");
+  const [offeredPayment, setOfferedPayment] = useState<OfferedPayment>({
+    methods: ["in_app_after", "cash"],
+    depositText: "",
+  });
   const amountRands = Number(amountText);
+  const offersSplit = offeredPayment.methods.includes("in_app_split");
   const range = priceRange.data;
   const rangeText = range
     ? `${formatRands(range.low_rands, i18n.language)}–${formatRands(range.high_rands, i18n.language)}`
@@ -73,6 +80,8 @@ function QuoteForm({ job }: QuoteFormProps) {
       amount_rands: amountRands,
       when: new Date(whenText).toISOString(),
       message: message.trim() || undefined,
+      payment_methods: offeredPayment.methods,
+      deposit_rands: offersSplit ? Number(offeredPayment.depositText) : undefined,
     };
     createQuote.mutate(newQuote, { onSuccess: () => navigate(generatePath(PATHS.job, { jobId: job.id })) });
   }
@@ -113,10 +122,12 @@ function QuoteForm({ job }: QuoteFormProps) {
         onChange={(event) => setWhenText(event.target.value)}
       />
       <TextArea label={t("quote.messageLabel")} rows={3} value={message} onChange={(event) => setMessage(event.target.value)} />
+      <PaymentMethodsField value={offeredPayment} totalRands={amountRands} onChange={setOfferedPayment} />
 
       {createQuote.isError && <ErrorBanner error={createQuote.error} />}
 
-      <Button type="submit" isBlock icon="send" disabled={createQuote.isPending || amountRands <= 0}>
+      <Button type="submit" isBlock icon="send" disabled={createQuote.isPending || amountRands <= 0 || !isOfferedPaymentValid(offeredPayment, amountRands)}
+      >
         {t("quote.send")}
       </Button>
     </form>

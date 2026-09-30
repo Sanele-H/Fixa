@@ -137,6 +137,38 @@ TEXTS: dict[str, dict[str, tuple[str, str]]] = {
             "Vula umsebenzi ukuze uwuthumele nge-WhatsApp.",
         ),
     },
+    "payment_change_asked": {
+        "en": (
+            "Change how you pay?",
+            "{name} asked to change how this job is paid. Open it to answer.",
+        ),
+        "zu": (
+            "Shintsha indlela yokukhokha?",
+            "U-{name} ucele ukushintsha indlela yokukhokhela lo msebenzi. Wuvule ukuze uphendule.",
+        ),
+    },
+    "payment_change_agreed": {
+        "en": ("Payment plan changed", "{name} agreed. The job is now paid the new way."),
+        "zu": (
+            "Indlela yokukhokha ishintshile",
+            "U-{name} uvumile. Manje umsebenzi ukhokhelwa ngendlela entsha.",
+        ),
+    },
+    "payment_change_declined": {
+        "en": ("Payment plan kept", "{name} would rather keep the payment plan as it is."),
+        "zu": (
+            "Indlela yokukhokha ayishintshile",
+            "U-{name} ukhetha ukugcina indlela yokukhokha injalo.",
+        ),
+    },
+    "payment_received": {
+        "en": ("Payment received", "{name} paid R{amount} in the app."),
+        "zu": ("Inkokhelo itholakele", "U-{name} ukhokhe u-R{amount} ku-app."),
+    },
+    "payment_receipt": {
+        "en": ("Payment done", "You paid R{amount}. Your receipt is on the job."),
+        "zu": ("Ukukhokha kuphelile", "Ukhokhe u-R{amount}. Irisidi yakho isemsebenzini."),
+    },
     "timer_missed_no_contact": {
         "en": (
             "Safety timer ran out",

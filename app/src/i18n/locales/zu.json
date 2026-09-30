@@ -472,5 +472,64 @@
     "areYouOk": "Uphephile?",
     "areYouOkBody": "Isikhathi sakho sokuphepha siphelile. Cindezela ethi “Ngiphephile”, noma sizokwazisa umuntu omethembayo ngo-{{time}}.",
     "timerFromCheckIn": "Siqale lapho ufika. Siyama uma ucindezela ethi umsebenzi uphelile."
+  },
+  "payment": {
+    "methodsLabel": "Ikhasimende lingakhokha kanjani?",
+    "method": {
+      "in_app_after": "Ku-app, emva komsebenzi",
+      "in_app_split": "Idiphozi, bese okusele",
+      "cash": "Ukheshi"
+    },
+    "methodHint": {
+      "in_app_after": "Intengo yonke ku-Fixa uma ikhasimende lithi umsebenzi wenziwe.",
+      "in_app_split": "Idiphozi ku-Fixa uma uqinisekisa, okusele uma sekwenziwe.",
+      "cash": "Ukhokhelwa ngqo. I-Fixa ayiphathi ukheshi."
+    },
+    "depositLabel": "Idiphozi (kuze kufike ku-{{max}})",
+    "depositTooHigh": "Idiphozi ingaba yingxenye yentengo kuphela: {{max}}.",
+    "pickOne": "Khetha okungenani indlela eyodwa yokukhokha.",
+    "offered": "Khokha: {{methods}}",
+    "withDeposit": "{{method}} (idiphozi ka-{{deposit}})",
+    "chooseLabel": "Uzokhokha kanjani?",
+    "planTitle": "Indlela lo msebenzi ozokhokhelwa ngayo",
+    "plan": {
+      "cash": "{{total}} ngokheshi, ngqo kumhlinzeki. I-Fixa ayiphathi ukheshi.",
+      "in_app_after": "{{total}} ku-app uma umsebenzi usuwenziwe.",
+      "in_app_split": "Idiphozi ka-{{deposit}} ku-app uma kuqinisekisiwe, bese kuba ngu-{{rest}} uma sekwenziwe."
+    },
+    "paidSoFar": "Okukhokhiwe kuze kube manje: {{amount}}",
+    "pay": {
+      "deposit": "Khokha idiphozi ka-{{amount}}",
+      "balance": "Khokha okusele ongu-{{amount}}",
+      "full": "Khokha {{amount}}"
+    },
+    "waitingFor": {
+      "deposit": "Silindele idiphozi ka-{{amount}}.",
+      "balance": "Silindele okusele ongu-{{amount}}.",
+      "full": "Silindele u-{{amount}}."
+    },
+    "secureNote": "Uzokhokha ekhasini lenkampani yokukhokha. I-Fixa ayiboni ikhadi lakho.",
+    "confirming": "Silindele ukuthi inkampani yokukhokha iqinisekise inkokhelo yakho…",
+    "cancelled": "Ukukhokha kukhanseliwe. Akukho okuthathiwe.",
+    "changeButton": "Shintsha indlela yokukhokha",
+    "changeHint": "Akukho okushintshayo uze uhlangothi olunye luvume.",
+    "changeSend": "Bacele",
+    "changeCancel": "Yekela",
+    "changeByMe": "Ucele ukushintshela ku: {{plan}}. Silindele impendulo.",
+    "changeByThem": "Bacele ukushintshela ku: {{plan}}.",
+    "changeAgree": "Ngiyavuma",
+    "changeDecline": "Gcina indlela ekhona",
+    "changeWithdraw": "Hoxisa",
+    "receiptsTitle": "Amarisidi",
+    "receiptKind": {
+      "deposit": "Idiphozi",
+      "balance": "Okusele",
+      "full": "Inkokhelo ephelele"
+    },
+    "gateway": {
+      "mock": "Inkokhelo yokuhlola",
+      "payfast": "PayFast"
+    },
+    "receiptRef": "Inombolo {{reference}}"
   }
 }

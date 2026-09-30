@@ -472,5 +472,64 @@
     "areYouOk": "Are you OK?",
     "areYouOkBody": "Your safety timer is up. Tap “I'm safe”, or we'll alert your trusted contact at {{time}}.",
     "timerFromCheckIn": "Started when you checked in. It stops when you tap “I've finished the work”."
+  },
+  "payment": {
+    "methodsLabel": "Umthengi angahlawula njani?",
+    "method": {
+      "in_app_after": "Kwi-app, emva komsebenzi",
+      "in_app_split": "Idiphozithi, emva koko intsalela",
+      "cash": "Imali ekhashi"
+    },
+    "methodHint": {
+      "in_app_after": "Ixabiso lonke kwi-Fixa xa umthengi esithi umsebenzi wenziwe.",
+      "in_app_split": "Idiphozithi kwi-Fixa xa uqinisekisa, intsalela xa sele wenziwe.",
+      "cash": "Uhlawulwa ngqo. I-Fixa ayiphathi mali ekhashi."
+    },
+    "depositLabel": "Idiphozithi (ubuninzi {{max}})",
+    "depositTooHigh": "Idiphozithi inokuba sisiqingatha sexabiso kuphela: {{max}}.",
+    "pickOne": "Khetha ubuncinci indlela enye yokuhlawula.",
+    "offered": "Hlawula: {{methods}}",
+    "withDeposit": "{{method}} (idiphozithi ka-{{deposit}})",
+    "chooseLabel": "Uza kuhlawula njani?",
+    "planTitle": "Indlela lo msebenzi oza kuhlawulwa ngayo",
+    "plan": {
+      "cash": "{{total}} ngemali ekhashi, ngqo kumboneleli. I-Fixa ayiphathi mali ekhashi.",
+      "in_app_after": "{{total}} kwi-app xa umsebenzi sele wenziwe.",
+      "in_app_split": "Idiphozithi ka-{{deposit}} kwi-app xa kuqinisekisiwe, emva koko {{rest}} xa sele wenziwe."
+    },
+    "paidSoFar": "Okuhlawulweyo ukuza kuthi ga ngoku: {{amount}}",
+    "pay": {
+      "deposit": "Hlawula idiphozithi ka-{{amount}}",
+      "balance": "Hlawula intsalela ka-{{amount}}",
+      "full": "Hlawula {{amount}}"
+    },
+    "waitingFor": {
+      "deposit": "Silinde idiphozithi ka-{{amount}}.",
+      "balance": "Silinde intsalela ka-{{amount}}.",
+      "full": "Silinde {{amount}}."
+    },
+    "secureNote": "Uza kuhlawula kwiphepha lenkampani yokuhlawula. I-Fixa ayilaboni ikhadi lakho.",
+    "confirming": "Silinde inkampani yokuhlawula ukuba iqinisekise intlawulo yakho…",
+    "cancelled": "Intlawulo irhoxisiwe. Akukho nto ithathiweyo.",
+    "changeButton": "Tshintsha indlela yokuhlawula",
+    "changeHint": "Akukho nto itshintshayo de elinye icala livume.",
+    "changeSend": "Bacele",
+    "changeCancel": "Yeka",
+    "changeByMe": "Ucele ukutshintshela ku: {{plan}}. Silinde impendulo.",
+    "changeByThem": "Bacele ukutshintshela ku: {{plan}}.",
+    "changeAgree": "Ndiyavuma",
+    "changeDecline": "Gcina indlela ekhoyo",
+    "changeWithdraw": "Rhoxisa",
+    "receiptsTitle": "Iirisithi",
+    "receiptKind": {
+      "deposit": "Idiphozithi",
+      "balance": "Intsalela",
+      "full": "Intlawulo epheleleyo"
+    },
+    "gateway": {
+      "mock": "Intlawulo yovavanyo",
+      "payfast": "PayFast"
+    },
+    "receiptRef": "Inombolo {{reference}}"
   }
 }

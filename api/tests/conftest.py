@@ -30,6 +30,12 @@ def push_turned_off(monkeypatch):
     monkeypatch.delenv("VAPID_PRIVATE_KEY", raising=False)
 
 
+@pytest.fixture(autouse=True)
+def mock_payments(monkeypatch):
+    """Pay through the test checkout in every test, whatever PAYMENT_PROVIDER .env has."""
+    monkeypatch.setenv("PAYMENT_PROVIDER", "mock")
+
+
 @pytest.fixture
 def session():
     """Yield a session on a new, empty in-memory database. Each test gets its own."""

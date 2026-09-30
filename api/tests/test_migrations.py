@@ -7,7 +7,7 @@ from sqlmodel import Session, SQLModel, select
 
 from fixa_api.db import IN_MEMORY_DATABASE_URL, create_database_engine
 from fixa_api.migrations import add_missing_columns
-from fixa_api.models import SafetyTimer
+from fixa_api.models import Quote, SafetyTimer
 
 # safety_timer as PR #34 created it, before PR #35 added reason and alert_at
 OLD_SAFETY_TIMER_TABLE = """
@@ -77,3 +77,26 @@ def test_a_job_table_without_directions_gets_the_column():
     assert add_missing_columns(engine) == ["job.directions"]
     column_names = {column["name"] for column in inspect(engine).get_columns("job")}
     assert "directions" in column_names
+
+
+def test_old_quotes_accept_paying_in_the_app_after_or_cash():
+    """Quotes made before payments get the default ways to pay, and no deposit."""
+    engine = create_database_engine(IN_MEMORY_DATABASE_URL)
+    SQLModel.metadata.create_all(engine)
+    with engine.begin() as connection:
+        connection.execute(text("PRAGMA foreign_keys=OFF"))
+        connection.execute(text("ALTER TABLE quote DROP COLUMN payment_methods"))
+        connection.execute(text("ALTER TABLE quote DROP COLUMN deposit_rands"))
+        connection.execute(
+            text(
+                'INSERT INTO quote (id, job_id, provider_id, amount_rands, "when", state, '
+                "created_at) VALUES ('quote_1', 'job_1', 'prov_001', 450, :at, 'open', :at)"
+            ),
+            {"at": DUE_AT},
+        )
+
+    assert add_missing_columns(engine) == ["quote.payment_methods", "quote.deposit_rands"]
+    with Session(engine) as session:
+        quote = session.exec(select(Quote)).one()
+    assert quote.payment_methods == ["in_app_after", "cash"]
+    assert quote.deposit_rands is None

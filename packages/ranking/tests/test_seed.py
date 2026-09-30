@@ -170,7 +170,13 @@ def test_demo_job_quote_and_off_app_job_match_the_fixtures(seed):
     assert job["address"] == read_fixture("job_unlocked.json")["address"]
     quote_fixture = read_fixture("quote.json")
     quote = find_row(seed["quotes"], "quote_001")
-    assert {key: quote[key] for key in quote_fixture} == quote_fixture
+    # The seed has no payment columns: its quotes get the model's defaults, as in the fixture.
+    payment_keys = {"payment_methods", "deposit_rands"}
+    seeded_keys = [key for key in quote_fixture if key not in payment_keys]
+    assert {key: quote[key] for key in seeded_keys} == {
+        key: quote_fixture[key] for key in seeded_keys
+    }
+    assert quote_fixture["payment_methods"] == ["in_app_after", "cash"]
     off_app_fixture = read_fixture("off_app_job.json")
     off_app_job = find_row(seed["off_app_jobs"], "offapp_001")
     assert {key: off_app_job[key] for key in off_app_fixture} == off_app_fixture
