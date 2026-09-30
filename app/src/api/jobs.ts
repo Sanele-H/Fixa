@@ -6,6 +6,7 @@
 
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { getJson, postJson } from "./client";
+import type { MapPoint } from "./places";
 import type {
   JobIntent,
   JobPublic,
@@ -51,6 +52,8 @@ export type NewJob = {
   needs_licence?: boolean;
   /** Optional free-text hints for the provider (gate code, landmark). Shown only after confirm. */
   directions?: string;
+  /** A pin on the map when the job isn't at the customer's home. Left out: at their home. */
+  location?: MapPoint;
 };
 
 /**

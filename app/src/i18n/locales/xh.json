@@ -137,7 +137,20 @@
     "licensedOnly": "Abakhi abanamaphepha-mvume kuphela (umthetho uyafundeka kuyo imisebenzi ethile)",
     "suggestedUnsure": "Asiqiniseki ukuba lo msebenzi ngowuhlobo luni — nceda uhlole.",
     "directionsLabel": "Izikhokelo zomsebenzi (ngokuzithandela)",
-    "directionsHint": "Ikhowudi yesango, indawo ephawulekayo, ucango olumele lusetyenziswe…"
+    "directionsHint": "Ikhowudi yesango, indawo ephawulekayo, ucango olumele lusetyenziswe…",
+    "whereLabel": "Umsebenzi uphi?",
+    "whereHome": "Ekhaya ({{suburb}})",
+    "whereElsewhere": "Kwenye indawo",
+    "mapHint": "Cofa imaphu okanye utsale iphini uye apho kukho umsebenzi, umzekelo kwindlu yomzali okanye kwindawo oyiqeshisayo.",
+    "mapLabel": "Imaphu: khetha apho kukho umsebenzi",
+    "useMyLocation": "Sebenzisa apho ndikhoyo ngoku",
+    "locationDenied": "Asikwazanga ukufumana indawo yefowuni yakho. Cofa imaphu endaweni yoko.",
+    "pinFirst": "Cofa imaphu ukuze ubeke iphini.",
+    "placeFinding": "Sifuna indawo…",
+    "placeFound": "Iphini lise-{{suburb}}",
+    "placePrivacy": "Ababoneleli babona kuphela ihlomela-dolophu nokuba likude kangakanani de ukhethe umntu.",
+    "placeOutside": "Khetha indawo eMzantsi Afrika.",
+    "placeFailed": "Asikwazanga ukufumana le ndawo. Zama kwakhona emva kwexeshana."
   },
   "providers": {
     "title": "Ngubani onganceda",

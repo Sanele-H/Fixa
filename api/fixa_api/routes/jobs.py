@@ -13,6 +13,7 @@ from fixa_api import job_states as states
 from fixa_api.auth import current_user, require_role
 from fixa_api.blocking import ensure_not_restricted, refuse_if_prohibited
 from fixa_api.db import get_session
+from fixa_api.geocoding import Geocoder, get_geocoder
 from fixa_api.job_views import (
     can_see_job,
     is_job_customer,
@@ -34,6 +35,7 @@ from fixa_api.payment_plans import (
 )
 from fixa_api.photos import PHOTO_URL_PREFIX
 from fixa_api.ranking_inputs import build_candidates, today
+from fixa_api.routes.places import find_place_or_refuse
 from fixa_api.sms import SmsSender, get_sms_sender, send_safely
 from fixa_api.sms_texts import details_unlocked_messages
 from fixa_api.trades import known_trades
@@ -53,11 +55,21 @@ CustomerUser = Annotated[Customer, Depends(require_role("customer"))]
 ProviderUser = Annotated[Provider, Depends(require_role("provider"))]
 DbSession = Annotated[Session, Depends(get_session)]
 Sender = Annotated[SmsSender, Depends(get_sms_sender)]
+PlaceFinder = Annotated[Geocoder, Depends(get_geocoder)]
+
+COORDINATE_DECIMALS = 5  # about 1 m, like the seed data
 
 
 class UnderstandRequest(BaseModel):
     text: str = Field(min_length=1, max_length=1000)
     lang: Lang
+
+
+class JobLocation(BaseModel):
+    """A pin the customer dropped on the map, when the job isn't at their home."""
+
+    lat: float = Field(ge=-90, le=90)
+    lng: float = Field(ge=-180, le=180)
 
 
 class NewJob(BaseModel):
@@ -70,6 +82,7 @@ class NewJob(BaseModel):
     photo_id: str | None = None
     needs_licence: bool = False  # the customer can insist on a licensed provider
     directions: str | None = Field(default=None, max_length=500)
+    location: JobLocation | None = None  # None: the job is at the customer's home
 
     @field_validator("trade")
     @classmethod
@@ -160,10 +173,28 @@ def understand_job(body: UnderstandRequest, customer: CustomerUser, session: DbS
     return read_job_description(body.text, body.lang).model_dump(exclude={"prohibited"})
 
 
+def place_job(job: Job, customer: Customer, location: JobLocation | None, geocoder: Geocoder):
+    """Sets where the job is: the customer's home, or the pin they dropped. A pin's suburb and
+    street address come from the server's own lookup, never from the phone, so a job can't claim
+    a suburb it isn't in. Ranking, the feed's distances and the price range all read these."""
+    if location is None:
+        job.suburb, job.address, job.lat, job.lng = (
+            customer.suburb,
+            customer.address,
+            customer.lat,
+            customer.lng,
+        )
+        return
+    place = find_place_or_refuse(geocoder, location.lat, location.lng)
+    job.suburb, job.address = place.suburb, place.label
+    job.lat = round(location.lat, COORDINATE_DECIMALS)
+    job.lng = round(location.lng, COORDINATE_DECIMALS)
+
+
 @router.post("/jobs", status_code=201)
-def create_job(body: NewJob, customer: CustomerUser, session: DbSession):
-    """Post a job. The address and location come from the customer's account and the suburb
-    from their home, so whatever suburb the phone sends can't misplace the job."""
+def create_job(body: NewJob, customer: CustomerUser, session: DbSession, geocoder: PlaceFinder):
+    """Post a job, at the customer's home or at a pin on the map. Whatever suburb the phone sends
+    is ignored (see place_job)."""
     refuse_if_prohibited(session, customer, body.description, "job_post")
     photo_url = attach_photo(session, customer, body.photo_id)
     problem = safe_text_for(body.description, body.lang)
@@ -177,16 +208,17 @@ def create_job(body: NewJob, customer: CustomerUser, session: DbSession):
         size=body.size,
         urgency=body.urgency,
         needs_licence=body.needs_licence or needs_licence_for(body.trade, body.description),
-        suburb=customer.suburb,
-        address=customer.address,
-        lat=customer.lat,
-        lng=customer.lng,
+        suburb="",
+        address="",
+        lat=0.0,
+        lng=0.0,
         problem=problem,
         problem_lang=detect_language(problem, body.lang),
         directions=safe_directions,
         photo_url=photo_url,
         created_at=now(),
     )
+    place_job(job, customer, body.location, geocoder)
     session.add(job)
     session.commit()
     return job_view(session, job, customer)

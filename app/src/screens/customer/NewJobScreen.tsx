@@ -1,6 +1,7 @@
 // Customer describes the problem in their own words. The app suggests a trade, urgency and
 // size from that description, the customer confirms or changes them, adds a photo if they like,
-// and posts. Their address and number stay hidden until they pick someone.
+// says where the job is (their home, or a pin on the map), and posts. Their address and number
+// stay hidden until they pick someone.
 
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -8,10 +9,12 @@ import { generatePath, useNavigate } from "react-router";
 import { getErrorCode, getErrorMessageKey } from "../../api/errors";
 import { ErrorBanner } from "../../components/ErrorBanner";
 import { useCreateJob, useUnderstandJob, type NewJob } from "../../api/jobs";
+import { usePinnedPlace, type MapPoint } from "../../api/places";
 import { useUploadPhoto } from "../../api/photos";
 import { JOB_SIZES, TRADES, URGENCIES, type JobIntent, type Language, type TradeId } from "../../api/types";
 import { PATHS } from "../../app/paths";
 import { getTradeLabel } from "../../components/Badges";
+import { JobLocationPicker, type JobPlaceChoice } from "../../components/JobLocationPicker";
 import { useCurrentUser } from "../../session/SessionContext";
 import { shrinkPhoto } from "../../shrinkPhoto";
 import { Banner, Button, Card, Icon, Screen, ScreenHeader, Segmented, TextArea } from "../../ui";
@@ -169,6 +172,11 @@ export default function NewJobScreen() {
   const [confidence, setConfidence] = useState(0);
   const [needsLicence, setNeedsLicence] = useState(false);
   const [directions, setDirections] = useState("");
+  const [placeChoice, setPlaceChoice] = useState<JobPlaceChoice>("home");
+  const [pin, setPin] = useState<MapPoint | null>(null);
+  const pinnedPlace = usePinnedPlace(placeChoice === "pin" ? pin : null);
+  // A pinned job can only be posted once the server has named the pin.
+  const isPlaceReady = placeChoice === "home" || Boolean(pinnedPlace.data && !pinnedPlace.isFetching);
   const understandJob = useUnderstandJob();
   const createJob = useCreateJob();
   const jobPhoto = useJobPhoto();
@@ -205,6 +213,7 @@ export default function NewJobScreen() {
       photo_id: jobPhoto.photo?.photo_id,
       needs_licence: needsLicence || undefined,
       directions: directions.trim() || undefined,
+      location: placeChoice === "pin" && pin ? pin : undefined,
     };
     createJob.mutate(newJob, {
       onSuccess: (job) => {
@@ -244,6 +253,14 @@ export default function NewJobScreen() {
             <input type="checkbox" checked={needsLicence} onChange={(event) => setNeedsLicence(event.target.checked)} />
             {t("newJob.licensedOnly")}
           </label>
+          <JobLocationPicker
+            homeSuburb={me.suburb}
+            choice={placeChoice}
+            onChoiceChange={setPlaceChoice}
+            pin={pin}
+            onPinChange={setPin}
+            place={pinnedPlace}
+          />
           <TextArea
             label={t("newJob.directionsLabel")}
             placeholder={t("newJob.directionsHint")}
@@ -258,7 +275,7 @@ export default function NewJobScreen() {
       {requestError && <ErrorBanner error={requestError} />}
 
       {details && (
-        <Button isBlock onClick={() => postJob(details)} disabled={createJob.isPending || jobPhoto.isBusy}>
+        <Button isBlock onClick={() => postJob(details)} disabled={createJob.isPending || jobPhoto.isBusy || !isPlaceReady}>
           {t("newJob.post")}
         </Button>
       )}

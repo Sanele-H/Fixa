@@ -240,6 +240,31 @@ def test_a_cancelled_job_that_never_reached_confirmed_leaks_nothing(world):
     sweep(world, job_id, "", unlocked=False, state="cancelled from posted")
 
 
+def test_a_job_pinned_away_from_home_leaks_its_spot_to_nobody(world):
+    """A pinned job has its own street address and coordinates, which the world above was built
+    before. Re-read what's private after posting, then walk the job to confirmed."""
+    client, headers, _, session = world
+    body = {
+        "description": "The tap at my mother's house is leaking",
+        "lang": "en",
+        "trade": "plumbing",
+        "urgency": "normal",
+        "size": "small",
+        "suburb": "Braamfontein",
+        "location": {"lat": -26.2507, "lng": 27.8561},
+    }
+    job_id = client.post("/api/jobs", json=body, headers=headers["customer"]).json()["id"]
+    pinned_world = (client, headers, Sensitive(session), session)
+    assert session.get(Job, job_id).address in pinned_world[2].addresses
+    sweep(pinned_world, job_id, "", unlocked=False, state="posted at a pin")
+
+    quote_id = quote_as(pinned_world, "accepted_provider", job_id, 450)
+    act(pinned_world, "customer", "POST", f"/api/quotes/{quote_id}/accept", "quote_accepted")
+    sweep(pinned_world, job_id, quote_id, unlocked=False, state="pinned, quote_accepted")
+    act(pinned_world, "accepted_provider", "POST", f"/api/jobs/{job_id}/confirm", "confirmed", True)
+    sweep(pinned_world, job_id, quote_id, unlocked=True, state="pinned, confirmed")
+
+
 def find_user_id(session, phone: str) -> str:
     return find_user_by_phone(session, phone).id
 
@@ -335,6 +360,10 @@ def test_every_route_is_covered_by_this_test_or_marked_as_not_about_jobs():
         "/api/photos",
         "/api/photos/{photo_id}",
         "/api/jobs/understand",
+        # the caller's own area rounded to ~1 km, and names for a pin they dropped (tested in
+        # test_job_location.py); the pinned job itself is walked above
+        "/api/me/area",
+        "/api/places/reverse",
         "/api/jobs/{job_id}/messages",
         "/api/providers",
         "/api/providers/{provider_id}",

@@ -36,6 +36,12 @@ def mock_payments(monkeypatch):
     monkeypatch.setenv("PAYMENT_PROVIDER", "mock")
 
 
+@pytest.fixture(autouse=True)
+def fake_geocoder(monkeypatch):
+    """Name places from the seed suburbs, never by asking Nominatim over the network."""
+    monkeypatch.setenv("GEOCODER", "fake")
+
+
 @pytest.fixture
 def session():
     """Yield a session on a new, empty in-memory database. Each test gets its own."""
