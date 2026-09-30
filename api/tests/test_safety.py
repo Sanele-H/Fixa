@@ -9,7 +9,7 @@ from sqlmodel import select
 
 from fixa_api.main import app
 from fixa_api.models import SafetyAlert, SafetyTimer
-from fixa_api.safety import claim_missed_timer, sweep_missed_timers
+from fixa_api.safety import claim_timer, sweep_missed_timers
 from fixa_api.sms import OutboxSender, SmsResult, get_sms_sender
 
 LINDIWE = "082 000 0001"  # cust_001, English, Braamfontein
@@ -96,6 +96,7 @@ def test_panic_texts_the_trusted_contact_with_a_map_link(
     assert response.status_code == 201
     assert response.json()["contact"] == TRUSTED
     assert {"label": "police", "number": "10111"} in response.json()["emergency_numbers"]
+    assert response.json()["whatsapp_url"].startswith("https://wa.me/27835550101?text=")
     [(to, text)] = outbox.sent
     assert to == "+27835550101"
     assert "panic button" in text
@@ -122,6 +123,7 @@ def test_panic_without_a_contact_is_still_recorded(
     assert response.json()["contact"] is None
     assert outbox.sent == []
     assert seeded_session.exec(select(SafetyAlert)).one().kind == "panic"
+    assert response.json()["whatsapp_url"] is None
     assert inbox(seeded_client, lindiwe)["items"][0]["kind"] == "panic_no_contact"
 
 
@@ -200,10 +202,7 @@ def test_a_missed_timer_texts_the_trusted_contact(
     seeded_client.post(
         f"/api/jobs/{confirmed_job}/safety-timer", json={"minutes": 15}, headers=sipho
     )
-    timer = seeded_session.exec(select(SafetyTimer)).one()
-    timer.due_at = dt.datetime.now(dt.UTC) - dt.timedelta(seconds=1)
-    seeded_session.add(timer)
-    seeded_session.commit()
+    move_timer(seeded_session, due_ago=dt.timedelta(minutes=6), alert_ago=dt.timedelta(minutes=1))
 
     shown = seeded_client.get(f"/api/jobs/{confirmed_job}/safety-timer", headers=sipho).json()
 
@@ -215,13 +214,19 @@ def test_a_missed_timer_texts_the_trusted_contact(
     assert inbox(seeded_client, sipho)["items"][0]["kind"] == "timer_missed"
 
 
-def start_overdue_timer(client, session, headers, job_id):
-    """Start a 15-minute timer, then move its due time into the past."""
-    client.post(f"/api/jobs/{job_id}/safety-timer", json={"minutes": 15}, headers=headers)
+def move_timer(session, due_ago, alert_ago):
+    """Pretend the only safety timer's time ran out a while ago."""
     timer = session.exec(select(SafetyTimer)).one()
-    timer.due_at = dt.datetime.now(dt.UTC) - dt.timedelta(seconds=1)
+    timer.due_at = dt.datetime.now(dt.UTC) - due_ago
+    timer.alert_at = dt.datetime.now(dt.UTC) - alert_ago
     session.add(timer)
     session.commit()
+
+
+def start_overdue_timer(client, session, headers, job_id):
+    """Start a 15-minute timer, then move it past its "Are you OK?" grace period too."""
+    client.post(f"/api/jobs/{job_id}/safety-timer", json={"minutes": 15}, headers=headers)
+    move_timer(session, due_ago=dt.timedelta(minutes=6), alert_ago=dt.timedelta(minutes=1))
 
 
 def test_a_missed_timer_with_a_failed_sms_says_so_and_offers_whatsapp(
@@ -245,9 +250,11 @@ def test_a_missed_timer_is_texted_once_even_when_sweeps_overlap(
     start_overdue_timer(seeded_client, seeded_session, sipho, confirmed_job)
     timer_id = seeded_session.exec(select(SafetyTimer)).one().id
 
-    # Two sweeps that both saw the timer running: only the first claims it.
-    assert claim_missed_timer(seeded_session, timer_id) is True
-    assert claim_missed_timer(seeded_session, timer_id) is False
+    # Two sweeps that both saw the timer: only the first one asks, and only the first one texts.
+    assert claim_timer(seeded_session, timer_id, "running", "asking") is True
+    assert claim_timer(seeded_session, timer_id, "running", "asking") is False
+    assert claim_timer(seeded_session, timer_id, "asking", "missed") is True
+    assert claim_timer(seeded_session, timer_id, "asking", "missed") is False
     assert sweep_missed_timers(seeded_session, outbox) == 0
     assert outbox.sent == []
 
@@ -266,6 +273,77 @@ def test_a_timer_start_is_never_shown_to_the_other_person(
 
     assert all(ping["moment"] != "timer_start" for ping in theirs)
     assert any(ping["moment"] == "timer_start" for ping in mine)
+
+
+def test_a_timer_that_is_up_asks_are_you_ok_before_telling_anyone(
+    seeded_client, seeded_session, outbox, sipho, confirmed_job
+):
+    seeded_client.put("/api/me/trusted-contact", json=TRUSTED, headers=sipho)
+    seeded_client.post(
+        f"/api/jobs/{confirmed_job}/safety-timer", json={"minutes": 15}, headers=sipho
+    )
+    move_timer(seeded_session, due_ago=dt.timedelta(seconds=1), alert_ago=-dt.timedelta(minutes=5))
+
+    shown = seeded_client.get(f"/api/jobs/{confirmed_job}/safety-timer", headers=sipho).json()
+
+    assert shown["state"] == "asking"
+    assert outbox.sent == []
+    items = inbox(seeded_client, sipho)["items"]
+    [asked] = [item for item in items if item["kind"] == "timer_check"]
+    assert asked["title"] == "Uphephile?"  # Sipho's app is in isiZulu
+
+    safe = seeded_client.post(f"/api/jobs/{confirmed_job}/safety-timer/safe", headers=sipho)
+    assert safe.json()["state"] == "safe"
+
+
+def test_the_grace_period_is_never_longer_than_the_timer(seeded_client, sipho, confirmed_job):
+    timer = seeded_client.post(
+        f"/api/jobs/{confirmed_job}/safety-timer", json={"minutes": 1}, headers=sipho
+    ).json()
+    due = dt.datetime.fromisoformat(timer["due_at"])
+    alert = dt.datetime.fromisoformat(timer["alert_at"])
+    assert alert - due == dt.timedelta(minutes=1)
+
+
+def test_checking_in_starts_a_timer_and_finishing_stops_it(
+    seeded_client, sipho, confirmed_job
+):
+    seeded_client.post(f"/api/jobs/{confirmed_job}/check-in", headers=sipho)
+    started = seeded_client.get(f"/api/jobs/{confirmed_job}/safety-timer", headers=sipho).json()
+
+    seeded_client.post(f"/api/jobs/{confirmed_job}/check-out", headers=sipho)
+    stopped = seeded_client.get(f"/api/jobs/{confirmed_job}/safety-timer", headers=sipho).json()
+
+    assert started["state"] == "running"
+    assert started["reason"] == "check_in"
+    length = dt.datetime.fromisoformat(started["due_at"]) - dt.datetime.fromisoformat(
+        started["started_at"]
+    )
+    assert length == dt.timedelta(minutes=120)  # a small job
+    assert stopped["state"] == "safe"
+
+
+# --- on my way ---------------------------------------------------------------------------------
+
+
+def test_on_my_way_tells_the_customer(seeded_client, lindiwe, sipho, confirmed_job):
+    response = seeded_client.post(f"/api/jobs/{confirmed_job}/on-my-way", headers=sipho)
+
+    assert response.status_code == 200
+    [first] = inbox(seeded_client, lindiwe)["items"][:1]
+    assert first["kind"] == "on_my_way"
+    assert first["title"] == "Sipho is on the way"
+
+
+def test_only_the_provider_says_on_my_way_and_only_before_starting(
+    seeded_client, lindiwe, sipho, confirmed_job
+):
+    by_customer = seeded_client.post(f"/api/jobs/{confirmed_job}/on-my-way", headers=lindiwe)
+    seeded_client.post(f"/api/jobs/{confirmed_job}/check-in", headers=sipho)
+    after_check_in = seeded_client.post(f"/api/jobs/{confirmed_job}/on-my-way", headers=sipho)
+
+    assert by_customer.status_code == 403
+    assert after_check_in.status_code == 409
 
 
 def test_a_timer_only_takes_the_offered_lengths(seeded_client, sipho, confirmed_job):

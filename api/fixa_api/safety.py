@@ -3,12 +3,17 @@ person's phone was at the job's key moments.
 
 - Panic: records an alert with the phone's location and texts the trusted contact straight away.
   The other person on the job is never told, since they may be the danger.
-- Safety timer: "check on me in an hour". If the person hasn't said they're safe by then, the
-  trusted contact gets an SMS. A loop started with the server checks every few seconds
-  (sweep_missed_timers), and reads check too, so nothing depends on the loop alone.
-- Location at key moments: the app sends the phone's location at check-in, finishing, marking it
-  done, panic and starting a timer. Coordinates stay on the server; the job page only shows how
-  far from the job address each moment happened, and a panic only to the person who pressed it.
+- Safety timer: "check on me in an hour". Checking in starts one for the provider, sized to the
+  job, and finishing the work stops it. When it's up the person is asked "Are you OK?" (inbox and
+  push); if they still haven't said they're safe after a grace period, the trusted contact gets an
+  SMS. A loop started with the server checks every few seconds (sweep_missed_timers), and reads
+  check too, so nothing depends on the loop alone.
+- On my way: the provider says they've left; the customer is told, and where they left from
+  becomes one of the key moments.
+- Location at key moments: the app sends the phone's location on the way, at check-in, finishing,
+  marking it done, panic and starting a timer. Coordinates stay on the server; the job page only
+  shows how far from the job address each moment happened, and a panic only to the person who
+  pressed it.
 
 SMS texts are in the person's own language (they know their contact). isiZulu by P3; isiXhosa
 falls back to English until an isiXhosa speaker writes it.
@@ -42,11 +47,18 @@ EMERGENCY_NUMBERS = [
     {"label": "police", "number": "10111"},
     {"label": "emergency", "number": "112"},
 ]
-MOMENTS = {"check_in", "check_out", "done", "panic", "timer_start"}
+MOMENTS = {"on_my_way", "check_in", "check_out", "done", "panic", "timer_start"}
 # Only the person themselves sees these: a panic, or a timer that says they felt unsafe, would
 # warn the other person, who may be the danger.
 PRIVATE_MOMENTS = {"panic", "timer_start"}
 TIMER_MINUTES_ALLOWED = {1, 15, 30, 60, 120, 240}
+# The timer checking in starts, by job size: time to do the work, with some slack.
+CHECK_IN_TIMER_MINUTES = {"small": 120, "medium": 240, "large": 240}
+DEFAULT_CHECK_IN_TIMER_MINUTES = 120
+# How long "Are you OK?" waits for an answer before the trusted contact is told. Never longer
+# than the timer itself, so a one-minute demo timer asks for one minute.
+MAX_GRACE = dt.timedelta(minutes=5)
+ACTIVE_TIMER_STATES = ("running", "asking")
 FALLBACK_LANG = "en"
 
 PANIC_SMS = {
@@ -284,15 +296,29 @@ def get_alert_whatsapp_url(contact_alert: ContactAlert) -> str | None:
     return get_whatsapp_url(contact_alert.contact.phone, contact_alert.message)
 
 
+# --- on my way ---------------------------------------------------------------------------------
+
+
+def on_my_way(session: Session, job: Job, provider: Customer | Provider) -> None:
+    """The picked provider has left for a confirmed job: tell the customer."""
+    if not is_job_provider(job, provider):
+        raise SafetyError(403, "Only the provider on this job can say they're on the way")
+    if job.state != "confirmed":
+        raise SafetyError(409, "Only a confirmed job that hasn't started")
+    customer = find_user_by_id(session, job.customer_id)
+    notify(session, customer, "on_my_way", job.id, name=provider.display_name)
+
+
 # --- safety timer ------------------------------------------------------------------------------
 
 
-def running_timer(session: Session, job: Job, user: Customer | Provider) -> SafetyTimer | None:
+def active_timer(session: Session, job: Job, user: Customer | Provider) -> SafetyTimer | None:
+    """The person's timer on this job that is still counting down or asking "Are you OK?"."""
     return session.exec(
         select(SafetyTimer).where(
             SafetyTimer.job_id == job.id,
             SafetyTimer.user_id == user.id,
-            SafetyTimer.state == "running",
+            SafetyTimer.state.in_(ACTIVE_TIMER_STATES),
         )
     ).first()
 
@@ -311,69 +337,108 @@ def timer_view(timer: SafetyTimer | None) -> dict[str, Any] | None:
     return {
         "id": timer.id,
         "state": timer.state,
+        "reason": timer.reason,
         "started_at": timer.started_at.isoformat(),
         "due_at": timer.due_at.isoformat(),
+        "alert_at": timer.alert_at.isoformat(),
     }
 
 
 def start_timer(
-    session: Session, job: Job, user: Customer | Provider, minutes: int
+    session: Session,
+    job: Job,
+    user: Customer | Provider,
+    minutes: int,
+    reason: str = "manual",
 ) -> SafetyTimer:
     if minutes not in TIMER_MINUTES_ALLOWED:
         raise SafetyError(422, f"Pick one of {sorted(TIMER_MINUTES_ALLOWED)} minutes")
-    previous = running_timer(session, job, user)
+    previous = active_timer(session, job, user)
     if previous is not None:
         previous.state, previous.ended_at = "safe", now()
         session.add(previous)
     started = now()
+    length = dt.timedelta(minutes=minutes)
     timer = SafetyTimer(
         id=new_id("timer"),
         job_id=job.id,
         user_id=user.id,
         state="running",
+        reason=reason,
         started_at=started,
-        due_at=started + dt.timedelta(minutes=minutes),
+        due_at=started + length,
+        alert_at=started + length + min(length, MAX_GRACE),
     )
     session.add(timer)
     session.commit()
     return timer
 
 
-def say_safe(session: Session, job: Job, user: Customer | Provider) -> SafetyTimer:
-    timer = running_timer(session, job, user)
-    if timer is None:
-        raise SafetyError(409, "No safety timer is running")
-    timer.state, timer.ended_at = "safe", now()
-    session.add(timer)
-    session.commit()
+def start_check_in_timer(session: Session, job: Job, provider: Customer | Provider) -> None:
+    """Checking in starts the provider's safety timer, sized to the job."""
+    minutes = CHECK_IN_TIMER_MINUTES.get(job.size, DEFAULT_CHECK_IN_TIMER_MINUTES)
+    start_timer(session, job, provider, minutes, reason="check_in")
+
+
+def stop_timer(session: Session, job: Job, user: Customer | Provider) -> SafetyTimer | None:
+    """Finishing the work stops the person's timer, if one is on."""
+    timer = active_timer(session, job, user)
+    if timer is not None:
+        timer.state, timer.ended_at = "safe", now()
+        session.add(timer)
+        session.commit()
     return timer
 
 
-def claim_missed_timer(session: Session, timer_id: str) -> bool:
-    """Mark one running timer as missed, and say whether this call was the one that did it.
+def say_safe(session: Session, job: Job, user: Customer | Provider) -> SafetyTimer:
+    timer = stop_timer(session, job, user)
+    if timer is None:
+        raise SafetyError(409, "No safety timer is running")
+    return timer
+
+
+def claim_timer(session: Session, timer_id: str, from_state: str, to_state: str) -> bool:
+    """Move one timer from from_state to to_state, and say whether this call was the one that did.
 
     The sweep runs from the background loop and from reads, which can overlap. The update only
-    matches a timer that is still running, so exactly one of them claims it and texts the
-    contact; the others see 0 rows changed and skip it.
+    matches a timer still in from_state, so exactly one of them claims it (and asks or texts);
+    the others see 0 rows changed and skip it.
     """
+    values = {"state": to_state}
+    if to_state == "missed":
+        values["ended_at"] = now()
     claimed = session.execute(
         update(SafetyTimer)
-        .where(SafetyTimer.id == timer_id, SafetyTimer.state == "running")
-        .values(state="missed", ended_at=now())
+        .where(SafetyTimer.id == timer_id, SafetyTimer.state == from_state)
+        .values(**values)
     )
     session.commit()
     return claimed.rowcount == 1
 
 
-def sweep_missed_timers(session: Session, sender: SmsSender) -> int:
-    """Turn every running timer that's past due into a missed one: text the trusted contact,
-    record an alert and tell the person. Returns how many this call claimed."""
+def ask_if_ok(session: Session) -> None:
+    """Every running timer that's up now asks "Are you OK?" in the inbox and on the lock screen."""
     due_ids = session.exec(
         select(SafetyTimer.id).where(SafetyTimer.state == "running", SafetyTimer.due_at <= now())
     ).all()
+    for timer_id in due_ids:
+        if not claim_timer(session, timer_id, "running", "asking"):
+            continue  # another sweep got there first
+        timer = session.get(SafetyTimer, timer_id)
+        notify(session, find_user_by_id(session, timer.user_id), "timer_check", timer.job_id)
+
+
+def sweep_missed_timers(session: Session, sender: SmsSender) -> int:
+    """Ask "Are you OK?" for timers that are up, and turn every one still unanswered after its
+    grace period into a missed one: text the trusted contact, record an alert and tell the
+    person. Returns how many this call claimed as missed."""
+    ask_if_ok(session)
+    due_ids = session.exec(
+        select(SafetyTimer.id).where(SafetyTimer.state == "asking", SafetyTimer.alert_at <= now())
+    ).all()
     claimed_count = 0
     for timer_id in due_ids:
-        if not claim_missed_timer(session, timer_id):
+        if not claim_timer(session, timer_id, "asking", "missed"):
             continue  # another sweep got there first
         claimed_count += 1
         timer = session.get(SafetyTimer, timer_id)

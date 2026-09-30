@@ -304,17 +304,19 @@ class SafetyAlert(SQLModel, table=True):
 
 
 class SafetyTimer(SQLModel, table=True):
-    """"Check on me in an hour": if the person hasn't said they're safe by due_at, their trusted
-    contact gets an SMS."""
+    """"Check on me in an hour": at due_at the person is asked "Are you OK?"; if they haven't said
+    they're safe by alert_at, their trusted contact gets an SMS."""
 
     __tablename__ = "safety_timer"
 
     id: str = Field(primary_key=True)
     job_id: str = Field(foreign_key="job.id", index=True)
     user_id: str = Field(index=True)
-    state: str  # running, safe or missed
+    state: str  # running, asking ("Are you OK?"), safe or missed
+    reason: str = "manual"  # manual, or check_in when checking in started it
     started_at: dt.datetime = Field(sa_type=UtcDateTime)
     due_at: dt.datetime = Field(sa_type=UtcDateTime)
+    alert_at: dt.datetime = Field(sa_type=UtcDateTime)
     ended_at: dt.datetime | None = Field(default=None, sa_type=UtcDateTime)
 
 

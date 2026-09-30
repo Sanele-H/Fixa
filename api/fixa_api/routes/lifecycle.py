@@ -19,6 +19,7 @@ from fixa_api.job_views import is_job_customer, is_job_provider, job_view
 from fixa_api.models import Customer, Job, JobEvent, Provider
 from fixa_api.notifications import notify
 from fixa_api.routes.jobs import move_job
+from fixa_api.safety import start_check_in_timer, stop_timer
 
 router = APIRouter(prefix="/api", tags=["job lifecycle"])
 
@@ -74,6 +75,7 @@ def check_in(job_id: str, provider: ProviderUser, session: DbSession):
     record_event(session, job, "check_in", provider.id)
     session.add(job)
     session.commit()
+    start_check_in_timer(session, job, provider)  # "Are you OK?" if the work runs long
     customer = session.get(Customer, job.customer_id)
     notify(session, customer, "checked_in", job.id, name=provider.display_name)
     return job_view(session, job, provider)
@@ -88,6 +90,7 @@ def check_out(job_id: str, provider: ProviderUser, session: DbSession):
         raise HTTPException(status_code=409, detail="Check in first")
     record_event(session, job, "check_out", provider.id)
     session.commit()
+    stop_timer(session, job, provider)
     customer = session.get(Customer, job.customer_id)
     notify(session, customer, "checked_out", job.id, name=provider.display_name)
     return job_view(session, job, provider)

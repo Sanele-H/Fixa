@@ -88,6 +88,18 @@ def press_panic(job_id: str, body: Place, user: User, session: DbSession, sender
     return safety.press_panic(session, sender, job, user, body.lat, body.lng)
 
 
+@router.post("/jobs/{job_id}/on-my-way")
+def say_on_my_way(job_id: str, user: User, session: DbSession):
+    """The picked provider has left for a confirmed job; the customer is told. The app sends
+    where they left from as the on_my_way key moment."""
+    job = party_job(session, job_id, user)
+    try:
+        safety.on_my_way(session, job, user)
+    except safety.SafetyError as problem:
+        raise HTTPException(status_code=problem.status_code, detail=problem.detail) from None
+    return {"told": True}
+
+
 @router.get("/jobs/{job_id}/safety-timer")
 def read_safety_timer(job_id: str, user: User, session: DbSession, sender: Sender):
     """The person's latest safety timer on this job (running, safe or missed), or null. A missed

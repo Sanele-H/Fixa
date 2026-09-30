@@ -343,6 +343,7 @@ def test_every_route_is_covered_by_this_test_or_marked_as_not_about_jobs():
         # with the caller's own data only (their contact, their timer, their inbox), or nothing.
         "/api/jobs/{job_id}/location",
         "/api/jobs/{job_id}/panic",
+        "/api/jobs/{job_id}/on-my-way",
         "/api/jobs/{job_id}/safety-timer/safe",
         "/api/notifications/read",
         "/api/notifications/{notification_id}/read",
