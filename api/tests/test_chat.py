@@ -238,10 +238,13 @@ def test_a_message_is_labelled_with_the_language_it_is_written_in(
     say(seeded_client, lindiwe, job_id, "Ngizofika kusasa ekuseni.")
 
     provider_sees = messages_for(seeded_client, sipho, job_id)[0]
+    sender_sees = messages_for(seeded_client, lindiwe, job_id)[0]
 
     assert provider_sees["original_lang"] == "zu"
     # Sipho reads isiZulu, so there's nothing to translate.
     assert provider_sees["text"] == "Ngizofika kusasa ekuseni."
+    # Lindiwe sees her own words as she wrote them, not translated into her setting.
+    assert sender_sees["text"] == "Ngizofika kusasa ekuseni."
 
 
 def test_a_job_problem_is_translated_for_a_provider_with_the_original_kept(
@@ -255,12 +258,46 @@ def test_a_job_problem_is_translated_for_a_provider_with_the_original_kept(
     assert job["translation_flagged"] is False
 
 
+def test_a_job_problem_is_labelled_with_the_language_it_is_written_in(
+    seeded_client, lindiwe, sipho
+):
+    # Lindiwe's setting is English, but she describes the job in isiZulu.
+    body = {
+        "description": "Ngicela ungilungisele i-geyser, iyavuza.",
+        "lang": "en",
+        "trade": "plumbing",
+        "urgency": "urgent",
+        "size": "small",
+        "suburb": "Braamfontein",
+    }
+    posted = seeded_client.post("/api/jobs", json=body, headers=lindiwe).json()
+
+    provider_sees = seeded_client.get(f"/api/jobs/{posted['id']}", headers=sipho).json()
+
+    assert posted["problem_lang"] == "zu"
+    assert posted["problem"] == body["description"]  # her own words, as written
+    assert provider_sees["problem"] == body["description"]  # Sipho reads isiZulu
+
+
 def test_a_quote_note_is_translated_for_the_customer(seeded_client, lindiwe, sipho, job_id):
     quote(seeded_client, sipho, job_id, message="Ngingafika ngoLwesibili, R450.")
 
     shown = seeded_client.get(f"/api/jobs/{job_id}/quotes", headers=lindiwe).json()[0]
 
     assert shown["message"].startswith("[en]")
+
+
+def test_a_quote_note_is_labelled_with_the_language_it_is_written_in(
+    seeded_client, lindiwe, thabo, job_id
+):
+    # Thabo's setting is English, but his note is in isiZulu.
+    note = "Ngingafika ngoLwesibili ekuseni."
+    sent = quote(seeded_client, thabo, job_id, message=note).json()
+
+    customer_sees = seeded_client.get(f"/api/jobs/{job_id}/quotes", headers=lindiwe).json()[0]
+
+    assert sent["message"] == note  # his own words, as written
+    assert customer_sees["message"] == f"[en] {note}"  # translated from isiZulu
 
 
 # --- contact details in job posts and quote notes -------------------------------------------

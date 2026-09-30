@@ -16,7 +16,7 @@ from typing import Any
 from sqlmodel import Session, select
 
 from fixa_api import job_states as states
-from fixa_api.job_views import can_see_job, is_job_customer, is_job_provider, iso
+from fixa_api.job_views import can_see_job, is_job_customer, is_job_provider, iso, reading_lang
 from fixa_api.models import Customer, Job, Message, Provider, Quote
 from lang import detect_language, get_scam_warning_texts, scan_message, translate
 
@@ -119,7 +119,8 @@ def message_view(message: Message, reader: Customer | Provider) -> dict[str, Any
     """The Message shape of the contract, in the reader's language. `original` is the safe text
     as written, never the raw text: the other side must not see a hidden number by tapping
     "See original"."""
-    translation = translate(message.safe_text, reader.lang, message.original_lang)
+    target_lang = reading_lang(reader, message.sender_id, message.original_lang)
+    translation = translate(message.safe_text, target_lang, message.original_lang)
     return {
         "id": message.id,
         "job_id": message.job_id,

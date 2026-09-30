@@ -15,7 +15,7 @@ from fixa_api.geo import distance_km
 from fixa_api.job_states import OPEN_FOR_QUOTES, UNLOCKED_STATES
 from fixa_api.models import Customer, Job, Provider, Quote
 from fixa_api.photos import photo_id_from_url, signed_photo_url
-from lang import translate
+from lang import detect_language, translate
 
 PUBLIC_FIELDS = (
     "id",
@@ -63,6 +63,12 @@ def is_unlocked_for(job: Job, viewer: Customer | Provider) -> bool:
     )
 
 
+def reading_lang(viewer: Customer | Provider, author_id: str, written_lang: str) -> str:
+    """The language a viewer reads a text in: their own, except for their own words, which
+    they see as written. Their setting can differ from the language they wrote in."""
+    return written_lang if viewer.id == author_id else viewer.lang
+
+
 def distance_for(session: Session, job: Job, viewer: Customer | Provider) -> float:
     """A provider sees how far the job is from their home. A customer sees how far their
     provider is (0.0 until one is accepted). Only the rounded number leaves the server."""
@@ -79,7 +85,8 @@ def job_view(session: Session, job: Job, viewer: Customer | Provider) -> dict[st
     view: dict[str, Any] = {name: getattr(job, name) for name in PUBLIC_FIELDS}
     # job.problem was scanned when it was posted, so contact details are already hidden. The
     # reader gets it in their own language, with the text as written one tap away.
-    translation = translate(job.problem, viewer.lang, job.problem_lang)
+    target_lang = reading_lang(viewer, job.customer_id, job.problem_lang)
+    translation = translate(job.problem, target_lang, job.problem_lang)
     view["problem"] = translation.text
     view["problem_original"] = job.problem
     view["translation_flagged"] = translation.flagged
@@ -100,10 +107,13 @@ def job_view(session: Session, job: Job, viewer: Customer | Provider) -> dict[st
 
 def quote_view(quote: Quote, viewer: Customer | Provider, sender_lang: str) -> dict[str, Any]:
     """A quote as the viewer reads it. The note was scanned when it was sent; the viewer gets it
-    in their own language."""
+    in their own language. Its language is detected here (and cached), since a quote has no
+    column for it; sender_lang, the provider's setting, is the fallback."""
     message = quote.message
     if message:
-        message = translate(message, viewer.lang, sender_lang).text
+        written_lang = detect_language(message, sender_lang)
+        target_lang = reading_lang(viewer, quote.provider_id, written_lang)
+        message = translate(message, target_lang, written_lang).text
     return {
         "id": quote.id,
         "job_id": quote.job_id,
