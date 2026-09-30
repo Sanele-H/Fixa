@@ -362,5 +362,11 @@
     "thanks": "Enkosi ngokufakaza ngo-{{name}}.",
     "alreadyDone": "Uvele wafakaza ngalo msebenzi.",
     "listTitle": "Okutshiwo ngabathengi"
+  },
+  "install": {
+    "title": "Faka i-Fixa",
+    "body": "Faka i-Fixa kwisikrini sakho sasekhaya ukufumana kamsinya.",
+    "button": "Faka i-Fixa",
+    "dismiss": "Susa"
   }
 }

@@ -362,5 +362,11 @@
     "thanks": "Siyabonga ngokufakaza ngo-{{name}}.",
     "alreadyDone": "Usuvele wawufakaza ngalo msebenzi.",
     "listTitle": "Okushiwo amakhasimende"
+  },
+  "install": {
+    "title": "Faka i-Fixa",
+    "body": "Faka i-Fixa esikrinini sakho sasekhaya ukuthola amasevisi kalula.",
+    "button": "Faka i-Fixa",
+    "dismiss": "Susa"
   }
 }

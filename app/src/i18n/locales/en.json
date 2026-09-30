@@ -361,5 +361,11 @@
     "thanks": "Thank you for vouching for {{name}}.",
     "alreadyDone": "You already vouched for this provider.",
     "listTitle": "What customers say"
+  },
+  "install": {
+    "title": "Install Fixa",
+    "body": "Add Fixa to your home screen for quick access and offline use.",
+    "button": "Install Fixa",
+    "dismiss": "Dismiss"
   }
 }
