@@ -20,6 +20,7 @@ from record import (
     build_record,
     render_verify_page,
     render_work_record_page,
+    summarise_arpl_experience,
     verify_record,
 )
 
@@ -101,6 +102,21 @@ def export_record(
         "verify_code": document.verify_code,
         "download_url": f"/api/record/exports/{document.verify_code}{PDF_SUFFIX}",
         "sha256": document.sha256,
+    }
+
+
+@router.get("/api/record/summary")
+def read_record_summary(provider: ProviderUser, session: DbSession):
+    """What the app's "My record" screen shows: the ARPL trade (null when the provider has
+    none), the months of confirmed experience in it counted as the ARPL record counts them, the
+    calendar months that had work, and how many confirmed jobs the record holds."""
+    evidence = build_evidence(session, provider)
+    experience = summarise_arpl_experience(evidence)
+    return {
+        "arpl_trade": experience.arpl_trade,
+        "experience_months": experience.summary.span_months,
+        "months_with_work": experience.summary.months_with_work,
+        "confirmed_jobs": len(evidence.jobs),
     }
 
 

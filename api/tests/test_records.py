@@ -255,3 +255,27 @@ def test_the_export_uses_the_configured_public_address(seeded_client, thabo, mon
         export(seeded_client, thabo)
 
     assert seen["verify_base_url"] == "https://fixa.example"
+
+
+# --- the summary for the "My record" screen -------------------------------------------------
+
+
+def test_the_record_summary_has_the_contract_shape(seeded_client, log_in):
+    summary = seeded_client.get("/api/record/summary", headers=log_in(NOSIPHO)).json()
+
+    assert set(summary) == fixture_keys("record_summary.json")
+    assert summary["arpl_trade"] == "plumbing"
+    assert summary["experience_months"] > 36  # about 4 years of confirmed work
+    assert summary["confirmed_jobs"] > 0
+
+
+def test_a_provider_with_no_confirmed_jobs_has_an_empty_summary(seeded_client, log_in):
+    summary = seeded_client.get("/api/record/summary", headers=log_in(NO_JOBS)).json()
+
+    assert summary["experience_months"] == 0
+    assert summary["confirmed_jobs"] == 0
+
+
+def test_only_a_provider_has_a_record_summary(seeded_client, log_in):
+    assert seeded_client.get("/api/record/summary", headers=log_in(LINDIWE)).status_code == 403
+    assert seeded_client.get("/api/record/summary").status_code == 401

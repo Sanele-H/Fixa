@@ -78,6 +78,26 @@ def list_trade_jobs(evidence: RecordEvidence, trade: str) -> list[RecordJob]:
     return sorted((job for job in evidence.jobs if job.trade == trade), key=lambda job: job.done_on)
 
 
+@dataclass(frozen=True)
+class ArplExperience:
+    """How much confirmed work counts towards ARPL: the trade it's for (None when the provider
+    has no trade with an ARPL toolkit) and the experience in it."""
+
+    arpl_trade: str | None
+    summary: ExperienceSummary
+
+
+def summarise_arpl_experience(evidence: RecordEvidence) -> ArplExperience:
+    """The experience an ARPL record would show: in the ARPL trade chosen as for the export, or
+    across all confirmed jobs, with no trade, when the provider has no ARPL trade."""
+    try:
+        arpl_trade = choose_arpl_trade(evidence)
+    except ArplTradeError:
+        return ArplExperience(arpl_trade=None, summary=summarise_experience(evidence.jobs))
+    trade_jobs = list_trade_jobs(evidence, arpl_trade)
+    return ArplExperience(arpl_trade=arpl_trade, summary=summarise_experience(trade_jobs))
+
+
 def summarise_experience(jobs: list[RecordJob]) -> ExperienceSummary:
     """Works out the span of confirmed work and how many months had work in them."""
     if not jobs:

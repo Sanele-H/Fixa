@@ -10,13 +10,21 @@ Public functions (the contract; signatures change only with the team's agreement
     verify_record(verify_code, stored) -> VerifyResult
     render_work_record_page(evidence) -> str   (plain-HTML /record/{provider_id} page)
     render_verify_page(verify_code, result) -> str   (plain-HTML /verify/{code} page)
+    summarise_arpl_experience(evidence) -> ArplExperience(arpl_trade, summary)
+        The experience an ARPL record would show, for the app's "My record" screen.
 
 Exports never include customers' names, phone numbers or addresses. The ARPL record
 follows the sections of the merSETA ARPL Trade Test Application Form (LPM-FM-009) and
 never claims that anyone qualifies.
 """
 
-from record.experience import ARPL_TRADE_TITLES, ARPL_TRADES, ArplTradeError
+from record.experience import (
+    ARPL_TRADE_TITLES,
+    ARPL_TRADES,
+    ArplExperience,
+    ArplTradeError,
+    summarise_arpl_experience,
+)
 from record.export import build_record, verify_record
 from record.models import (
     RecordDoc,
@@ -32,6 +40,7 @@ from record.pages import render_verify_page, render_work_record_page
 __all__ = [
     "ARPL_TRADES",
     "ARPL_TRADE_TITLES",
+    "ArplExperience",
     "ArplTradeError",
     "RecordDoc",
     "RecordEvidence",
@@ -43,5 +52,6 @@ __all__ = [
     "build_record",
     "render_verify_page",
     "render_work_record_page",
+    "summarise_arpl_experience",
     "verify_record",
 ]

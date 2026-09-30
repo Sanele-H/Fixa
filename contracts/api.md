@@ -73,6 +73,7 @@
 | POST | `/api/off-app-jobs` | provider | `{customer_phone, trade_task, date, suburb, amount_rands?}` | 201 `off_app_job.json` |
 | POST | `/api/sms/inbound` | Africa's Talking webhook | form fields from Africa's Talking | 200 |
 | POST | `/api/record/export` | provider | `{mode}` | `record_export.json` |
+| GET | `/api/record/summary` | provider | | `record_summary.json`: the ARPL trade (null if none), months of confirmed experience in it as the ARPL record counts them, calendar months with work, and confirmed jobs |
 | GET | `/record/{provider_id}` | anyone with the link | | Plain-HTML work record page, no JavaScript |
 | GET | `/verify/{code}` | anyone with the link | | Plain-HTML verify page, no JavaScript |
 
