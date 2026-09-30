@@ -141,11 +141,11 @@
     "whereLabel": "Umsebenzi ukuphi?",
     "whereHome": "Ekhaya ({{suburb}})",
     "whereElsewhere": "Kwenye indawo",
-    "mapHint": "Thepha ibalazwe noma uhudule iphini liye lapho kukhona umsebenzi, isibonelo endlini yomzali noma endaweni oyiqashisayo.",
+    "mapHint": "Cofa ibalazwe noma uhudule uphini luye lapho kukhona umsebenzi, isibonelo endlini yomzali noma endaweni oyiqashisayo.",
     "mapLabel": "Ibalazwe: khetha lapho kukhona umsebenzi",
     "useMyLocation": "Sebenzisa lapho ngikhona manje",
-    "locationDenied": "Asikwazanga ukuthola indawo yefoni yakho. Thepha ibalazwe esikhundleni salokho.",
-    "pinFirst": "Thepha ibalazwe ukuze ubeke iphini.",
+    "locationDenied": "Asikwazanga ukuthola indawo yefoni yakho. Cofa ibalazwe esikhundleni salokho.",
+    "pinFirst": "Cofa ibalazwe ukuze ubeke uphini.",
     "placeFinding": "Sithola indawo…",
     "placeFound": "Iphini lise-{{suburb}}",
     "placePrivacy": "Abahlinzeki babona kuphela isabhabhu nokuthi likude kangakanani uze ukhethe umuntu.",
@@ -547,7 +547,7 @@
     "refund": {
       "refunded": "Kubuyisiwe",
       "refund_owed": "Imali iyabuyiswa: ithimba le-Fixa lizoyibuyisa",
-      "under_review": "Kuyabuyekezwa: umsebenzi ukhanseliwe emva kokuba sekuqalwe ukusebenza, ngakho ithimba le-Fixa lizonquma"
+      "under_review": "Kuyabuyekezwa: umsebenzi ukhanseliwe emva kokuba sekuqalwe ukusebenza, ngakho-ke ithimba le-Fixa lizonquma"
     }
   }
 }
