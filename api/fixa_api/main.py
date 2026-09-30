@@ -20,6 +20,7 @@ from fixa_api import (
 )
 from fixa_api.blocking import ProhibitedRequestError
 from fixa_api.db import engine
+from fixa_api.migrations import add_missing_columns
 from fixa_api.routes import (
     auth,
     chat,
@@ -60,9 +61,10 @@ async def sweep_safety_timers_forever() -> None:
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    """Create any missing tables when the server starts (existing tables are left alone), and
-    check safety timers in the background while it runs."""
+    """Create any missing tables when the server starts, add columns later PRs put on existing
+    tables (see migrations.py), and check safety timers in the background while it runs."""
     SQLModel.metadata.create_all(engine)
+    add_missing_columns(engine)
     sweeper = asyncio.create_task(sweep_safety_timers_forever())
     yield
     sweeper.cancel()
