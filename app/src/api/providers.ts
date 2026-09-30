@@ -41,10 +41,14 @@ export function useNearbyProviders(filters: NearbyFilters) {
   });
 }
 
-/** GET /api/providers/{provider_id}: the profile, with evidence and the trust range. */
-export function useProviderProfile(providerId: string) {
+/**
+ * GET /api/providers/{provider_id}: the profile, with evidence and the trust range.
+ * Waits while providerId is undefined, for screens that only sometimes know who to show.
+ */
+export function useProviderProfile(providerId: string | undefined) {
   return useQuery({
-    queryKey: providerKeys.profile(providerId),
+    queryKey: providerKeys.profile(providerId ?? ""),
     queryFn: () => getJson<ProviderProfile>(`/api/providers/${providerId}`),
+    enabled: Boolean(providerId),
   });
 }

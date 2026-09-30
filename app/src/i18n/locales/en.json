@@ -75,7 +75,9 @@
     "seeOriginal": "See original",
     "seeTranslation": "See translation",
     "unsure": "This may not have translated well",
-    "unsureShort": "Check translation"
+    "unsureShort": "Check translation",
+    "messageIn": "This message is in {{language}}.",
+    "translateTo": "Translate to {{language}}"
   },
   "evidence": {
     "jobs_one": "job",
@@ -186,7 +188,12 @@
     "privacyNote": "Numbers and addresses stay hidden until the job is confirmed.",
     "contactsHidden": "Contact hidden",
     "placeholder": "Write a message",
-    "send": "Send"
+    "send": "Send",
+    "emptyTitle": "No messages yet",
+    "emptyBody": "Say hello, or ask about the job.",
+    "pickThreadTitle": "Pick who to chat with",
+    "pickThreadBody": "Each person who quoted has their own chat. Open one from their quote on your job page.",
+    "openJob": "Go to my job"
   },
   "profile": {
     "share": "Share profile",
