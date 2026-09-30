@@ -1,6 +1,8 @@
 // Shared pieces for the end-to-end tests: where the app is, the demo accounts, and a "phone"
 // (a fresh browser context) that's logged in as one of them.
 
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import type { APIRequestContext, Browser, Page } from "@playwright/test";
 
 const LOCAL_URL = "http://localhost:5173";
@@ -23,6 +25,25 @@ export const DEMO_OTP = process.env.E2E_OTP ?? "123456";
 
 type Language = "en" | "zu" | "xh";
 
+type LocaleStrings = { [key: string]: string | LocaleStrings };
+
+const LOCALES_DIR = path.join(__dirname, "..", "app", "src", "i18n", "locales");
+const PLACEHOLDER = /\{\{(\w+)\}\}/g;
+
+/**
+ * The app's own text for `key` (e.g. "chat.send") in `language`, read from the same locale
+ * files the app uses, with {{placeholders}} filled from `values`. Lets a test find buttons
+ * and labels on a phone set to isiZulu or isiXhosa without copying translations into it.
+ */
+export function getAppText(language: Language, key: string, values: Record<string, string> = {}): string {
+  const strings = JSON.parse(readFileSync(path.join(LOCALES_DIR, `${language}.json`), "utf8")) as LocaleStrings;
+  const text = key.split(".").reduce<string | LocaleStrings>((node, part) => (node as LocaleStrings)[part], strings);
+  if (typeof text !== "string") {
+    throw new Error(`No text for ${key} in ${language}.json`);
+  }
+  return text.replace(PLACEHOLDER, (_placeholder, name: string) => values[name] ?? "");
+}
+
 /**
  * Opens a new "phone" with its app language already picked, and logs in as `phone`.
  * Resolves once the home tab (customers) or the feed (providers) is showing.
@@ -32,9 +53,9 @@ export async function openPhone(browser: Browser, phone: string, language: Langu
   await context.addInitScript((lang) => localStorage.setItem("fixa.lang", lang), language);
   const page = await context.newPage();
   await page.goto("/login");
-  await page.getByLabel("Phone number").fill(phone);
-  await page.getByLabel("Code from the SMS").fill(DEMO_OTP);
-  await page.getByRole("button", { name: "Log in" }).click();
+  await page.getByLabel(getAppText(language, "login.phoneLabel")).fill(phone);
+  await page.getByLabel(getAppText(language, "login.codeLabel")).fill(DEMO_OTP);
+  await page.getByRole("button", { name: getAppText(language, "login.logIn") }).click();
   await page.waitForURL(/\/(home|feed)$/);
   return page;
 }

@@ -3,6 +3,7 @@
 
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router";
 import { getErrorCode, getErrorMessageKey } from "../../api/errors";
 import { ErrorBanner } from "../../components/ErrorBanner";
 import { useLogOffAppJob, type NewOffAppJob } from "../../api/record";
@@ -16,6 +17,15 @@ const NON_DIGITS = /\D/g;
 /** The server's limit for "What did you do?" (NewOffAppJob.trade_task). */
 const TRADE_TASK_MAX_CHARS = 60;
 const MS_PER_MINUTE = 60_000;
+const LAST_OFF_APP_JOB_DATE_KEY = "fixa.lastOffAppJobDate";
+
+function updateStoredOffAppJobDate() {
+  try {
+    localStorage.setItem(LAST_OFF_APP_JOB_DATE_KEY, new Date().toISOString());
+  } catch {
+    // Ignore storage failure
+  }
+}
 
 /** The reasons the server gives when it refuses an off-app job, each with its own message. */
 const OFF_APP_ERROR_CODES = [
@@ -48,11 +58,13 @@ type OffAppFormProps = {
 function OffAppForm({ onLogged }: OffAppFormProps) {
   const { t } = useTranslation();
   const me = useCurrentUser();
+  const [searchParams] = useSearchParams();
   const logOffAppJob = useLogOffAppJob();
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [tradeTask, setTradeTask] = useState("");
+
+  const [customerPhone, setCustomerPhone] = useState(searchParams.get("phone") ?? "");
+  const [tradeTask, setTradeTask] = useState(searchParams.get("task") ?? "");
   const [date, setDate] = useState("");
-  const [suburb, setSuburb] = useState(me.suburb);
+  const [suburb, setSuburb] = useState(searchParams.get("suburb") ?? me.suburb);
   const [amountText, setAmountText] = useState("");
 
   /** Keeps only digits, so the amount is always whole rands. */
@@ -70,7 +82,12 @@ function OffAppForm({ onLogged }: OffAppFormProps) {
       suburb: suburb.trim(),
       amount_rands: amountText ? Number(amountText) : undefined,
     };
-    logOffAppJob.mutate(newOffAppJob, { onSuccess: onLogged });
+    logOffAppJob.mutate(newOffAppJob, {
+      onSuccess: (loggedJob) => {
+        updateStoredOffAppJobDate();
+        onLogged(loggedJob);
+      },
+    });
   }
 
   return (

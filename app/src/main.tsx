@@ -10,6 +10,7 @@ import { RouterProvider } from "react-router";
 import { queryClient } from "./api/queryClient";
 import { router } from "./app/router";
 import { initI18n } from "./i18n";
+import { listenForInstallPrompt } from "./installPrompt";
 import { SessionProvider } from "./session/SessionContext";
 import "./styles/tokens.css";
 import "./styles/base.css";
@@ -28,5 +29,7 @@ function renderApp() {
   );
 }
 
+// The install offer can fire before any screen loads, so catch it from the very start.
+listenForInstallPrompt();
 // Strings must be loaded before the first render, or screens would flash raw keys.
 initI18n().then(renderApp);

@@ -17,6 +17,21 @@ import { shareFile, shareLink, type ShareOutcome } from "../../share";
 import { Banner, Button, ButtonLink, Card, Figure, ProgressMeter, RowCard, Screen, ScreenHeader, Stat } from "../../ui";
 
 const MONTHS_PER_YEAR = 12;
+const LAST_OFF_APP_JOB_DATE_KEY = "fixa.lastOffAppJobDate";
+const NUDGE_THRESHOLD_DAYS = 30;
+const MS_PER_DAY = 86_400_000;
+
+/** True when the provider hasn't logged an off-app job in the last 30 days. */
+function shouldShowNudge(): boolean {
+  try {
+    const stored = localStorage.getItem(LAST_OFF_APP_JOB_DATE_KEY);
+    if (!stored) return true;
+    const elapsed = Date.now() - new Date(stored).getTime();
+    return elapsed >= NUDGE_THRESHOLD_DAYS * MS_PER_DAY;
+  } catch {
+    return false;
+  }
+}
 /** ARPL asks for 3 years of experience in the trade (18 months or 4 years for a few categories). */
 const ARPL_REQUIRED_MONTHS = 3 * MONTHS_PER_YEAR;
 const PDF_TYPE = "application/pdf";
@@ -160,6 +175,12 @@ export default function MyRecordScreen() {
       <EvidenceTiles providerId={me.id} />
 
       <RecordExports providerId={me.id} />
+
+      {shouldShowNudge() && (
+        <Banner tone="info" title={t("record.nudgeTitle")}>
+          <p className="small">{t("record.nudgeBody")}</p>
+        </Banner>
+      )}
 
       <ButtonLink to={PATHS.offAppJob} variant="lime" isBlock icon="plus">
         {t("offApp.title")}

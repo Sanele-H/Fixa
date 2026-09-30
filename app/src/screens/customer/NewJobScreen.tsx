@@ -2,10 +2,10 @@
 // size from that description, the customer confirms or changes them, adds a photo if they like,
 // and posts. Their address and number stay hidden until they pick someone.
 
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { generatePath, useNavigate } from "react-router";
-import { getErrorMessageKey } from "../../api/errors";
+import { getErrorCode, getErrorMessageKey } from "../../api/errors";
 import { ErrorBanner } from "../../components/ErrorBanner";
 import { useCreateJob, useUnderstandJob, type NewJob } from "../../api/jobs";
 import { useUploadPhoto } from "../../api/photos";
@@ -15,6 +15,36 @@ import { getTradeLabel } from "../../components/Badges";
 import { useCurrentUser } from "../../session/SessionContext";
 import { shrinkPhoto } from "../../shrinkPhoto";
 import { Banner, Button, Card, Icon, Screen, ScreenHeader, Segmented, TextArea } from "../../ui";
+
+const DRAFT_NEW_JOB_KEY = "fixa.draft.newJob";
+
+function getStoredNewJobDraft(): string {
+  try {
+    return localStorage.getItem(DRAFT_NEW_JOB_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function updateStoredNewJobDraft(text: string): void {
+  try {
+    if (text.trim()) {
+      localStorage.setItem(DRAFT_NEW_JOB_KEY, text);
+    } else {
+      localStorage.removeItem(DRAFT_NEW_JOB_KEY);
+    }
+  } catch {
+    // Ignore storage failure
+  }
+}
+
+function clearStoredNewJobDraft(): void {
+  try {
+    localStorage.removeItem(DRAFT_NEW_JOB_KEY);
+  } catch {
+    // Ignore storage failure
+  }
+}
 
 /** What the customer confirms after the suggestion: the trade, how soon and how big. */
 type JobDetails = Pick<NewJob, "trade" | "urgency" | "size">;
@@ -126,7 +156,7 @@ export default function NewJobScreen() {
   const { t, i18n } = useTranslation();
   const me = useCurrentUser();
   const navigate = useNavigate();
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(getStoredNewJobDraft);
   const [details, setDetails] = useState<JobDetails | null>(null);
   const [needsLicence, setNeedsLicence] = useState(false);
   const understandJob = useUnderstandJob();
@@ -134,6 +164,14 @@ export default function NewJobScreen() {
   const jobPhoto = useJobPhoto();
   const language = i18n.language as Language;
   const requestError = createJob.error ?? understandJob.error;
+
+  useEffect(() => {
+    if (requestError && getErrorCode(requestError) === "prohibited_request") {
+      clearStoredNewJobDraft();
+      setDescription("");
+      setDetails(null);
+    }
+  }, [requestError]);
 
   /** Asks the server what kind of job this is, and fills the details card with its guess. */
   function suggestDetails(event: FormEvent<HTMLFormElement>) {
@@ -154,7 +192,12 @@ export default function NewJobScreen() {
       photo_id: jobPhoto.photo?.photo_id,
       needs_licence: needsLicence || undefined,
     };
-    createJob.mutate(newJob, { onSuccess: (job) => navigate(generatePath(PATHS.jobProviders, { jobId: job.id })) });
+    createJob.mutate(newJob, {
+      onSuccess: (job) => {
+        clearStoredNewJobDraft();
+        navigate(generatePath(PATHS.jobProviders, { jobId: job.id }));
+      },
+    });
   }
 
   return (
@@ -167,7 +210,11 @@ export default function NewJobScreen() {
           placeholder={t("newJob.describeExample")}
           required
           value={description}
-          onChange={(event) => setDescription(event.target.value)}
+          onChange={(event) => {
+            const val = event.target.value;
+            setDescription(val);
+            updateStoredNewJobDraft(val);
+          }}
         />
         {!details && (
           <Button type="submit" isBlock disabled={understandJob.isPending || !description.trim()}>
