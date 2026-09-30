@@ -36,7 +36,9 @@
     "invalid": "Check what you entered and try again.",
     "tooMany": "Too many tries today. Try again tomorrow.",
     "generic": "Something went wrong. Try again.",
-    "tryAgain": "Try again"
+    "tryAgain": "Try again",
+    "refusedTitle": "We can't do this",
+    "restrictedTitle": "Your account is paused"
   },
   "role": {
     "customer": "Customer",
@@ -119,7 +121,8 @@
     "trade": "Type of work",
     "photoAdding": "Adding your photo…",
     "photoAlt": "Your photo of the problem",
-    "removePhoto": "Remove photo"
+    "removePhoto": "Remove photo",
+    "licensedOnly": "Only licensed providers (the law requires it for some work)"
   },
   "providers": {
     "title": "Who can help",
@@ -172,7 +175,8 @@
     "cancel": "Cancel this job",
     "cancelConfirm": "Cancel this job? This can't be undone.",
     "cancelYes": "Yes, cancel it",
-    "cancelNo": "Keep it"
+    "cancelNo": "Keep it",
+    "licensedOnly": "Licensed providers only"
   },
   "contact": {
     "lockedTitle": "Contact details hidden",
@@ -309,5 +313,53 @@
     "title": "Page not found",
     "body": "This link may be old or mistyped.",
     "home": "Go to the start"
+  },
+  "lifecycle": {
+    "arrivedTitle": "Have you arrived?",
+    "arrivedBody": "Check in so the customer knows you're on the job.",
+    "checkIn": "I've arrived",
+    "finishedTitle": "Finished the work?",
+    "finishedBody": "Tell the customer you're done. They confirm it.",
+    "checkOut": "I've finished the work",
+    "waitingForCustomer": "Waiting for the customer to confirm the job is done.",
+    "isItDoneTitle": "Is the job done?",
+    "isItDoneBody": "Once you confirm, {{name}}'s work counts towards their record.",
+    "itIsDone": "Yes, it's done",
+    "noShow": "They didn't turn up",
+    "noShowConfirm": "Did {{name}} not turn up? This goes on their record and ends the job.",
+    "noShowYes": "Yes, they didn't come",
+    "noShowNo": "Go back",
+    "followUpSoon": "In two weeks we'll ask whether the fix is still working."
+  },
+  "followUp": {
+    "title": "Is the fix still working?",
+    "yes": "Yes, still working",
+    "no": "No, it broke again"
+  },
+  "report": {
+    "open": "Report",
+    "title": "Report this",
+    "reasonLabel": "What's wrong?",
+    "reason": {
+      "illegal_work": "Illegal work",
+      "scam": "Scam",
+      "abuse": "Abuse",
+      "fake_profile": "Fake profile",
+      "other": "Other"
+    },
+    "noteLabel": "Tell us more (optional)",
+    "send": "Send report",
+    "cancel": "Cancel",
+    "thanks": "Thanks. Our team will look into it.",
+    "alreadyReported": "You already reported this."
+  },
+  "vouch": {
+    "title": "Say a few words about {{name}}",
+    "hint": "Your name isn't shown. Phone numbers and links are hidden.",
+    "label": "What was it like?",
+    "send": "Send",
+    "thanks": "Thank you for vouching for {{name}}.",
+    "alreadyDone": "You already vouched for this provider.",
+    "listTitle": "What customers say"
   }
 }

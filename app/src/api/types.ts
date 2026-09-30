@@ -65,6 +65,8 @@ export type JobPublic = {
   problem_lang: Language;
   translation_flagged: boolean;
   photo_url: string | null;
+  /** True for work only a licensed provider may do (geyser installs, electrical certificates). */
+  needs_licence: boolean;
   distance_km: number;
   created_at: string;
 };
@@ -207,6 +209,18 @@ export type RecordExport = {
   download_url: string;
   sha256: string;
 };
+
+/** A customer's few words about a provider. The server never says who wrote it. */
+export type Vouch = {
+  id: string;
+  text: string;
+  suburb: string;
+  given_on: string;
+};
+
+export const REPORT_REASONS = ["illegal_work", "scam", "abuse", "fake_profile", "other"] as const;
+export type ReportReason = (typeof REPORT_REASONS)[number];
+export type ReportTargetType = "job" | "provider" | "message";
 
 /** True when the server sent the unlocked job. The server decides; the app only reads what it got. */
 export function isJobUnlocked(job: JobPublic | JobUnlocked): job is JobUnlocked {

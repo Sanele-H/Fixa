@@ -28,6 +28,9 @@ export class ApiError extends Error {
  */
 type ErrorBody = {
   detail?: string | { msg?: string }[] | { error?: unknown; message?: unknown };
+  /** A refused request (prohibited_request) sends its fields at the top level, not under detail. */
+  error?: unknown;
+  message?: unknown;
 };
 
 /** The server's reason for a failed request, and its error code if it gave one. */
@@ -44,7 +47,11 @@ export type ErrorReason = {
 export async function readErrorReason(response: Response): Promise<ErrorReason> {
   const fallbackDetail = `${response.status} ${response.statusText}`.trim();
   try {
-    const { detail } = (await response.json()) as ErrorBody;
+    const body = (await response.json()) as ErrorBody;
+    if (typeof body.error === "string" && typeof body.message === "string") {
+      return { detail: body.message, code: body.error };
+    }
+    const { detail } = body;
     if (typeof detail === "string") {
       return { detail, code: null };
     }
@@ -58,6 +65,9 @@ export async function readErrorReason(response: Response): Promise<ErrorReason> 
     return { detail: fallbackDetail, code: null };
   }
 }
+
+/** The error codes whose `message` the server already wrote in the person's own language. */
+export const REFUSAL_ERROR_CODES = ["prohibited_request", "account_restricted"];
 
 /** The server's error code for a failed request, if it sent one. */
 export function getErrorCode(error: unknown): string | null {

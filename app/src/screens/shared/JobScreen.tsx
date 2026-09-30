@@ -20,6 +20,8 @@ import type { JobPublic, JobState, JobUnlocked, Quote } from "../../api/types";
 import { CHAT_WITH_PARAM, getHomePath, PATHS } from "../../app/paths";
 import { getTradeLabel, TradeChip } from "../../components/Badges";
 import { ContactCard } from "../../components/ContactCard";
+import { CustomerDayActions, ProviderDayActions } from "../../components/JobDayActions";
+import { ReportButton } from "../../components/ReportButton";
 import { JobStateRuler } from "../../components/JobStateRuler";
 import { EmptyNote, LoadError, LoadingNote } from "../../components/LoadState";
 import { QuoteCard } from "../../components/QuoteCard";
@@ -64,6 +66,7 @@ function ProblemCard({ job }: { job: Job }) {
         <TradeChip trade={job.trade} tone="outline" />
         <Chip>{t(`urgency.${job.urgency}`)}</Chip>
         <Chip>{t(`size.${job.size}`)}</Chip>
+        {job.needs_licence && <Chip icon="shield">{t("job.licensedOnly")}</Chip>}
         {job.distance_km > 0 && <Chip icon="mapPin">{formatDistanceKm(job.distance_km)}</Chip>}
       </div>
       {job.photo_url && <img className="job-photo" src={job.photo_url} alt={t("job.photoAlt")} />}
@@ -166,9 +169,11 @@ function ProviderQuote({ job }: { job: Job }) {
   }
   const hasOpenQuote = quotes.data.some((quote) => quote.state === "open");
   const isAcceptedProvider = job.state === "quote_accepted" && quotes.data.some((quote) => quote.state === "accepted");
+  const isPickedProvider = quotes.data.some((quote) => quote.state === "accepted") && !OPEN_FOR_QUOTES.includes(job.state);
   return (
     <>
       {isAcceptedProvider && <AcceptedQuoteActions job={job} />}
+      {isPickedProvider && <ProviderDayActions job={job} />}
       {quotes.data.map((quote) => (
         <QuoteCard key={quote.id} quote={quote} providerName={t("job.yourQuote")} />
       ))}
@@ -234,7 +239,9 @@ function JobDetails({ job }: { job: Job }) {
         {role === "customer" ? <CustomerQuotes job={job} /> : <ProviderQuote job={job} />}
       </section>
 
+      {role === "customer" && <CustomerDayActions job={job} />}
       {role === "customer" && <CancelJob job={job} />}
+      {role === "provider" && <ReportButton targetType="job" targetId={job.id} />}
     </>
   );
 }

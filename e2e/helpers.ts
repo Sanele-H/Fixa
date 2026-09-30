@@ -12,6 +12,7 @@ export const IS_LIVE = BASE_URL !== LOCAL_URL;
 /** The seeded demo accounts (data/seed). Every account's code is DEMO_OTP. */
 export const ACCOUNTS = {
   lindiwe: "082 000 0001", // customer in Braamfontein, English
+  followUpCustomer: "082 000 0021", // a customer with finished jobs from months ago, never followed up
   thabo: "071 000 0001", // plumber, English
   sipho: "071 000 0002", // plumber, isiZulu
   nosipho: "071 000 0003", // plumber with about 4 years of confirmed work

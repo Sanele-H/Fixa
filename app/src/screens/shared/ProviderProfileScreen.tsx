@@ -10,6 +10,8 @@ import type { ProviderProfile, Role } from "../../api/types";
 import { getHomePath, PATHS, PROFILE_FROM_NEARBY, PROFILE_FROM_PARAM, PROFILE_JOB_PARAM } from "../../app/paths";
 import { IdBadgeChip, TradeChip } from "../../components/Badges";
 import { DescribeJobCard } from "../../components/DescribeJobCard";
+import { ReportButton } from "../../components/ReportButton";
+import { VouchList } from "../../components/VouchList";
 import { LoadError, LoadingNote } from "../../components/LoadState";
 import { EVIDENCE_KEYS, formatSpokenLanguages, ProviderTrust } from "../../components/ProviderCard";
 import { formatDistanceKm } from "../../format";
@@ -28,6 +30,7 @@ function getBackPath(searchParams: URLSearchParams, role: Role) {
 /** Who they are, their trust range and their evidence. */
 function ProfileDetails({ provider }: { provider: ProviderProfile }) {
   const { t } = useTranslation();
+  const isMe = useCurrentUser().id === provider.provider_id;
   return (
     <>
 
@@ -63,6 +66,9 @@ function ProfileDetails({ provider }: { provider: ProviderProfile }) {
           </Card>
         ))}
       </div>
+
+      <VouchList providerId={provider.provider_id} />
+      {!isMe && <ReportButton targetType="provider" targetId={provider.provider_id} />}
     </>
   );
 }
