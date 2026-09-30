@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getErrorMessageKey } from "../../api/errors";
+import { getErrorCode, getErrorMessageKey } from "../../api/errors";
 import { useProviderProfile } from "../../api/providers";
 import { readRecordPdf, useExportRecord, useRecordSummary } from "../../api/record";
 import type { RecordExport, RecordMode, RecordSummary } from "../../api/types";
@@ -26,6 +26,17 @@ const SHARE_OUTCOME_KEYS: Partial<Record<ShareOutcome, string>> = {
   downloaded: "record.pdfDownloaded",
   copied: "record.linkCopied",
 };
+
+/** Messages for the reasons the server gives when it refuses an export. */
+const EXPORT_ERROR_KEYS: Record<string, string> = {
+  no_jobs: "record.noJobs",
+  no_arpl_trade: "record.noArplTrade",
+};
+
+/** Why an export failed: no confirmed jobs, no ARPL trade, or the usual reasons. */
+function getExportErrorKey(error: unknown) {
+  return EXPORT_ERROR_KEYS[getErrorCode(error) ?? ""] ?? getErrorMessageKey(error);
+}
 
 /** Years and months of experience as big figures, and how far that is towards ARPL. */
 function ArplProgress({ summary }: { summary: RecordSummary }) {
@@ -119,7 +130,7 @@ function RecordExports({ providerId }: { providerId: string }) {
         {t("record.exportStatement")}
       </Button>
       {exportRecord.isPending && <LoadingNote />}
-      {shareError !== null && <Banner tone="warning" title={t(getErrorMessageKey(shareError))} />}
+      {shareError !== null && <Banner tone="warning" title={t(getExportErrorKey(shareError))} />}
       {exportRecord.data && (
         <>
           <RowCard eyebrow={t("record.verifyCode")} title={t("record.verifyCodeHint")} figure={exportRecord.data.verify_code} />

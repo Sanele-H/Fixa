@@ -290,7 +290,8 @@
     "verifyCodeHint": "Anyone can check your record is genuine",
     "noArplTrade": "ARPL covers trades with a merSETA toolkit, and yours aren't on the list yet. Your record still counts.",
     "pdfDownloaded": "Your PDF is downloaded. Anyone can check it with the verify code.",
-    "linkCopied": "Link copied. Paste it into WhatsApp or an SMS."
+    "linkCopied": "Link copied. Paste it into WhatsApp or an SMS.",
+    "noJobs": "There are no confirmed jobs on your record yet. A job counts once its customer confirms it."
   },
   "notFound": {
     "title": "Page not found",
