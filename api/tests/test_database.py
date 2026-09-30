@@ -8,6 +8,7 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 
+from fixa_api.db import create_database_engine
 from fixa_api.models import Job, Quote
 from fixa_api.seed import SEED_DIRECTORY_PATH, SEED_TABLES
 
@@ -43,3 +44,18 @@ def test_foreign_keys_are_enforced(seeded_session):
 
     with pytest.raises(IntegrityError):
         seeded_session.commit()
+
+
+@pytest.mark.parametrize(
+    "database_url",
+    [
+        "postgresql://user:secret@db.example.com:5432/postgres",
+        "postgres://user:secret@db.example.com:5432/postgres",
+        "postgresql+psycopg://user:secret@db.example.com:5432/postgres",
+    ],
+)
+def test_postgres_urls_use_the_installed_psycopg_driver(database_url):
+    # Building the engine loads the driver without connecting, so a psycopg2 URL fails here.
+    engine = create_database_engine(database_url)
+
+    assert engine.dialect.driver == "psycopg"
