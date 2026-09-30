@@ -327,6 +327,7 @@ def test_every_route_is_covered_by_this_test_or_marked_as_not_about_jobs():
         "/api/identity/verify",
         "/api/off-app-jobs",
         "/api/sms/inbound",
+        "/api/ussd",
         "/api/record/export",
         "/api/record/summary",
         "/api/record/exports/{filename}",

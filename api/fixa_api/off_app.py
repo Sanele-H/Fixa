@@ -264,14 +264,38 @@ def handle_reply(session: Session, from_phone: str, text: str) -> str:
         session.commit()
         return "wrong_code"
     job, _ = match
-    job.confirmed_via = "sms"
-    if not reply.said_yes:
+    return apply_answer(session, job, "sms", reply.said_yes, reply.agrees_to_be_reference)
+
+
+def apply_answer(
+    session: Session, job: OffAppJob, via: str, said_yes: bool, agrees_to_be_reference: bool
+) -> str:
+    """Record the customer's answer, by SMS or USSD: declined, confirmed, or flagged for review
+    if it looks like a ring. The same rules whichever way they answered."""
+    job.confirmed_via = via
+    if not said_yes:
         job.state = DECLINED
         outcome = "declined"
     else:
-        job.reference_agreed = reply.agrees_to_be_reference
+        job.reference_agreed = agrees_to_be_reference
         job.state = FLAGGED if looks_like_a_ring(session, job) else CONFIRMED
         outcome = "flagged" if job.state == FLAGGED else "confirmed"
     session.add(job)
     session.commit()
     return outcome
+
+
+def pending_for_phone(
+    session: Session, from_phone: str
+) -> list[tuple[OffAppJob, OffAppConfirmation]]:
+    """The off-app jobs waiting for this number's answer, oldest first."""
+    expire_old(session, dt.datetime.now(dt.UTC))
+    phone = normalise_phone(from_phone)
+    pending = [
+        (job, confirmation)
+        for job, confirmation in session.exec(
+            select(OffAppJob, OffAppConfirmation).join(OffAppConfirmation)
+        )
+        if job.state == AWAITING and normalise_phone(job.customer_phone) == phone
+    ]
+    return sorted(pending, key=lambda pair: pair[1].sent_at)
