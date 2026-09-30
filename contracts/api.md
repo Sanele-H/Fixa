@@ -53,6 +53,7 @@
 | POST | `/api/jobs/understand` | customer | `{text, lang}` | `job_intent.json` |
 | POST | `/api/photos` | user | multipart `photo` (shrunk on the phone) | `photo.json` |
 | POST | `/api/jobs` | customer | `{description, lang, trade, urgency, size, suburb, photo_id?}` | 201 `job_public.json` |
+| GET | `/api/jobs` | user | | `my_jobs.json`: a customer's own jobs, or the jobs a provider quoted on or was picked for, newest first (20 at most). Each is `JobPublic`, or `JobUnlocked` from `confirmed` on |
 | GET | `/api/jobs/{job_id}` | job's customer, shortlisted providers | | `job_public.json`, or `job_unlocked.json` from `confirmed` on |
 | GET | `/api/jobs/{job_id}/providers` | job's customer | | `ranked_providers.json` |
 | GET | `/api/providers` | customer | `?trade=&lang=&radius_km=` | `nearby_providers.json` (for `?trade=plumbing`) |

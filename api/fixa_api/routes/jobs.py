@@ -7,7 +7,7 @@ from typing import Annotated, Literal
 import numpy as np
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import AwareDatetime, BaseModel, Field, field_validator
-from sqlmodel import Session, select
+from sqlmodel import Session, or_, select
 
 from fixa_api import job_states as states
 from fixa_api.auth import current_user, require_role
@@ -32,6 +32,7 @@ from ranking import JobRequest, rank_providers
 router = APIRouter(prefix="/api", tags=["jobs"])
 
 FEED_LIMIT = 20  # each job is translated for the reader, so keep the feed short
+MY_JOBS_LIMIT = 20  # the same reason, for GET /api/jobs
 
 Lang = Literal["en", "zu", "xh"]
 User = Annotated[Customer | Provider, Depends(current_user)]
@@ -148,6 +149,23 @@ def create_job(body: NewJob, customer: CustomerUser, session: DbSession):
     session.add(job)
     session.commit()
     return job_view(session, job, customer)
+
+
+def is_my_job(user: Customer | Provider):
+    """The condition for a person's own jobs: a customer's posts, or the jobs a provider quoted
+    on or was picked for."""
+    if user.role == "customer":
+        return Job.customer_id == user.id
+    quoted_job_ids = select(Quote.job_id).where(Quote.provider_id == user.id)
+    return or_(Job.provider_id == user.id, Job.id.in_(quoted_job_ids))
+
+
+@router.get("/jobs")
+def read_my_jobs(user: User, session: DbSession):
+    """A person's own jobs, newest first. Each goes through the same privacy gate as the job
+    page, so contact details show only on confirmed jobs, and only to their two people."""
+    query = select(Job).where(is_my_job(user)).order_by(Job.created_at.desc()).limit(MY_JOBS_LIMIT)
+    return [job_view(session, job, user) for job in session.exec(query)]
 
 
 @router.get("/jobs/{job_id}")
