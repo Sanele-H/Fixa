@@ -230,6 +230,20 @@ def test_each_reader_gets_the_message_in_their_own_language(seeded_client, lindi
     assert sender_sees["text"] == "Ngingafika ngoLwesibili, R450."
 
 
+def test_a_message_is_labelled_with_the_language_it_is_written_in(
+    seeded_client, lindiwe, sipho, job_id
+):
+    # Lindiwe's setting is English, but she writes in isiZulu.
+    quote(seeded_client, sipho, job_id)
+    say(seeded_client, lindiwe, job_id, "Ngizofika kusasa ekuseni.")
+
+    provider_sees = messages_for(seeded_client, sipho, job_id)[0]
+
+    assert provider_sees["original_lang"] == "zu"
+    # Sipho reads isiZulu, so there's nothing to translate.
+    assert provider_sees["text"] == "Ngizofika kusasa ekuseni."
+
+
 def test_a_job_problem_is_translated_for_a_provider_with_the_original_kept(
     seeded_client, sipho, job_id
 ):
