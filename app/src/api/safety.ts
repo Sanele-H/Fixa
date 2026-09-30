@@ -14,7 +14,16 @@ const LOCATION_MAX_AGE_MS = 60_000;
 export type TrustedContact = { name: string; phone: string };
 
 export type SafetyTimerState = "running" | "safe" | "missed";
-export type SafetyTimer = { id: string; state: SafetyTimerState; started_at: string; due_at: string };
+export type SafetyTimer = {
+  id: string;
+  state: SafetyTimerState;
+  started_at: string;
+  due_at: string;
+  /** Missed timers only: whether the SMS to the trusted contact really went. */
+  contact_notified?: boolean;
+  /** Missed timers only: WhatsApp with the alert ready to send, or null with no contact. */
+  whatsapp_url?: string | null;
+};
 
 export type KeyMoment = "check_in" | "check_out" | "done" | "panic" | "timer_start";
 export type LocationEntry = {
@@ -29,6 +38,10 @@ export type LocationEntry = {
 export type PanicResult = {
   alert_id: string;
   contact: TrustedContact | null;
+  /** True only when the SMS provider accepted the text; never assume it went. */
+  sms_sent: boolean;
+  /** WhatsApp with the same alert ready to send, or null with no contact. */
+  whatsapp_url: string | null;
   location_shared: boolean;
   emergency_numbers: { label: string; number: string }[];
 };
@@ -44,16 +57,26 @@ export const safetyKeys = {
 /**
  * The phone's location, or null if the person says no, the phone can't tell, or it takes too
  * long. Never throws, so a safety action never waits on it for more than a few seconds.
+ *
+ * The browser's own timeout only starts once location permission is answered, so an unanswered
+ * permission prompt would hold a panic forever. Our own timer gives up after the same few
+ * seconds whatever the prompt is doing; a location that arrives later is ignored.
  */
 export function readPlace(): Promise<Place | null> {
   if (!("geolocation" in navigator)) {
     return Promise.resolve(null);
   }
   return new Promise((resolve) => {
+    const giveUpTimer = setTimeout(() => resolve(null), LOCATION_TIMEOUT_MS);
     navigator.geolocation.getCurrentPosition(
-      (position) =>
-        resolve({ lat: position.coords.latitude, lng: position.coords.longitude, accuracy_m: position.coords.accuracy }),
-      () => resolve(null),
+      (position) => {
+        clearTimeout(giveUpTimer);
+        resolve({ lat: position.coords.latitude, lng: position.coords.longitude, accuracy_m: position.coords.accuracy });
+      },
+      () => {
+        clearTimeout(giveUpTimer);
+        resolve(null);
+      },
       { enableHighAccuracy: true, timeout: LOCATION_TIMEOUT_MS, maximumAge: LOCATION_MAX_AGE_MS },
     );
   });
