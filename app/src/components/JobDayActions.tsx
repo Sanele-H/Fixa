@@ -8,8 +8,9 @@ import { useCheckIn, useCheckOut, useFinishJob } from "../api/lifecycle";
 import { useJobQuotes } from "../api/jobs";
 import { useProviderProfile } from "../api/providers";
 import type { JobPublic, JobUnlocked } from "../api/types";
+import { getCameraPath } from "../app/paths";
 import { formatDate, formatDateTime } from "../format";
-import { Banner, Button, Card } from "../ui";
+import { Banner, Button, ButtonLink, Card } from "../ui";
 import { ErrorBanner } from "./ErrorBanner";
 import { VouchForm } from "./VouchForm";
 
@@ -55,6 +56,16 @@ function ShareTrustedButton({ job, providerName, quoteWhen }: { job: Job; provid
   );
 }
 
+/** Opens the camera for a before or after photo, stamped with this job's suburb. */
+function TakePhotoLink({ job }: { job: Job }) {
+  const { t } = useTranslation();
+  return (
+    <ButtonLink to={getCameraPath(job.id, job.suburb)} variant="secondary" isBlock icon="camera">
+      {t("camera.title")}
+    </ButtonLink>
+  );
+}
+
 /** The provider's side, only for the provider who was picked for this job. */
 export function ProviderDayActions({ job }: { job: Job }) {
   const { t } = useTranslation();
@@ -70,6 +81,7 @@ export function ProviderDayActions({ job }: { job: Job }) {
         <Button isBlock onClick={() => checkIn.mutate(job.id)} disabled={checkIn.isPending}>
           {t("lifecycle.checkIn")}
         </Button>
+        <TakePhotoLink job={job} />
       </Card>
     );
   }
@@ -86,6 +98,7 @@ export function ProviderDayActions({ job }: { job: Job }) {
             {t("lifecycle.checkOut")}
           </Button>
         )}
+        <TakePhotoLink job={job} />
       </Card>
     );
   }

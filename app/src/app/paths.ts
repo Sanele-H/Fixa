@@ -46,6 +46,19 @@ export const PROFILE_JOB_PARAM = "job";
  */
 export const CHAT_WITH_PARAM = "with";
 
+/**
+ * The camera is opened from a job with ?jobId=<job id>&suburb=<suburb>: the suburb is stamped
+ * on the photo and the back arrow returns to that job.
+ */
+export const CAMERA_JOB_PARAM = "jobId";
+export const CAMERA_SUBURB_PARAM = "suburb";
+
+/** The camera's link for a job, carrying the job id (for the back arrow) and its suburb (for the stamp). */
+export function getCameraPath(jobId: string, suburb: string) {
+  const searchParams = new URLSearchParams({ [CAMERA_JOB_PARAM]: jobId, [CAMERA_SUBURB_PARAM]: suburb });
+  return `${PATHS.camera}?${searchParams}`;
+}
+
 /** The first tab each role lands on after login. */
 export function getHomePath(role: Role) {
   return role === "provider" ? PATHS.feed : PATHS.home;
