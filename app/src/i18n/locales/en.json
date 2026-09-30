@@ -273,7 +273,19 @@
     "amountHint": "Optional",
     "smsNoteTitle": "We'll SMS the customer",
     "smsNoteBody": "It counts once they reply YES. We never show their number to anyone.",
-    "submit": "Send for confirmation"
+    "submit": "Send for confirmation",
+    "sentTitle": "Waiting for the customer",
+    "sentBody": "We sent them an SMS. The job counts on your record once they reply YES.",
+    "logAnother": "Log another job",
+    "error": {
+      "self_confirmation": "You can't confirm your own job. Enter your customer's number.",
+      "invalid_phone": "Enter the customer's cellphone number, like 082 123 4567.",
+      "invalid_date": "The date must be in the past, within the last 10 years.",
+      "duplicate": "You already logged a job for this customer on this date.",
+      "monthly_cap": "You've logged the most past jobs allowed this month.",
+      "customer_busy": "This customer got too many requests today. Try again tomorrow.",
+      "sms_failed": "We couldn't text the customer. Try again in a moment."
+    }
   },
   "record": {
     "title": "My record",
