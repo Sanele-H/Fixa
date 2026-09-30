@@ -19,6 +19,7 @@ from fixa_api.job_views import (
     job_view,
     quote_view,
 )
+from fixa_api.licence import needs_licence_for
 from fixa_api.messages import safe_text_for
 from fixa_api.models import Customer, Job, Photo, Provider, Quote
 from fixa_api.photos import PHOTO_URL_PREFIX
@@ -56,6 +57,7 @@ class NewJob(BaseModel):
     size: Literal["small", "medium", "large"]
     suburb: str
     photo_id: str | None = None
+    needs_licence: bool = False  # the customer can insist on a licensed provider
 
     @field_validator("trade")
     @classmethod
@@ -138,7 +140,7 @@ def create_job(body: NewJob, customer: CustomerUser, session: DbSession):
         trade_task=body.trade,
         size=body.size,
         urgency=body.urgency,
-        needs_licence=False,
+        needs_licence=body.needs_licence or needs_licence_for(body.trade, body.description),
         suburb=customer.suburb,
         address=customer.address,
         lat=customer.lat,
@@ -191,13 +193,12 @@ def read_ranked_providers(job_id: str, customer: CustomerUser, session: DbSessio
 
 @router.get("/feed")
 def read_feed(provider: ProviderUser, session: DbSession):
-    """Open jobs in the provider's trades, newest first: the suburb and the problem only."""
-    query = (
-        select(Job)
-        .where(Job.state.in_(states.OPEN_FOR_QUOTES), Job.trade.in_(provider.trades))
-        .order_by(Job.created_at.desc())
-        .limit(FEED_LIMIT)
-    )
+    """Open jobs in the provider's trades, newest first: the suburb and the problem only. Work
+    that needs a licence is left out for providers who don't hold one."""
+    query = select(Job).where(Job.state.in_(states.OPEN_FOR_QUOTES), Job.trade.in_(provider.trades))
+    if not provider.licensed:
+        query = query.where(Job.needs_licence.is_(False))  # licensed work isn't shown to them
+    query = query.order_by(Job.created_at.desc()).limit(FEED_LIMIT)
     return [job_view(session, job, provider) for job in session.exec(query)]
 
 
