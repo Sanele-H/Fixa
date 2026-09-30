@@ -17,6 +17,7 @@ from fixa_api.auth import require_role
 from fixa_api.db import get_session
 from fixa_api.job_views import is_job_customer, is_job_provider, job_view
 from fixa_api.models import Customer, Job, JobEvent, Provider
+from fixa_api.notifications import notify
 from fixa_api.routes.jobs import move_job
 
 router = APIRouter(prefix="/api", tags=["job lifecycle"])
@@ -73,6 +74,8 @@ def check_in(job_id: str, provider: ProviderUser, session: DbSession):
     record_event(session, job, "check_in", provider.id)
     session.add(job)
     session.commit()
+    customer = session.get(Customer, job.customer_id)
+    notify(session, customer, "checked_in", job.id, name=provider.display_name)
     return job_view(session, job, provider)
 
 
@@ -85,6 +88,8 @@ def check_out(job_id: str, provider: ProviderUser, session: DbSession):
         raise HTTPException(status_code=409, detail="Check in first")
     record_event(session, job, "check_out", provider.id)
     session.commit()
+    customer = session.get(Customer, job.customer_id)
+    notify(session, customer, "checked_out", job.id, name=provider.display_name)
     return job_view(session, job, provider)
 
 
@@ -110,6 +115,9 @@ def mark_done(job_id: str, body: Finish, customer: CustomerUser, session: DbSess
     job.finished_on = today()
     session.add(job)
     session.commit()
+    if body.completed and job.provider_id:
+        provider = session.get(Provider, job.provider_id)
+        notify(session, provider, "job_done", job.id, name=customer.display_name)
     return job_view(session, job, customer)
 
 

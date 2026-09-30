@@ -6,13 +6,18 @@ Every route in contracts/api.md exists and returns its fixture. Each is replaced
 behind the same shape, one area at a time.
 """
 
+import asyncio
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from sqlmodel import SQLModel
+from sqlmodel import Session, SQLModel
 
-from fixa_api import models  # noqa: F401  (imported so its tables exist before create_all)
+from fixa_api import (
+    models,  # noqa: F401  (imported so its tables exist before create_all)
+    safety,
+)
 from fixa_api.blocking import ProhibitedRequestError
 from fixa_api.db import engine
 from fixa_api.routes import (
@@ -21,6 +26,7 @@ from fixa_api.routes import (
     identity,
     jobs,
     lifecycle,
+    notifications,
     off_app,
     photos,
     providers,
@@ -28,13 +34,32 @@ from fixa_api.routes import (
     reports,
     vouches,
 )
+from fixa_api.routes import safety as safety_routes
+from fixa_api.sms import get_sms_sender
+
+logger = logging.getLogger(__name__)
+TIMER_SWEEP_SECONDS = 15
+
+
+async def sweep_safety_timers_forever() -> None:
+    """Every few seconds, text the trusted contact of anyone whose safety timer ran out."""
+    while True:
+        await asyncio.sleep(TIMER_SWEEP_SECONDS)
+        try:
+            with Session(engine) as session:
+                safety.sweep_missed_timers(session, get_sms_sender())
+        except Exception:  # the loop must keep going
+            logger.exception("Safety timer sweep failed")
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    """Create any missing tables when the server starts. Existing tables are left alone."""
+    """Create any missing tables when the server starts (existing tables are left alone), and
+    check safety timers in the background while it runs."""
     SQLModel.metadata.create_all(engine)
+    sweeper = asyncio.create_task(sweep_safety_timers_forever())
     yield
+    sweeper.cancel()
 
 
 app = FastAPI(title="Fixa API", version="0.1.0", lifespan=lifespan)
@@ -66,6 +91,8 @@ for router_module in (
     records,
     reports,
     vouches,
+    notifications,
+    safety_routes,
 ):
     app.include_router(router_module.router)
 

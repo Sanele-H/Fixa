@@ -23,6 +23,7 @@ from fixa_api.job_views import (
 from fixa_api.licence import needs_licence_for
 from fixa_api.messages import safe_text_for
 from fixa_api.models import Customer, Job, Photo, Provider, Quote
+from fixa_api.notifications import notify
 from fixa_api.photos import PHOTO_URL_PREFIX
 from fixa_api.ranking_inputs import build_candidates, today
 from fixa_api.sms import SmsSender, get_sms_sender, send_safely
@@ -236,6 +237,14 @@ def create_quote(job_id: str, body: NewQuote, provider: ProviderUser, session: D
         move_job(job, states.QUOTING)
     session.add_all([quote, job])
     session.commit()
+    notify(
+        session,
+        session.get(Customer, job.customer_id),
+        "quote_received",
+        job.id,
+        name=provider.display_name,
+        amount=quote.amount_rands,
+    )
     return quote_view(quote, provider, provider.lang)
 
 
@@ -263,6 +272,14 @@ def accept_quote(quote_id: str, customer: CustomerUser, session: DbSession):
     job.provider_id = quote.provider_id
     session.add_all([quote, job])
     session.commit()
+    notify(
+        session,
+        session.get(Provider, quote.provider_id),
+        "quote_accepted",
+        job.id,
+        name=customer.display_name,
+        amount=quote.amount_rands,
+    )
     return job_view(session, job, customer)
 
 
@@ -294,6 +311,7 @@ def confirm_job(
     customer = session.get(Customer, job.customer_id)
     for phone, text in details_unlocked_messages(job, customer, provider):
         background.add_task(send_safely, sender, phone, text, "details unlocked")
+    notify(session, customer, "job_confirmed", job.id, name=provider.display_name)
     return job_view(session, job, provider)
 
 
@@ -310,6 +328,13 @@ def decline_job(job_id: str, provider: ProviderUser, session: DbSession):
     job.provider_id = None
     session.add(job)
     session.commit()
+    notify(
+        session,
+        session.get(Customer, job.customer_id),
+        "job_declined",
+        job.id,
+        name=provider.display_name,
+    )
     return job_view(session, job, provider)
 
 

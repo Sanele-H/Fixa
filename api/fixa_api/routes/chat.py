@@ -7,10 +7,11 @@ from pydantic import BaseModel, Field
 from sqlmodel import Session
 
 from fixa_api import messages
-from fixa_api.auth import current_user
+from fixa_api.auth import current_user, find_user_by_id
 from fixa_api.blocking import refuse_if_prohibited
 from fixa_api.db import get_session
 from fixa_api.models import Customer, Job, Provider
+from fixa_api.notifications import notify
 
 router = APIRouter(prefix="/api", tags=["chat"])
 
@@ -49,4 +50,6 @@ def send_message(job_id: str, body: NewMessage, user: User, session: DbSession):
         message = messages.send_message(session, job, user, body.text, body.provider_id)
     except messages.ChatError as problem:
         raise HTTPException(status_code=problem.status_code, detail=problem.detail) from None
+    recipient = find_user_by_id(session, message.recipient_id)
+    notify(session, recipient, "message", job.id, name=user.display_name)
     return messages.message_view(message, user)

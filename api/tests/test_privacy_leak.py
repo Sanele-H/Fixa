@@ -60,6 +60,11 @@ def read_routes(job_id: str, quote_id: str) -> list[tuple[str, str]]:
         ("GET", "/api/providers/prov_001"),
         ("GET", "/api/providers?trade=plumbing"),
         ("GET", "/api/price-range?trade=plumbing&size=small&suburb=Braamfontein"),
+        # safety and notifications: distances only, never coordinates or someone else's number
+        ("GET", f"/api/jobs/{job_id}/locations"),
+        ("GET", f"/api/jobs/{job_id}/safety-timer"),
+        ("GET", "/api/notifications"),
+        ("GET", "/api/me/trusted-contact"),
     ]
 
 
@@ -334,6 +339,16 @@ def test_every_route_is_covered_by_this_test_or_marked_as_not_about_jobs():
         "/api/record/exports/{filename}",
         "/record/{provider_id}",
         "/verify/{code}",
+        # safety and notifications. Their GETs are in read_routes. These change routes answer
+        # with the caller's own data only (their contact, their timer, their inbox), or nothing.
+        "/api/jobs/{job_id}/location",
+        "/api/jobs/{job_id}/panic",
+        "/api/jobs/{job_id}/safety-timer/safe",
+        "/api/notifications/read",
+        "/api/notifications/{notification_id}/read",
+        "/api/push/key",
+        "/api/push/subscriptions",
+        "/api/push/subscriptions/remove",
     }
     covered = {re.sub(r"\{[^}]+\}", "{}", path) for path in covered}
     # The schema lists every route, including those added through routers (app.routes doesn't).

@@ -89,3 +89,29 @@ These are the shapes of the objects in the fixtures, and each fixture is the sou
 - **Quote**: `id, job_id, provider_id, amount_rands, when, message, state, created_at`
 - **Message**: `id, job_id, sender_id, recipient_id, text, original, original_lang, flagged, flag_reason, contacts_hidden, scam_warnings, sent_at`. A customer has one thread per quoting provider; `sender_id` and `recipient_id` say which.
 - **PriceRange**: `trade, size, suburb, low_rands, high_rands, n_quotes`
+
+## Safety and notifications
+
+Added on 30 Sep for the demo (branch `safety-features`). Every route needs a login; job routes only work for the job's customer and its picked provider (404 for anyone else).
+
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| GET | `/api/me/trusted-contact` | | `{name, phone}` or `null` |
+| PUT | `/api/me/trusted-contact` | `{name, phone}` | `{name, phone}` |
+| POST | `/api/jobs/{job_id}/panic` | `{lat?, lng?}` | 201 **PanicResult**. Texts the trusted contact a map link; the other person is never told |
+| GET | `/api/jobs/{job_id}/safety-timer` | | **SafetyTimer** or `null` (the latest one) |
+| POST | `/api/jobs/{job_id}/safety-timer` | `{minutes}` (1, 15, 30, 60, 120 or 240) | 201 **SafetyTimer**. Missed timers text the trusted contact |
+| POST | `/api/jobs/{job_id}/safety-timer/safe` | | **SafetyTimer** (`state: safe`) |
+| POST | `/api/jobs/{job_id}/location` | `{moment, lat, lng, accuracy_m?}` | 201. `moment`: `check_in`, `check_out`, `done`, `panic` or `timer_start` |
+| GET | `/api/jobs/{job_id}/locations` | | **KeyMoment[]**: distance from the job only, never coordinates; a panic only for whoever pressed it |
+| GET | `/api/notifications` | | **Inbox**, newest first, in the reader's language |
+| POST | `/api/notifications/read` | | **Inbox**, all read |
+| POST | `/api/notifications/{id}/read` | | **Inbox** |
+| GET | `/api/push/key` | | `{public_key}`, or 404 when push isn't set up |
+| POST | `/api/push/subscriptions` | a browser `PushSubscription.toJSON()` | 201 |
+| POST | `/api/push/subscriptions/remove` | `{endpoint}` | `{subscribed: false}` |
+
+- **PanicResult**: `alert_id, contact ({name, phone} or null), location_shared, emergency_numbers [{label, number}]`
+- **SafetyTimer**: `id, state (running|safe|missed), started_at, due_at`
+- **KeyMoment**: `moment, role, name, is_me, at, distance_km`
+- **Inbox**: `unread, items [{id, kind, title, body, job_id, created_at, read}]`. Kinds: `quote_received, quote_accepted, job_confirmed, job_declined, message, checked_in, checked_out, job_done, panic_sent, panic_no_contact, timer_missed, timer_missed_no_contact`
