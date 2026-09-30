@@ -41,13 +41,19 @@ logger = logging.getLogger(__name__)
 TIMER_SWEEP_SECONDS = 15
 
 
+def sweep_safety_timers_once() -> None:
+    """One sweep, with its own database session. Blocking: the database and the SMS call."""
+    with Session(engine) as session:
+        safety.sweep_missed_timers(session, get_sms_sender())
+
+
 async def sweep_safety_timers_forever() -> None:
-    """Every few seconds, text the trusted contact of anyone whose safety timer ran out."""
+    """Every few seconds, text the trusted contact of anyone whose safety timer ran out. The sweep
+    runs in a worker thread, so a slow database or SMS provider never holds up other requests."""
     while True:
         await asyncio.sleep(TIMER_SWEEP_SECONDS)
         try:
-            with Session(engine) as session:
-                safety.sweep_missed_timers(session, get_sms_sender())
+            await asyncio.to_thread(sweep_safety_timers_once)
         except Exception:  # the loop must keep going
             logger.exception("Safety timer sweep failed")
 
