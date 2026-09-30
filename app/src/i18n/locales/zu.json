@@ -390,6 +390,7 @@
     "trusted": "Yabelana nomuntu engimthembayo",
     "title": "Umsebenzi we-Fixa no-{{name}}",
     "text": "Imininingwane yomsebenzi we-Fixa: U-{{name}} uza e-{{suburb}} ngo-{{time}}.",
-    "copied": "Isixhumanisi sikopishiwe"
+    "textNoTime": "Imininingwane yomsebenzi we-Fixa: U-{{name}} uza e-{{suburb}}.",
+    "copied": "Imininingwane ikopishiwe. Yinamathisele emlayezweni."
   }
 }

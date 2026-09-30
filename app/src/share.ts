@@ -40,6 +40,27 @@ export async function shareFile(file: File, title: string): Promise<ShareOutcome
   }
 }
 
+/**
+ * Opens the share sheet with a short message, or copies the message where there's no share
+ * sheet (or sharing fails for another reason than the person closing it).
+ */
+export async function shareText(text: string, title: string): Promise<ShareOutcome> {
+  if (!navigator.share) {
+    await navigator.clipboard.writeText(text);
+    return "copied";
+  }
+  try {
+    await navigator.share({ text, title });
+    return "shared";
+  } catch (error) {
+    if (isShareCancelled(error)) {
+      return "cancelled";
+    }
+    await navigator.clipboard.writeText(text);
+    return "copied";
+  }
+}
+
 /** Opens the share sheet with a link, or copies it where there's no share sheet. */
 export async function shareLink(url: string, title: string): Promise<ShareOutcome> {
   if (!navigator.share) {
