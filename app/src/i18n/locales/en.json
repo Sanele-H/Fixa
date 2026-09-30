@@ -110,7 +110,12 @@
     "size": "How big?",
     "addPhoto": "Add a photo",
     "photoHint": "Optional. Helps providers quote.",
-    "post": "Post job"
+    "post": "Post job",
+    "next": "Next",
+    "trade": "Type of work",
+    "photoAdding": "Adding your photo…",
+    "photoAlt": "Your photo of the problem",
+    "removePhoto": "Remove photo"
   },
   "providers": {
     "title": "Who can help",
