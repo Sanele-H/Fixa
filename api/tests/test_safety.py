@@ -2,13 +2,15 @@
 the inbox and push subscriptions behind the bell."""
 
 import datetime as dt
+from urllib.parse import quote
 
 import pytest
 from sqlmodel import select
 
 from fixa_api.main import app
 from fixa_api.models import SafetyAlert, SafetyTimer
-from fixa_api.sms import OutboxSender, get_sms_sender
+from fixa_api.safety import claim_missed_timer, sweep_missed_timers
+from fixa_api.sms import OutboxSender, SmsResult, get_sms_sender
 
 LINDIWE = "082 000 0001"  # cust_001, English, Braamfontein
 THABO = "071 000 0001"  # prov_001 (plumber)
@@ -123,6 +125,48 @@ def test_panic_without_a_contact_is_still_recorded(
     assert inbox(seeded_client, lindiwe)["items"][0]["kind"] == "panic_no_contact"
 
 
+class FailingSender:
+    """An SMS provider that refuses every message, like a sandbox or an empty balance."""
+
+    def send(self, to: str, message: str) -> SmsResult:
+        return SmsResult(ok=False, error="insufficient balance")
+
+
+@pytest.fixture
+def failing_sms(confirmed_job):
+    """From here on every SMS fails. After confirmed_job, which installs the working outbox."""
+    app.dependency_overrides[get_sms_sender] = lambda: FailingSender()
+
+
+def test_panic_gives_a_whatsapp_link_with_the_same_message(
+    seeded_client, outbox, lindiwe, confirmed_job
+):
+    seeded_client.put("/api/me/trusted-contact", json=TRUSTED, headers=lindiwe)
+
+    answer = seeded_client.post(
+        f"/api/jobs/{confirmed_job}/panic", json=BRAAMFONTEIN, headers=lindiwe
+    ).json()
+
+    assert answer["sms_sent"] is True
+    [(_to, text)] = outbox.sent
+    assert answer["whatsapp_url"] == f"https://wa.me/27835550101?text={quote(text)}"
+
+
+def test_a_failed_sms_is_never_reported_as_sent(
+    seeded_client, seeded_session, failing_sms, lindiwe, confirmed_job
+):
+    seeded_client.put("/api/me/trusted-contact", json=TRUSTED, headers=lindiwe)
+
+    answer = seeded_client.post(
+        f"/api/jobs/{confirmed_job}/panic", json=BRAAMFONTEIN, headers=lindiwe
+    ).json()
+
+    assert answer["sms_sent"] is False
+    assert answer["whatsapp_url"].startswith("https://wa.me/27835550101?text=")
+    assert seeded_session.exec(select(SafetyAlert)).one().contact_notified is False
+    assert inbox(seeded_client, lindiwe)["items"][0]["kind"] == "panic_not_sent"
+
+
 def test_only_people_on_the_job_can_press_panic(seeded_client, log_in, outbox, confirmed_job):
     stranger = log_in(OTHER_CUSTOMER)
     response = seeded_client.post(f"/api/jobs/{confirmed_job}/panic", json={}, headers=stranger)
@@ -169,6 +213,59 @@ def test_a_missed_timer_texts_the_trusted_contact(
     assert text.startswith("Ukuhlola ukuphepha kwa-Fixa")  # Sipho's app is in isiZulu
     assert "maps.google.com" in text
     assert inbox(seeded_client, sipho)["items"][0]["kind"] == "timer_missed"
+
+
+def start_overdue_timer(client, session, headers, job_id):
+    """Start a 15-minute timer, then move its due time into the past."""
+    client.post(f"/api/jobs/{job_id}/safety-timer", json={"minutes": 15}, headers=headers)
+    timer = session.exec(select(SafetyTimer)).one()
+    timer.due_at = dt.datetime.now(dt.UTC) - dt.timedelta(seconds=1)
+    session.add(timer)
+    session.commit()
+
+
+def test_a_missed_timer_with_a_failed_sms_says_so_and_offers_whatsapp(
+    seeded_client, seeded_session, failing_sms, sipho, confirmed_job
+):
+    seeded_client.put("/api/me/trusted-contact", json=TRUSTED, headers=sipho)
+    start_overdue_timer(seeded_client, seeded_session, sipho, confirmed_job)
+
+    shown = seeded_client.get(f"/api/jobs/{confirmed_job}/safety-timer", headers=sipho).json()
+
+    assert shown["state"] == "missed"
+    assert shown["contact_notified"] is False
+    assert shown["whatsapp_url"].startswith("https://wa.me/27835550101?text=")
+    assert inbox(seeded_client, sipho)["items"][0]["kind"] == "timer_missed_not_sent"
+
+
+def test_a_missed_timer_is_texted_once_even_when_sweeps_overlap(
+    seeded_client, seeded_session, outbox, sipho, confirmed_job
+):
+    seeded_client.put("/api/me/trusted-contact", json=TRUSTED, headers=sipho)
+    start_overdue_timer(seeded_client, seeded_session, sipho, confirmed_job)
+    timer_id = seeded_session.exec(select(SafetyTimer)).one().id
+
+    # Two sweeps that both saw the timer running: only the first claims it.
+    assert claim_missed_timer(seeded_session, timer_id) is True
+    assert claim_missed_timer(seeded_session, timer_id) is False
+    assert sweep_missed_timers(seeded_session, outbox) == 0
+    assert outbox.sent == []
+
+
+def test_a_timer_start_is_never_shown_to_the_other_person(
+    seeded_client, lindiwe, sipho, confirmed_job
+):
+    seeded_client.post(
+        f"/api/jobs/{confirmed_job}/location",
+        json={"moment": "timer_start"} | BRAAMFONTEIN,
+        headers=sipho,
+    )
+
+    theirs = seeded_client.get(f"/api/jobs/{confirmed_job}/locations", headers=lindiwe).json()
+    mine = seeded_client.get(f"/api/jobs/{confirmed_job}/locations", headers=sipho).json()
+
+    assert all(ping["moment"] != "timer_start" for ping in theirs)
+    assert any(ping["moment"] == "timer_start" for ping in mine)
 
 
 def test_a_timer_only_takes_the_offered_lengths(seeded_client, sipho, confirmed_job):

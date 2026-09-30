@@ -1,5 +1,6 @@
 // Safety on the job's day, for the customer and the picked provider alike: the Emergency button,
-// the safety timer, the trusted contact they text, and where each key moment happened.
+// the safety timer, the trusted contact they text (with WhatsApp as a second way to tell them),
+// and where each key moment happened.
 // Only the person themselves sees their alerts and timers; the other person is never told.
 
 import { useState, type FormEvent } from "react";
@@ -13,6 +14,7 @@ import {
   useTrustedContact,
   useJobLocations,
   type PanicResult,
+  type SafetyTimer,
   type TrustedContact,
 } from "../api/safety";
 import type { JobState } from "../api/types";
@@ -44,6 +46,30 @@ function EmergencyNumbers({ numbers }: { numbers: PanicResult["emergency_numbers
   );
 }
 
+/**
+ * Opens WhatsApp with the alert already written, addressed to the trusted contact. The SMS can
+ * fail (or, on the sandbox, never reach a real phone), so this is always offered as well.
+ */
+function WhatsAppAlertLink({ url }: { url: string }) {
+  const { t } = useTranslation();
+  return (
+    <a className="btn btn--secondary btn--block" href={url} target="_blank" rel="noopener noreferrer">
+      {t("safety.sendOnWhatsApp")}
+    </a>
+  );
+}
+
+/** What to tell the person after a panic: only say it was sent when the SMS really went. */
+function getPanicResultKey(result: PanicResult) {
+  if (!result.contact) {
+    return "safety.panicNoContact";
+  }
+  if (!result.sms_sent) {
+    return "safety.panicNotSent";
+  }
+  return result.location_shared ? "safety.panicSentTo" : "safety.panicSentNoLocation";
+}
+
 /** The red button, a confirm step (a panic press should never be an accident), and the result. */
 function PanicButton({ jobId }: { jobId: string }) {
   const { t } = useTranslation();
@@ -51,14 +77,13 @@ function PanicButton({ jobId }: { jobId: string }) {
   const [isConfirming, setIsConfirming] = useState(false);
 
   if (panic.isSuccess) {
-    const { contact, location_shared: locationShared, emergency_numbers: numbers } = panic.data;
-    const sentText = contact
-      ? t(locationShared ? "safety.panicSentTo" : "safety.panicSentNoLocation", { name: contact.name })
-      : t("safety.panicNoContact");
+    const result = panic.data;
+    const isSent = Boolean(result.contact) && result.sms_sent;
     return (
       <Card tone="raised">
-        <Banner tone={contact ? "info" : "warning"} title={sentText} />
-        <EmergencyNumbers numbers={numbers} />
+        <Banner tone={isSent ? "info" : "warning"} title={t(getPanicResultKey(result), { name: result.contact?.name })} />
+        {result.whatsapp_url && <WhatsAppAlertLink url={result.whatsapp_url} />}
+        <EmergencyNumbers numbers={result.emergency_numbers} />
       </Card>
     );
   }
@@ -86,6 +111,14 @@ function PanicButton({ jobId }: { jobId: string }) {
   );
 }
 
+/** What to say when a timer ran out: texted the contact, couldn't, or there's nobody to tell. */
+function getMissedTimerKey(timer: SafetyTimer, hasContact: boolean) {
+  if (!hasContact) {
+    return "safety.timerMissedNoContact";
+  }
+  return timer.contact_notified ? "safety.timerMissed" : "safety.timerMissedNotSent";
+}
+
 /** "Check on me in an hour", then "I'm safe"; says so if it ran out. */
 function SafetyTimerControls({ jobId, hasContact }: { jobId: string; hasContact: boolean }) {
   const { t, i18n } = useTranslation();
@@ -110,10 +143,10 @@ function SafetyTimerControls({ jobId, hasContact }: { jobId: string; hasContact:
       ) : (
         <>
           {current?.state === "missed" && (
-            <Banner
-              tone="warning"
-              title={t(hasContact ? "safety.timerMissed" : "safety.timerMissedNoContact")}
-            />
+            <>
+              <Banner tone="warning" title={t(getMissedTimerKey(current, hasContact))} />
+              {current.whatsapp_url && <WhatsAppAlertLink url={current.whatsapp_url} />}
+            </>
           )}
           {current?.state === "safe" && <Banner tone="info" title={t("safety.timerSafe")} />}
           <p className="small">{t("safety.timerBody")}</p>

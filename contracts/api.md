@@ -103,7 +103,7 @@ Added on 30 Sep for the demo (branch `safety-features`). Every route needs a log
 | POST | `/api/jobs/{job_id}/safety-timer` | `{minutes}` (1, 15, 30, 60, 120 or 240) | 201 **SafetyTimer**. Missed timers text the trusted contact |
 | POST | `/api/jobs/{job_id}/safety-timer/safe` | | **SafetyTimer** (`state: safe`) |
 | POST | `/api/jobs/{job_id}/location` | `{moment, lat, lng, accuracy_m?}` | 201. `moment`: `check_in`, `check_out`, `done`, `panic` or `timer_start` |
-| GET | `/api/jobs/{job_id}/locations` | | **KeyMoment[]**: distance from the job only, never coordinates; a panic only for whoever pressed it |
+| GET | `/api/jobs/{job_id}/locations` | | **KeyMoment[]**: distance from the job only, never coordinates; a panic or a timer start only for whoever made it |
 | GET | `/api/notifications` | | **Inbox**, newest first, in the reader's language |
 | POST | `/api/notifications/read` | | **Inbox**, all read |
 | POST | `/api/notifications/{id}/read` | | **Inbox** |
@@ -111,7 +111,7 @@ Added on 30 Sep for the demo (branch `safety-features`). Every route needs a log
 | POST | `/api/push/subscriptions` | a browser `PushSubscription.toJSON()` | 201 |
 | POST | `/api/push/subscriptions/remove` | `{endpoint}` | `{subscribed: false}` |
 
-- **PanicResult**: `alert_id, contact ({name, phone} or null), location_shared, emergency_numbers [{label, number}]`
-- **SafetyTimer**: `id, state (running|safe|missed), started_at, due_at`
+- **PanicResult**: `alert_id, contact ({name, phone} or null), sms_sent, whatsapp_url (or null), location_shared, emergency_numbers [{label, number}]`. `sms_sent` is true only when the SMS provider accepted the text; `whatsapp_url` opens WhatsApp with the same alert for the contact
+- **SafetyTimer**: `id, state (running|safe|missed), started_at, due_at`. From GET, a missed timer also has `contact_notified` (the SMS really went) and `whatsapp_url` (or null)
 - **KeyMoment**: `moment, role, name, is_me, at, distance_km`
-- **Inbox**: `unread, items [{id, kind, title, body, job_id, created_at, read}]`. Kinds: `quote_received, quote_accepted, job_confirmed, job_declined, message, checked_in, checked_out, job_done, panic_sent, panic_no_contact, timer_missed, timer_missed_no_contact`
+- **Inbox**: `unread, items [{id, kind, title, body, job_id, created_at, read}]`. Kinds: `quote_received, quote_accepted, job_confirmed, job_declined, message, checked_in, checked_out, job_done, panic_sent, panic_not_sent, panic_no_contact, timer_missed, timer_missed_not_sent, timer_missed_no_contact`

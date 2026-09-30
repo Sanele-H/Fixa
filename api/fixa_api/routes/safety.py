@@ -90,10 +90,15 @@ def press_panic(job_id: str, body: Place, user: User, session: DbSession, sender
 
 @router.get("/jobs/{job_id}/safety-timer")
 def read_safety_timer(job_id: str, user: User, session: DbSession, sender: Sender):
-    """The person's latest safety timer on this job (running, safe or missed), or null."""
+    """The person's latest safety timer on this job (running, safe or missed), or null. A missed
+    one also says whether the contact was really texted, with a WhatsApp link to tell them."""
     job = party_job(session, job_id, user)
     safety.sweep_missed_timers(session, sender)
-    return safety.timer_view(safety.latest_timer(session, job, user))
+    timer = safety.latest_timer(session, job, user)
+    view = safety.timer_view(timer)
+    if timer is not None and timer.state == "missed":
+        view |= safety.describe_missed_timer(session, job, user, timer)
+    return view
 
 
 @router.post("/jobs/{job_id}/safety-timer", status_code=201)

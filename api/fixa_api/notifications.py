@@ -78,6 +78,18 @@ TEXTS: dict[str, dict[str, tuple[str, str]]] = {
             "Sithumele indawo okuyo ku-{contact}. Uma usengozini, shayela u-10111 noma u-112.",
         ),
     },
+    "panic_not_sent": {
+        "en": (
+            "Alert not sent",
+            "We couldn't text {contact}. Send it on WhatsApp from the job, "
+            "or call 10111 or 112 if you're in danger.",
+        ),
+        "zu": (
+            "Isexwayiso asithunyelwanga",
+            "Asikwazanga ukuthumela umlayezo ku-{contact}. Sithumele nge-WhatsApp emsebenzini, "
+            "noma ushayele u-10111 noma u-112 uma usengozini.",
+        ),
+    },
     "panic_no_contact": {
         "en": (
             "Alert recorded",
@@ -95,6 +107,18 @@ TEXTS: dict[str, dict[str, tuple[str, str]]] = {
         "zu": (
             "Isikhathi sokuphepha siphelile",
             "Awuzange usho ukuthi uphephile, ngakho sazise u-{contact}.",
+        ),
+    },
+    "timer_missed_not_sent": {
+        "en": (
+            "Safety timer ran out",
+            "You didn't say you were safe, and we couldn't text {contact}. "
+            "Open the job to send it on WhatsApp.",
+        ),
+        "zu": (
+            "Isikhathi sokuphepha siphelile",
+            "Awuzange usho ukuthi uphephile, futhi asikwazanga ukuthumela umlayezo ku-{contact}. "
+            "Vula umsebenzi ukuze uwuthumele nge-WhatsApp.",
         ),
     },
     "timer_missed_no_contact": {
