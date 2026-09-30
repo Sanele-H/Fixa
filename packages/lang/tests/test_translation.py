@@ -21,6 +21,7 @@ from lang.quality import (
     FLAG_REASON_NOT_TRANSLATED,
     FLAG_REASON_UNAVAILABLE,
 )
+from lang.safety import HIDDEN_CONTACT_TEXT
 from lang.translation import translate
 
 
@@ -232,6 +233,52 @@ def test_spaces_azure_dropped_around_values_are_put_back_in_english():
     )
 
 
+def test_a_space_azure_dropped_after_a_comma_is_put_back_in_every_language():
+    english = translate(
+        "Ngingafika ngoLwesibili ngo-10:30, R450.",
+        "en",
+        "zu",
+        backend=ScriptedBackend("I can come on Tuesday,[[0]],[[1]]."),
+    )
+    isizulu = translate(
+        "I can come on Tuesday, 10:30.",
+        "zu",
+        "en",
+        backend=ScriptedBackend("Ngingafika ngoLwesibili,[[0]]."),
+    )
+    assert english.text == "I can come on Tuesday, 10:30, R450."
+    assert isizulu.text == "Ngingafika ngoLwesibili, 10:30."
+
+
+def test_the_backend_never_sees_the_hidden_contact_marker():
+    backend = ScriptedBackend("Ngishayele ucingo [[0]]")
+    translate(f"Call me {HIDDEN_CONTACT_TEXT}", "zu", "en", backend=backend)
+    assert backend.sent_text == "Call me [[0]]"
+
+
+@pytest.mark.parametrize(
+    ("target_lang", "expected_marker"),
+    [
+        ("zu", "[imininingwane yokuxhumana ifihliwe kuze kuqinisekiswe umsebenzi]"),
+        ("en", HIDDEN_CONTACT_TEXT),
+        # No isiXhosa wording from a first-language speaker yet, so it stays English
+        ("xh", HIDDEN_CONTACT_TEXT),
+    ],
+)
+def test_the_hidden_contact_marker_comes_back_in_the_readers_language(
+    target_lang, expected_marker
+):
+    source_lang = "zu" if target_lang == "en" else "en"
+    translation = translate(
+        f"Call me {HIDDEN_CONTACT_TEXT} after 5",
+        target_lang,
+        source_lang,
+        backend=ScriptedBackend("Translated [[0]] after [[1]]"),
+    )
+    assert translation.text == f"Translated {expected_marker} after 5"
+    assert not translation.flagged
+
+
 def test_isizulu_attached_values_keep_their_hyphen():
     backend = ScriptedBackend("Ungafika kusasa ngo-[[0]]?")
     translation = translate("Can you come tomorrow at 10:00?", "zu", "en", backend=backend)
@@ -256,6 +303,41 @@ def test_am_pm_becomes_the_local_time_of_day_word(english_time, target_lang, exp
     backend = ScriptedBackend("Ngizofika ngo- [[0]].")
     translation = translate(f"I'll come at {english_time}.", target_lang, "en", backend=backend)
     assert translation.text == f"Ngizofika ngo-{expected_time}."
+
+
+@pytest.mark.parametrize(
+    ("local_time", "source_lang", "target_lang", "expected_time"),
+    [
+        ("9 ekuseni", "zu", "en", "9am"),
+        ("2 ntambama", "zu", "en", "2pm"),
+        ("7 kusihlwa", "zu", "en", "7pm"),
+        ("10:30 ekuseni", "zu", "en", "10:30am"),
+        ("10h30 ekuseni", "zu", "en", "10:30am"),
+        ("8 ebusuku", "zu", "en", "8pm"),
+        ("2 ebusuku", "zu", "en", "2am"),
+        ("12 ebusuku", "zu", "en", "12am"),
+        ("12:00 ntambama", "zu", "en", "12:00pm"),
+        ("14h00 ntambama", "zu", "en", "14:00"),
+        ("20:00 ebusuku", "zu", "en", "20:00"),
+        ("00:30 ebusuku", "zu", "en", "00:30"),
+        ("14 ntambama", "zu", "en", "14:00"),
+        ("9 ntseni", "xh", "en", "9am"),
+        ("9 ekuseni", "zu", "xh", "9 ntseni"),
+        ("7 ngokuhlwa", "xh", "zu", "7 kusihlwa"),
+    ],
+)
+def test_a_local_time_of_day_is_said_the_readers_way(
+    local_time, source_lang, target_lang, expected_time
+):
+    backend = ScriptedBackend("I'll come on Saturday at [[0]], it costs [[1]].")
+    translation = translate(
+        f"Ngizofika ngoMgqibelo ngo-{local_time}, kuzobiza R450.",
+        target_lang,
+        source_lang,
+        backend=backend,
+    )
+    assert "ekuseni" not in backend.sent_text and "[[0]]" in backend.sent_text
+    assert translation.text == f"I'll come on Saturday at {expected_time}, it costs R450."
 
 
 def test_am_pm_stays_as_written_in_english():

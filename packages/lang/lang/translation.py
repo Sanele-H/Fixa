@@ -10,8 +10,15 @@ from collections import OrderedDict
 
 from lang.backends import TranslationBackend, get_backend
 from lang.models import Lang, Translation
-from lang.protection import ProtectedValue, protect, restore
+from lang.protection import (
+    LOCAL_TIME_WORDS,
+    TIME_OF_DAY_WORDS,
+    ProtectedValue,
+    protect,
+    restore,
+)
 from lang.quality import FLAG_REASON_AMOUNT_CHANGED, FLAG_REASON_UNAVAILABLE, find_quality_problem
+from lang.safety import HIDDEN_CONTACT_TEXTS
 
 logger = logging.getLogger(__name__)
 
@@ -27,25 +34,26 @@ GLUED_BEFORE_PLACEHOLDER_PATTERN = re.compile(r"(?<=[A-Za-z])(?=\[\[\d+\]\])")
 GLUED_AFTER_PLACEHOLDER_PATTERN = re.compile(r"(\[\[\d+\]\])(?=[A-Za-z])")
 SPACE_BEFORE_PUNCTUATION_PATTERN = re.compile(r"(\[\[\d+\]\])\s+([?!.,])")
 SPACING_FIX_LANGS = {"en"}
+# A comma or semicolon is always followed by a space, in every language, but Azure sometimes drops
+# it before a value ("on Tuesday,[[0]]").
+GLUED_AFTER_COMMA_PATTERN = re.compile(r"(?<=[,;])(?=\[\[\d+\]\])")
 
 # "9am" means nothing to someone who reads isiZulu, and a bare "9" loses whether it's morning or
 # night. So the digits stay protected and am/pm becomes the local word for that time of day:
-# "9am" -> "ngo-9 ekuseni". Words from our isiZulu and isiXhosa speaker (P3).
+# "9am" -> "ngo-9 ekuseni". The other way, "ngo-9 ekuseni" -> "9am", so English readers don't get
+# "at 9 morning". Words from our isiZulu and isiXhosa speaker (P3), in protection.py.
 AM_PM_TIME_PATTERN = re.compile(r"^(\d{1,2})(:\d{2})?\s?(am|pm)$", re.IGNORECASE)
-TIME_OF_DAY_WORDS: dict[str, dict[str, str]] = {
-    "zu": {
-        "morning": "ekuseni",
-        "afternoon": "ntambama",
-        "evening": "kusihlwa",
-        "night": "ebusuku",
-    },
-    "xh": {
-        "morning": "ntseni",
-        "afternoon": "njakalanga",
-        "evening": "ngokuhlwa",
-        "night": "busuku",
-    },
+LOCAL_TIME_PATTERN = re.compile(
+    rf"^(\d{{1,2}})([:h]\d{{2}})?\s({LOCAL_TIME_WORDS})$", re.IGNORECASE
+)
+WORD_TO_TIME_OF_DAY = {
+    word: time_of_day
+    for words in TIME_OF_DAY_WORDS.values()
+    for time_of_day, word in words.items()
 }
+EARLIEST_EVENING_HOUR_AT_NIGHT = 6  # "8 ebusuku" is 8pm, "2 ebusuku" is 2am
+LAST_HOUR_ON_A_12_HOUR_CLOCK = 12  # "14h00 ntambama" is already 24-hour: "14:00", not "14:00pm"
+WHOLE_HOUR_MINUTES = ":00"
 MORNING_START_HOUR = 5  # 24-hour clock: 5:00 to 11:59 is morning
 AFTERNOON_START_HOUR = 12
 EVENING_START_HOUR = 18
@@ -109,10 +117,13 @@ def translate_uncached(
         logger.exception("Translation failed, showing the original")
         return unavailable_translation(text, source_lang)
 
-    placeholder_text = backend_translation.text
+    placeholder_text = GLUED_AFTER_COMMA_PATTERN.sub(" ", backend_translation.text)
     if target_lang in SPACING_FIX_LANGS:
         placeholder_text = fix_spacing_around_placeholders(placeholder_text)
-    values = [localize_time(value, target_lang) for value in protected.values]
+    values = [
+        localize_hidden_contact(localize_time(value, target_lang), target_lang)
+        for value in protected.values
+    ]
     restored = restore(placeholder_text, values)
     translated_text = restored.text
     if target_lang in HYPHEN_PREFIX_LANGS:
@@ -153,16 +164,53 @@ def get_time_of_day(hour_24: int) -> str:
     return "night"
 
 
+def get_am_or_pm(hour_12: int, time_of_day: str) -> str:
+    """am or pm for an hour said with a time-of-day word ("8 ebusuku" is 8pm, "2 ebusuku" 2am)."""
+    if time_of_day == "morning":
+        return "am"
+    if time_of_day == "night":
+        return "pm" if EARLIEST_EVENING_HOUR_AT_NIGHT <= hour_12 < 12 else "am"
+    return "pm"
+
+
 def localize_time(value: ProtectedValue, target_lang: Lang) -> ProtectedValue:
-    """Turn an am/pm time into digits plus the local time-of-day word ("9am" -> "9 ekuseni")."""
-    match = AM_PM_TIME_PATTERN.match(value.text)
-    if value.kind != "time" or target_lang not in TIME_OF_DAY_WORDS or not match:
+    """Say a time the reader's way: "9am" -> "9 ekuseni", "9 ekuseni" -> "9am" or "9 ntseni".
+
+    An hour already on the 24-hour clock keeps its digits in English ("14h00 ntambama" ->
+    "14:00"), since adding am/pm would give an impossible time like "14:00pm".
+    """
+    if value.kind != "time":
         return value
-    hour_text, minutes_text, am_or_pm = match.groups()
-    hour_12 = int(hour_text) % 12
-    hour_24 = hour_12 + 12 if am_or_pm.lower() == "pm" else hour_12
-    word = TIME_OF_DAY_WORDS[target_lang][get_time_of_day(hour_24)]
-    return value.model_copy(update={"text": f"{hour_text}{minutes_text or ''} {word}"})
+    am_pm_match = AM_PM_TIME_PATTERN.match(value.text)
+    if am_pm_match and target_lang in TIME_OF_DAY_WORDS:
+        hour_text, minutes_text, am_or_pm = am_pm_match.groups()
+        hour_12 = int(hour_text) % 12
+        hour_24 = hour_12 + 12 if am_or_pm.lower() == "pm" else hour_12
+        word = TIME_OF_DAY_WORDS[target_lang][get_time_of_day(hour_24)]
+        return value.model_copy(update={"text": f"{hour_text}{minutes_text or ''} {word}"})
+
+    local_match = LOCAL_TIME_PATTERN.match(value.text)
+    if not local_match:
+        return value
+    hour_text, minutes_text, word = local_match.groups()
+    time_of_day = WORD_TO_TIME_OF_DAY[word.lower()]
+    if target_lang in TIME_OF_DAY_WORDS:
+        local_word = TIME_OF_DAY_WORDS[target_lang][time_of_day]
+        return value.model_copy(update={"text": f"{hour_text}{minutes_text or ''} {local_word}"})
+    minutes = (minutes_text or "").replace("h", ":")
+    hour = int(hour_text)
+    if hour == 0 or hour > LAST_HOUR_ON_A_12_HOUR_CLOCK:
+        # Already on the 24-hour clock, so am/pm would be wrong: "14h00 ntambama" -> "14:00"
+        return value.model_copy(update={"text": f"{hour_text}{minutes or WHOLE_HOUR_MINUTES}"})
+    am_or_pm = get_am_or_pm(hour % 12, time_of_day)
+    return value.model_copy(update={"text": f"{hour_text}{minutes}{am_or_pm}"})
+
+
+def localize_hidden_contact(value: ProtectedValue, target_lang: Lang) -> ProtectedValue:
+    """The hidden-contact marker in the reader's language, or English if we have no wording."""
+    if value.kind != "hidden":
+        return value
+    return value.model_copy(update={"text": HIDDEN_CONTACT_TEXTS.get(target_lang, value.text)})
 
 
 def fix_spacing_around_placeholders(text: str) -> str:

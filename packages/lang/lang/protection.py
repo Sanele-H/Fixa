@@ -14,6 +14,29 @@ PLACEHOLDER_FORMAT = "[[{index}]]"
 # Backends sometimes add spaces inside the brackets or drop one bracket, so restore() accepts those.
 PLACEHOLDER_PATTERN = re.compile(r"\[\[?\s*(\d+)\s*\]\]?")
 
+# What scan_message() puts in place of a contact detail. It's protected like a value, so a backend
+# can't reword it ("[oxhumana naye ufihliwe…]"), and translate() puts it back in the reader's
+# language.
+HIDDEN_CONTACT_TEXT = "[contact hidden until the job is confirmed]"
+
+# The word for each time of day, said after the hour ("ngo-9 ekuseni"). From P3, a first-language
+# isiZulu speaker; the isiXhosa words still need an isiXhosa speaker's check.
+TIME_OF_DAY_WORDS: dict[str, dict[str, str]] = {
+    "zu": {
+        "morning": "ekuseni",
+        "afternoon": "ntambama",
+        "evening": "kusihlwa",
+        "night": "ebusuku",
+    },
+    "xh": {
+        "morning": "ntseni",
+        "afternoon": "njakalanga",
+        "evening": "ngokuhlwa",
+        "night": "busuku",
+    },
+}
+LOCAL_TIME_WORDS = "|".join(word for words in TIME_OF_DAY_WORDS.values() for word in words.values())
+
 STREET_WORDS = (
     "street|st|road|rd|avenue|ave|drive|dr|crescent|cres|lane|close|way|place|"
     "straat|weg|laan|rylaan|singel"
@@ -53,6 +76,7 @@ RAND_AMOUNT = rf"{RAND_DIGITS}(?:[.,]\d{{2}})?"
 # so numbers are bounded by "not a digit" rather than by a word boundary. The rand sign is a
 # case-sensitive capital R, so "for 5 days" is not read as a price.
 PROTECTED_PATTERNS = [
+    ("hidden", re.escape(HIDDEN_CONTACT_TEXT)),
     ("email", r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+"),
     ("link", r"(?:https?://|www\.)\S+"),
     ("phone", r"(?<!\d)(?:\+27|0)(?:[\s-]?\d){9}(?!\d)"),
@@ -66,6 +90,8 @@ PROTECTED_PATTERNS = [
     ("date", r"(?<!\d)\d{4}-\d{2}-\d{2}(?!\d)"),
     ("date", r"(?<!\d)\d{1,2}/\d{1,2}(?:/\d{2,4})?(?!\d)"),
     ("date", rf"(?<!\d)\d{{1,2}}\s(?:{MONTH_WORDS})\b\.?"),
+    # "9 ekuseni" is one time, so translate() can say it the reader's way ("9am")
+    ("time", rf"(?<!\d)\d{{1,2}}(?:[:h]\d{{2}})?\s(?:{LOCAL_TIME_WORDS})\b"),
     ("time", r"(?<!\d)\d{1,2}(?::\d{2})?\s?(?:am|pm)\b"),  # before 10:30, so "3:30pm" stays whole
     ("time", r"(?<!\d)\d{1,2}[:h]\d{2}(?!\d)"),
     ("number", r"(?<![\d.,])\d+(?:[.,]\d+)?(?:\s?(?:mm|cm|m|kg|l|litres?|m2)\b)?"),
@@ -78,7 +104,9 @@ COMPILED_PATTERNS = [
 class ProtectedValue(BaseModel):
     """One value taken out of the text, in the order it appeared."""
 
-    kind: str  # "price", "time", "date", "phone", "address", "email", "link" or "number"
+    # "price", "time", "date", "phone", "address", "email", "link", "number", or "hidden" for the
+    # hidden-contact marker
+    kind: str
     text: str
 
 

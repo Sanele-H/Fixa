@@ -23,13 +23,14 @@ from collections import OrderedDict
 
 from lang.backends import BackendDetection, get_backend
 from lang.models import Lang
-from lang.protection import protect
+from lang.protection import LOCAL_TIME_WORDS, protect
 from lang.safety import HIDDEN_CONTACT_TEXT
 
 logger = logging.getLogger(__name__)
 
 WORD_PATTERN = re.compile(r"[a-z]+")
-VALUE_PLACEHOLDER_PATTERN = re.compile(r"\[\[\d+\]\]")
+VALUE_PLACEHOLDER_PATTERN = re.compile(r"\[\[(\d+)\]\]")
+LOCAL_TIME_WORD_PATTERN = re.compile(rf"\b(?:{LOCAL_TIME_WORDS})\b", re.IGNORECASE)
 
 # Markers for P3's isiZulu and isiXhosa speaker to check and extend. Only words that belong to
 # one language: "kodwa" and "uxolo", used in both, are left out on purpose. "ewe" and "yam" are
@@ -85,9 +86,19 @@ def detect_uncached(text: str, sender_lang: Lang) -> Lang:
 
 
 def remove_values(text: str) -> str:
-    """The text without values or the hidden-contact marker: only the words that show language."""
-    without_hidden = text.replace(HIDDEN_CONTACT_TEXT, " ")
-    return VALUE_PLACEHOLDER_PATTERN.sub(" ", protect(without_hidden).text).strip()
+    """The text without values or the hidden-contact marker: only the words that show language.
+
+    A local time keeps its time-of-day word ("Ngo-2 ntambama" -> "Ngo- ntambama"): the word is
+    isiZulu or isiXhosa, and without it a short message about a time has too few letters to
+    detect, so it would fall back to the sender's setting.
+    """
+    protected = protect(text.replace(HIDDEN_CONTACT_TEXT, " "))
+
+    def keep_time_of_day_words(placeholder: re.Match[str]) -> str:
+        value = protected.values[int(placeholder.group(1))]
+        return f" {' '.join(LOCAL_TIME_WORD_PATTERN.findall(value.text))} "
+
+    return VALUE_PLACEHOLDER_PATTERN.sub(keep_time_of_day_words, protected.text).strip()
 
 
 def count_letters(text: str) -> int:

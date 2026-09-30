@@ -55,6 +55,14 @@ def test_markers_find_isizulu_even_when_the_sender_is_set_to_english(use_detecto
     assert detector.sent_texts == []  # the markers were enough
 
 
+def test_a_time_of_day_word_still_reaches_the_detector(use_detector):
+    detector = use_detector(ScriptedDetector(BackendDetection(code="zu", score=1.0)))
+
+    # The digits are a value, but "ntambama" is isiZulu: without it, "Ngo-" is too short to detect
+    assert detect_language("Ngo-2 ntambama", "en") == "zu"
+    assert "ntambama" in detector.sent_texts[0] and "2" not in detector.sent_texts[0]
+
+
 def test_markers_find_isixhosa():
     assert detect_language("Ndiza kufika ngomso", "en") == "xh"
     assert detect_language("Enkosi", "zu") == "xh"
