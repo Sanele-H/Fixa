@@ -185,7 +185,12 @@
     "filter": {
       "all": "All",
       "urgent": "Urgent"
-    }
+    },
+    "yourJobs": "Your jobs",
+    "acceptedNote": "A customer accepted your quote. Open the job to confirm it.",
+    "newJobs": "New jobs",
+    "emptyTitle": "No new jobs right now",
+    "emptyBody": "Jobs in your trades show here as customers post them."
   },
   "quote": {
     "title": "Send a quote",
