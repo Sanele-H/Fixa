@@ -18,6 +18,18 @@ def enable_sqlite_foreign_keys(connection: sqlite3.Connection, _connection_recor
     connection.execute("PRAGMA foreign_keys=ON")
 
 
+def use_psycopg_driver(database_url: str) -> str:
+    """Point a plain Postgres URL at psycopg 3, the driver we install.
+
+    Supabase hands out postgresql://... (Heroku-style hosts use postgres://...), and SQLAlchemy
+    reads both as psycopg2, which is not installed, so the server would crash on start.
+    """
+    for plain_prefix in ("postgresql://", "postgres://"):
+        if database_url.startswith(plain_prefix):
+            return "postgresql+psycopg://" + database_url.removeprefix(plain_prefix)
+    return database_url
+
+
 def create_database_engine(database_url: str) -> Engine:
     """Return an engine for database_url.
 
@@ -27,7 +39,7 @@ def create_database_engine(database_url: str) -> Engine:
     new connection to "sqlite://" would be a separate, empty database.
     """
     if not database_url.startswith("sqlite"):
-        return create_engine(database_url, pool_pre_ping=True)
+        return create_engine(use_psycopg_driver(database_url), pool_pre_ping=True)
     engine_options = {"connect_args": {"check_same_thread": False}}
     if database_url == IN_MEMORY_DATABASE_URL:
         engine_options["poolclass"] = StaticPool
