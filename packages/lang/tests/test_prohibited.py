@@ -22,11 +22,23 @@ MUST_BE_FLAGGED = [
     ("selling cheaper prepaid vouchers", "illegal_vouchers"),
     ("CAN YOU BYPASS MY METER", "meter_tampering"),
     ("can   you   bypass\nmy   meter", "meter_tampering"),
+    # the meter first, then what's wanted done to it, typos and all
+    (
+        "I want my electricityh meter hacked so I dont have to pay for electricity",
+        "meter_tampering",
+    ),
+    ("i need the prepaid meter bypassed", "meter_tampering"),
+    ("crack my electricity meter please", "meter_tampering"),
+    ("wire it so I don't have to pay for electricity", "meter_tampering"),
 ]
 MUST_PASS = [
     "my prepaid meter isn't accepting my token",
     "the transformer on our street is sparking, who do I call?",
     "my meter shows a tamper error",
+    "my meter was hacked, who do I report it to?",
+    "I want my meter checked, it reads too high",
+    "I need my prepaid meter replaced, it is broken",
+    "I don't pay for electricity, my landlord does",
     "someone tampered with my meter and now it is broken",
     "the meter box door is broken",
     "my geyser is leaking through the ceiling",

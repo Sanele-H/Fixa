@@ -38,10 +38,12 @@
     },
     "meter_tampering": {
       "en": [
-        "\\b(?:by-?pass(?:ing)?|tamper(?:ing)? with|jump(?:ing)?|rig(?:ging)?|hack(?:ing)?|cheat(?:ing)?|reverse|reversing|slow(?:ing)? down|freez(?:e|ing)|manipulat(?:e|ing)) (?:with )?(?:the |my |our |a |this |that |your )?(?:prepaid |electricity |electric |smart )*meters?\\b",
+        "\\b(?:by-?pass(?:ing)?|tamper(?:ing)? with|jump(?:ing)?|rig(?:ging)?|hack(?:ing)?|crack(?:ing)?|bridg(?:e|ing)|cheat(?:ing)?|reverse|reversing|slow(?:ing)? down|freez(?:e|ing)|manipulat(?:e|ing)) (?:with )?(?:the |my |our |a |this |that |your )?(?:prepaid |electric\\w* |smart )*meters?\\b",
         "\\bmake (?:the|my|our) meter (?:run |go )?(?:slower|backwards)\\b",
         "\\bi (?:can|will|could) (?:fix|repair|sort(?: out)?|adjust|reset) (?:your|ur|the|any) (?:prepaid |electricity )*meter\\b",
-        "\\bwe (?:can|will|do) (?:fix|repair|sort(?: out)?|adjust|reset) (?:your|ur|the|any) (?:prepaid |electricity )*meter\\b"
+        "\\bwe (?:can|will|do) (?:fix|repair|sort(?: out)?|adjust|reset) (?:your|ur|the|any) (?:prepaid |electricity )*meter\\b",
+        "\\b(?:want|need|get|have|like)(?: to have| to get)? (?:my |the |our |a )?(?:prepaid |electric\\w* |smart )*meters? (?:to be |to get |be |get )?(?:hacked|cracked|by-?passed|tampered with|rigged|jumped|reversed|bridged)\\b",
+        "\\bso (?:that )?(?:i|we) (?:don'?t|dont|do not|never|won'?t) (?:have to |need to )?pay (?:for )?(?:electricity|power|lights|units)\\b"
       ],
       "zu": [
         "\\bukweqa\\s+(?:i-?)?imitha\\b",
