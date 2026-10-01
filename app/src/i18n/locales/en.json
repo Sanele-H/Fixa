@@ -204,7 +204,10 @@
     "cancelYes": "Yes, cancel it",
     "cancelNo": "Keep it",
     "licensedOnly": "Licensed providers only",
-    "moreWork": "I did more work for this customer"
+    "moreWork": "I did more work for this customer",
+    "delete": "Delete this job",
+    "deleteConfirm": "Delete this job from your list? This can't be undone.",
+    "deleteYes": "Yes, delete it"
   },
   "contact": {
     "lockedTitle": "Contact details hidden",

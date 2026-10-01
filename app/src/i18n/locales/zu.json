@@ -205,7 +205,10 @@
     "cancelYes": "Yebo, ukhansele",
     "cancelNo": "Ugcine",
     "licensedOnly": "Abakhi abanamalayisense kuphela",
-    "moreWork": "Ngenze omunye umsebenzi kuleli khasimende"
+    "moreWork": "Ngenze omunye umsebenzi kuleli khasimende",
+    "delete": "Susa lo msebenzi",
+    "deleteConfirm": "Susa lo msebenzi ohlwini lwakho? Lokhu akukwazi ukuhlehliswa.",
+    "deleteYes": "Yebo, wususe"
   },
   "contact": {
     "lockedTitle": "Imininingwane yocingo ifihliwe",

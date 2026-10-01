@@ -205,7 +205,10 @@
     "cancelYes": "Ewe, ukhansele",
     "cancelNo": "Gcina",
     "licensedOnly": "Abakhi abanamaphepha-mvume kuphela",
-    "moreWork": "Ndiyenze omnye umsebenzi kulomthengi"
+    "moreWork": "Ndiyenze omnye umsebenzi kulomthengi",
+    "delete": "Cima lo msebenzi",
+    "deleteConfirm": "Cima lo msebenzi kuluhlu lwakho? Oku akunakubuyiselwa umva.",
+    "deleteYes": "Ewe, wucime"
   },
   "contact": {
     "lockedTitle": "Iinkcukacha zakho zokunxibelelana zifihliwe",

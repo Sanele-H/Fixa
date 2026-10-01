@@ -5,13 +5,14 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { generatePath, useParams } from "react-router";
+import { generatePath, useNavigate, useParams } from "react-router";
 import { getErrorMessageKey } from "../../api/errors";
 import {
   useAcceptQuote,
   useCancelJob,
   useConfirmJob,
   useDeclineJob,
+  useDeleteJob,
   useJob,
   useJobQuotes,
 } from "../../api/jobs";
@@ -214,6 +215,45 @@ function ProviderQuote({ job }: { job: Job }) {
   );
 }
 
+/** While a job is in these states its customer can delete it: nobody has quoted yet, or it's over. */
+const DELETABLE_STATES: JobState[] = ["posted", "cancelled"];
+
+/** Deleting takes the job off the customer's list (and off the feed if it was posted). Asks once more first. */
+function DeleteJob({ job }: { job: Job }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const deleteJob = useDeleteJob();
+  const [isConfirming, setIsConfirming] = useState(false);
+
+  if (!DELETABLE_STATES.includes(job.state)) {
+    return null;
+  }
+  if (!isConfirming) {
+    return (
+      <Button variant="secondary" isBlock onClick={() => setIsConfirming(true)}>
+        {t("job.delete")}
+      </Button>
+    );
+  }
+  return (
+    <Card>
+      <p className="section-title">{t("job.deleteConfirm")}</p>
+      {deleteJob.isError && <Banner tone="warning" title={t(getErrorMessageKey(deleteJob.error))} />}
+      <div className="row">
+        <Button
+          onClick={() => deleteJob.mutate(job.id, { onSuccess: () => navigate(PATHS.home) })}
+          disabled={deleteJob.isPending}
+        >
+          {t("job.deleteYes")}
+        </Button>
+        <Button variant="secondary" onClick={() => setIsConfirming(false)}>
+          {t("job.cancelNo")}
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
 /** Cancelling asks once more first, since it can't be undone. */
 function CancelJob({ job }: { job: Job }) {
   const { t } = useTranslation();
@@ -271,6 +311,7 @@ function JobDetails({ job }: { job: Job }) {
       {role === "customer" && <CustomerDayActions job={job} />}
       {role === "customer" && <SafetyCard jobId={job.id} state={job.state} />}
       {role === "customer" && <CancelJob job={job} />}
+      {role === "customer" && <DeleteJob job={job} />}
       {role === "provider" && <ReportButton targetType="job" targetId={job.id} />}
     </>
   );
