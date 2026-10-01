@@ -1,17 +1,18 @@
 // Log in with a phone number and the code from the SMS. The demo sends no SMS: every account's
 // code is DEMO_OTP from .env. Customers are 082 000 0001 to 0080, providers 071 000 0001 to 0060.
-// Once logged in, this screen sends the person to their home tab.
+// Once logged in, this screen sends the person back to the page they opened (a shared link), or
+// to their home tab.
 //
 // The language picked on this phone becomes the account's language, so there's one language
 // per person: the buttons are in it, and the server translates chats, jobs and quotes into it.
 
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Navigate } from "react-router";
+import { Navigate, useLocation } from "react-router";
 import { useSendLoginCode, useUpdateMyLanguage, useVerifyLoginCode } from "../../api/account";
 import { ApiError, getErrorMessageKey } from "../../api/errors";
 import type { AuthResult, Language } from "../../api/types";
-import { getHomePath, PATHS } from "../../app/paths";
+import { getPathAfterLogin, PATHS, type LoginReturnState } from "../../app/paths";
 import { useSession } from "../../session/SessionContext";
 import { Banner, Button, Card, Screen, ScreenHeader, TextField } from "../../ui";
 
@@ -30,6 +31,7 @@ function getLoginErrorKey(error: unknown) {
 export default function LoginScreen() {
   const { t, i18n } = useTranslation();
   const { user, createSession } = useSession();
+  const location = useLocation();
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const sendLoginCode = useSendLoginCode();
@@ -38,7 +40,7 @@ export default function LoginScreen() {
   const loginError = verifyLoginCode.error ?? sendLoginCode.error;
 
   if (user) {
-    return <Navigate to={getHomePath(user.role)} replace />;
+    return <Navigate to={getPathAfterLogin(location.state as LoginReturnState, user.role)} replace />;
   }
 
   /** Asks the server to send a code to the number typed in. */

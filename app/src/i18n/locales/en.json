@@ -236,7 +236,9 @@
   },
   "profile": {
     "share": "Share profile",
-    "speaks": "Speaks {{languages}}"
+    "speaks": "Speaks {{languages}}",
+    "shareTitle": "{{name}} on Fixa",
+    "linkCopied": "Link copied. Paste it in a message."
   },
   "me": {
     "title": "Me",
