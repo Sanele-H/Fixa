@@ -104,6 +104,11 @@ export async function putJson<T>(path: string, body: unknown): Promise<T> {
   return readJson<T>(await sendRequest(path, { method: "PUT", body: JSON.stringify(body) }, JSON_CONTENT_TYPE));
 }
 
+/** DELETE something (a job) that answers 204 with no body. */
+export async function deleteRequest(path: string): Promise<void> {
+  await sendRequest(path, { method: "DELETE" });
+}
+
 /**
  * POST a multipart form (a photo upload) and read the JSON answer. No Content-Type is set:
  * the browser adds it with the multipart boundary.

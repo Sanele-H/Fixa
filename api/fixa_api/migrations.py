@@ -35,6 +35,8 @@ ADDED_COLUMNS = [
     # Payments: the ways a quote accepts payment (older quotes: in the app after, or cash)
     AddedColumn("quote", "payment_methods", default_sql='\'["in_app_after", "cash"]\''),
     AddedColumn("quote", "deposit_rands"),
+    # Customers can delete posted or cancelled jobs from their list; none are deleted yet
+    AddedColumn("job", "deleted_at"),
 ]
 
 

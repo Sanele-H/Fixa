@@ -76,6 +76,7 @@
 | POST | `/api/jobs/{job_id}/confirm` | accepted provider | | `job_unlocked.json` (state `confirmed`) |
 | POST | `/api/jobs/{job_id}/decline` | accepted provider | | `job_public.json` (state `quoting`) |
 | POST | `/api/jobs/{job_id}/cancel` | job's customer | | `job_public.json` (state `cancelled`) |
+| DELETE | `/api/jobs/{job_id}` | job's customer | | 204. Removes a `posted` (no quotes yet, also taken off the feed) or `cancelled` job from the customer's list. 409 `job_in_use` for any other state (cancel first), 409 `refund_pending` while a refund is owed or under review. The row is kept, marked deleted, so providers' records and no-show evidence stay |
 | GET | `/api/jobs/{job_id}/messages` | job parties | `?after=<message_id>` (polled every 3 s) | `messages.json` |
 | POST | `/api/jobs/{job_id}/messages` | job parties | `{text, provider_id?}`: a customer with several quoting providers says who it's for | 201 `message.json` |
 | POST | `/api/identity/check-number` | provider | `{id_number}` (offline check) | `id_number_check.json` |

@@ -5,7 +5,7 @@ import uuid
 from typing import Annotated, Literal
 
 import numpy as np
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response
 from pydantic import AwareDatetime, BaseModel, Field, field_validator
 from sqlmodel import Session, or_, select
 
@@ -27,9 +27,12 @@ from fixa_api.models import DEFAULT_QUOTE_PAYMENT_METHODS, Customer, Job, Photo,
 from fixa_api.notifications import notify
 from fixa_api.payment_plans import (
     IN_APP_SPLIT,
+    REFUND_OWED,
+    UNDER_REVIEW,
     check_deposit,
     create_plan,
     delete_plan,
+    list_payments,
     read_pending_change,
     settle_cancelled_job,
 )
@@ -228,7 +231,7 @@ def is_my_job(user: Customer | Provider):
     """The condition for a person's own jobs: a customer's posts, or the jobs a provider quoted
     on or was picked for."""
     if user.role == "customer":
-        return Job.customer_id == user.id
+        return (Job.customer_id == user.id) & Job.deleted_at.is_(None)
     quoted_job_ids = select(Quote.job_id).where(Quote.provider_id == user.id)
     return or_(Job.provider_id == user.id, Job.id.in_(quoted_job_ids))
 
@@ -432,3 +435,40 @@ def cancel_job(job_id: str, customer: CustomerUser, session: DbSession):
     session.commit()
     settle_cancelled_job(session, job, state_before)  # refunds any deposit, or holds it
     return job_view(session, job, customer)
+
+
+# A customer can delete a job nobody has quoted on yet, or one that's over (cancelled).
+DELETABLE_STATES = {states.POSTED, states.CANCELLED}
+# Money still to be settled keeps a job on the list, so its receipt stays in reach.
+UNSETTLED_REFUND_STATES = {REFUND_OWED, UNDER_REVIEW}
+
+
+def has_unsettled_money(session: Session, job_id: str) -> bool:
+    return any(p.refund_state in UNSETTLED_REFUND_STATES for p in list_payments(session, job_id))
+
+
+@router.delete("/jobs/{job_id}", status_code=204)
+def delete_job(job_id: str, customer: CustomerUser, session: DbSession) -> Response:
+    """Removes a job from the customer's list: one still posted (no quotes yet), which is also
+    taken off the feed, or a cancelled one. Refused (409) for a job with quotes or work under
+    way (cancel it first) and while a refund is still owed or under review. The row is kept and
+    marked deleted, so providers' records and the ranking's no-show evidence stay as they were."""
+    job = session.get(Job, job_id)
+    if job is None or not is_job_customer(job, customer) or job.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job.state not in DELETABLE_STATES:
+        raise HTTPException(
+            status_code=409,
+            detail={"error": "job_in_use", "message": "Cancel this job before deleting it"},
+        )
+    if has_unsettled_money(session, job.id):
+        raise HTTPException(
+            status_code=409,
+            detail={"error": "refund_pending", "message": "Wait until the refund is settled"},
+        )
+    if job.state == states.POSTED:
+        move_job(job, states.CANCELLED)  # off the providers' feed too
+    job.deleted_at = now()
+    session.add(job)
+    session.commit()
+    return Response(status_code=204)

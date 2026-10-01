@@ -87,6 +87,9 @@ class Job(SQLModel, table=True):
     problem: str
     problem_lang: str
     directions: str | None = None  # free-text hints for the provider; only sent in JobUnlocked
+    # When the customer deleted it from their list. The row stays: a cancelled job can hold a
+    # provider's no-show (the ranking reads it) and payment receipts.
+    deleted_at: dt.datetime | None = Field(default=None, sa_type=UtcDateTime)
     photo_url: str | None = None
     created_at: dt.datetime = Field(sa_type=UtcDateTime)
     finished_on: dt.date | None = None

@@ -5,7 +5,7 @@
 // ranked providers and messages below it), so invalidating that prefix refreshes the lot.
 
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
-import { getJson, postJson } from "./client";
+import { deleteRequest, getJson, postJson } from "./client";
 import type { MapPoint } from "./places";
 import type {
   JobIntent,
@@ -209,4 +209,20 @@ export function useDeclineJob() {
 /** POST /api/jobs/{job_id}/cancel: the customer cancels the job. Call mutate(jobId). */
 export function useCancelJob() {
   return useJobStateChange((jobId) => `/api/jobs/${jobId}/cancel`);
+}
+
+/**
+ * DELETE /api/jobs/{job_id}: the customer removes a posted (no quotes yet) or cancelled job from
+ * their list. 409 for a job with quotes or work under way, or a refund still waiting.
+ * Call mutate(jobId).
+ */
+export function useDeleteJob() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (jobId: string) => deleteRequest(`/api/jobs/${jobId}`),
+    onSuccess: (_answer, jobId) => {
+      queryClient.removeQueries({ queryKey: jobKeys.job(jobId) });
+      invalidateJobLists(queryClient);
+    },
+  });
 }
