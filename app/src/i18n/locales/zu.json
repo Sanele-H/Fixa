@@ -237,7 +237,9 @@
   },
   "profile": {
     "share": "Yabelana ngephrofayili",
-    "speaks": "Ukhuluma {{languages}}"
+    "speaks": "Ukhuluma {{languages}}",
+    "shareTitle": "U-{{name}} ku-Fixa",
+    "linkCopied": "Ilinki ikopishiwe. Yinamathisele emlayezweni."
   },
   "me": {
     "title": "Mina",

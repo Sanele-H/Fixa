@@ -3,6 +3,7 @@
 // "Describe a job", since customers hire through a job, never straight from a profile.
 // Opened from a job's ranked list (?job=<job id>), its back arrow returns to that list.
 
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { generatePath, useParams, useSearchParams } from "react-router";
 import { useProviderProfile } from "../../api/providers";
@@ -15,8 +16,9 @@ import { VouchList } from "../../components/VouchList";
 import { LoadError, LoadingNote } from "../../components/LoadState";
 import { EVIDENCE_KEYS, formatSpokenLanguages, ProviderTrust } from "../../components/ProviderCard";
 import { formatDistanceKm } from "../../format";
+import { shareLink, type ShareOutcome } from "../../share";
 import { useCurrentUser } from "../../session/SessionContext";
-import { Avatar, Card, Chip, IconButton, Screen, ScreenHeader, Stat } from "../../ui";
+import { Avatar, Banner, Card, Chip, IconButton, Screen, ScreenHeader, Stat } from "../../ui";
 
 /** Where the back arrow goes: the nearby list, the job's ranked list, or the home tab. */
 function getBackPath(searchParams: URLSearchParams, role: Role) {
@@ -73,6 +75,27 @@ function ProfileDetails({ provider }: { provider: ProviderProfile }) {
   );
 }
 
+/**
+ * Shares a link to this profile in the app (the phone's share sheet, or copied where there's
+ * none). Whoever opens it logs in first if they need to, then lands on the profile.
+ */
+function useShareProfile(providerId: string, providerName: string) {
+  const { t } = useTranslation();
+  const [shareOutcome, setShareOutcome] = useState<ShareOutcome | null>(null);
+
+  /** Builds the profile's address on this site and hands it to the share sheet. */
+  async function shareProfile() {
+    const profileUrl = `${window.location.origin}${generatePath(PATHS.provider, { providerId })}`;
+    try {
+      setShareOutcome(await shareLink(profileUrl, t("profile.shareTitle", { name: providerName })));
+    } catch {
+      setShareOutcome(null); // no share sheet and the clipboard is blocked
+    }
+  }
+
+  return { shareOutcome, shareProfile };
+}
+
 export default function ProviderProfileScreen() {
   const { t } = useTranslation();
   const { role } = useCurrentUser();
@@ -81,15 +104,18 @@ export default function ProviderProfileScreen() {
   const isFromNearby = searchParams.get(PROFILE_FROM_PARAM) === PROFILE_FROM_NEARBY;
   const profile = useProviderProfile(providerId);
   const provider = profile.data;
+  const providerName = provider?.display_name ?? t("role.provider");
+  const { shareOutcome, shareProfile } = useShareProfile(providerId, providerName);
 
   return (
     <Screen>
       <ScreenHeader
         backTo={getBackPath(searchParams, role)}
-        actions={<IconButton icon="share" label={t("profile.share")} />}
+        actions={<IconButton icon="share" label={t("profile.share")} onClick={shareProfile} />}
         eyebrow={provider && `${provider.suburb} · ${formatDistanceKm(provider.distance_km)}`}
-        title={provider?.display_name ?? t("role.provider")}
+        title={providerName}
       />
+      {shareOutcome === "copied" && <Banner tone="info" title={t("profile.linkCopied")} />}
       {profile.isPending && <LoadingNote />}
       {profile.isError && <LoadError error={profile.error} onRetry={() => profile.refetch()} />}
       {provider && <ProfileDetails provider={provider} />}

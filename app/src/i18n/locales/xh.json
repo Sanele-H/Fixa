@@ -237,7 +237,9 @@
   },
   "profile": {
     "share": "Yabelana ngeprofayili",
-    "speaks": "Uthetha {{languages}}"
+    "speaks": "Uthetha {{languages}}",
+    "shareTitle": "U-{{name}} kwi-Fixa",
+    "linkCopied": "Ilinki ikhutshelwe. Yincamathisele kumyalezo."
   },
   "me": {
     "title": "Mna",

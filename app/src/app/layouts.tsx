@@ -3,12 +3,12 @@
 
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
-import { Navigate, Outlet, ScrollRestoration } from "react-router";
+import { Navigate, Outlet, ScrollRestoration, useLocation } from "react-router";
 import type { Role } from "../api/types";
 import { getStoredLanguage } from "../i18n";
 import { useCurrentUser, useSession } from "../session/SessionContext";
 import { Banner, BottomNav, Button, Screen, type NavItem } from "../ui";
-import { getHomePath, PATHS } from "./paths";
+import { getHomePath, PATHS, type LoginReturnState } from "./paths";
 
 /** The phone-width column every screen renders in, centred on wider screens. */
 export function AppFrame() {
@@ -77,17 +77,20 @@ function SessionCheckFailed() {
 
 /**
  * What shows while there's no user: the loading screen while a saved login is checked, a retry
- * screen if the server didn't answer, and otherwise the login screen.
+ * screen if the server didn't answer, and otherwise the login screen, which is told the page
+ * the person opened (a shared profile link) so it can return there after logging in.
  */
 function NoUserYet() {
   const { isCheckingToken, hasTokenCheckFailed } = useSession();
+  const location = useLocation();
   if (isCheckingToken) {
     return <ScreenLoading />;
   }
   if (hasTokenCheckFailed) {
     return <SessionCheckFailed />;
   }
-  return <Navigate to={PATHS.login} replace />;
+  const returnState: LoginReturnState = { returnTo: `${location.pathname}${location.search}` };
+  return <Navigate to={PATHS.login} replace state={returnState} />;
 }
 
 /**

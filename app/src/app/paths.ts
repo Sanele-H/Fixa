@@ -64,3 +64,15 @@ export function getCameraPath(jobId: string, suburb: string) {
 export function getHomePath(role: Role) {
   return role === "provider" ? PATHS.feed : PATHS.home;
 }
+
+/** What the login screen is handed when someone opens a link (a shared profile) before logging in. */
+export type LoginReturnState = { returnTo?: string } | null;
+
+/**
+ * Where to go after logging in: back to the page the person opened, if it's one of the app's own
+ * paths ("/providers/prov_001"), else their home tab. "//" is refused: it would leave the site.
+ */
+export function getPathAfterLogin(state: LoginReturnState, role: Role) {
+  const returnTo = state?.returnTo;
+  return returnTo?.startsWith("/") && !returnTo.startsWith("//") ? returnTo : getHomePath(role);
+}
